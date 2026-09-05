@@ -12,10 +12,11 @@ return new class extends Migration {
     {
         Schema::create('waitlists', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_name');
+            $table->string('customer_name')->nullable();
             $table->string('phone')->nullable();
             $table->integer('pax');
-            $table->enum('status', ['waiting', 'seated', 'cancelled'])->default('waiting');
+            $table->string('status')->default('waiting'); // Changed from enum to string
+            $table->string('created_by')->nullable();
             // $table->foreignId('added_by_user_id')->nullable()->constrained('users');
             $table->timestamps();
         });

@@ -19,35 +19,81 @@
                     <p class="text-[10px] sm:text-xs text-slate-500 font-medium">Table Management System</p>
                 </div>
             </div>
-            <div>
-                <a href="/"
-                    class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-xs">
-                    Back to Dashboard
+            <div class="flex items-center space-x-3">
+                <!-- Back to Dashboard Icon Button -->
+                <a href="/" title="Back to Dashboard"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl transition flex items-center justify-center border border-slate-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
                 </a>
+
+                <!-- Logout Button with Confirmation Modal Trigger -->
+                <div x-data="{ logoutModalOpen: false }" class="inline">
+                    <button @click="logoutModalOpen = true" type="button" title="Logout"
+                        class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl transition flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <!-- Pop-up Confirmation Modal -->
+                    <div x-show="logoutModalOpen"
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4"
+                        x-cloak>
+                        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl border border-slate-100 transform transition-all"
+                            @click.away="logoutModalOpen = false">
+                            <div
+                                class="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                                !
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">Confirm Logout</h3>
+                            <p class="text-xs text-slate-500">Are you sure you want to log out of your session?</p>
+                            <form action="/logout" method="POST" class="flex space-x-3 pt-2">
+                                @csrf
+                                <button type="button" @click="logoutModalOpen = false"
+                                    class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-xs">
+                                    Yes, Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-        <!-- Tabbed Navigation Bar (Waitlist First) -->
+        <!-- Tabbed Navigation Bar (Staff sees Waitlist only, Admin sees all reports) -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1">
             <a href="/database?view=waitlist"
                 class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'waitlist' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
                 Waitlist
             </a>
-            <a href="/database?view=hourly&date={{ $dateFilter }}"
-                class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'hourly' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
-                Daily Report
-            </a>
-            <a href="/database?view=daily&month={{ $monthFilter }}"
-                class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'daily' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
-                Monthly Report
-            </a>
-            <a href="/database?view=monthly&year={{ $yearFilter }}"
-                class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'monthly' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
-                Yearly Report
-            </a>
+
+            @if (auth()->check() && auth()->user()->role === 'admin')
+                <a href="/database?view=hourly&date={{ $dateFilter }}"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'hourly' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
+                    Daily Report
+                </a>
+                <a href="/database?view=daily&month={{ $monthFilter }}"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'daily' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
+                    Monthly Report
+                </a>
+                <a href="/database?view=monthly&year={{ $yearFilter }}"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'monthly' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100' }}">
+                    Yearly Report
+                </a>
+            @endif
         </div>
 
         <div
@@ -64,29 +110,13 @@
                         Yearly Visitor (Per Year)
                     @endif
                 </h2>
-                <p class="text-xs text-slate-500">Analyze visitor patterns and multi-tier operational trends.</p>
+                <p class="text-xs text-slate-500">Analyze visitor patterns and filter records by date.</p>
             </div>
 
-            @if ($viewMode === 'hourly')
-                <form method="GET" action="/database" class="flex items-center gap-2 w-full sm:w-auto">
-                    <input type="hidden" name="view" value="hourly">
-                    <input type="date" name="date" value="{{ $dateFilter }}"
-                        class="text-xs sm:text-sm p-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <button type="submit"
-                        class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">Filter</button>
-                </form>
-            @elseif($viewMode === 'daily')
-                <form method="GET" action="/database" class="flex items-center gap-2 w-full sm:w-auto">
-                    <input type="hidden" name="view" value="daily">
-                    <input type="month" name="month" value="{{ $monthFilter }}"
-                        class="text-xs sm:text-sm p-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <button type="submit"
-                        class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">Filter
-                        Month</button>
-                </form>
-            @elseif($viewMode === 'monthly')
-                <form method="GET" action="/database" class="flex items-center gap-2 w-full sm:w-auto">
-                    <input type="hidden" name="view" value="monthly">
+            <!-- Date Filter available for Waitlist & Daily Reports -->
+            <form method="GET" action="/database" class="flex items-center gap-2 w-full sm:w-auto">
+                <input type="hidden" name="view" value="{{ $viewMode }}">
+                @if ($viewMode === 'monthly')
                     <select name="year"
                         class="text-xs sm:text-sm p-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold">
                         @for ($y = 2024; $y <= 2030; $y++)
@@ -97,11 +127,23 @@
                     <button type="submit"
                         class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">Filter
                         Year</button>
-                </form>
-            @endif
+                @elseif($viewMode === 'daily')
+                    <input type="month" name="month" value="{{ $monthFilter }}"
+                        class="text-xs sm:text-sm p-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <button type="submit"
+                        class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">Filter
+                        Month</button>
+                @else
+                    <input type="date" name="date" value="{{ $dateFilter }}"
+                        class="text-xs sm:text-sm p-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <button type="submit"
+                        class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">Filter
+                        Date</button>
+                @endif
+            </form>
         </div>
 
-        @if ($viewMode === 'hourly')
+        @if (auth()->check() && auth()->user()->role === 'admin' && $viewMode === 'hourly')
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div
                     class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
@@ -150,7 +192,7 @@
                     @endforeach
                 </div>
             </div>
-        @elseif($viewMode === 'daily')
+        @elseif(auth()->check() && auth()->user()->role === 'admin' && $viewMode === 'daily')
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                 <h3 class="font-bold text-slate-900 text-base">Daily Visitor Report for {{ $monthFilter }}</h3>
                 <p class="text-xs text-slate-500">Total visitor counts per day throughout the selected month.</p>
@@ -176,7 +218,7 @@
                     @endforeach
                 </div>
             </div>
-        @elseif($viewMode === 'monthly')
+        @elseif(auth()->check() && auth()->user()->role === 'admin' && $viewMode === 'monthly')
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                 <h3 class="font-bold text-slate-900 text-base">Yearly Visitor Report for {{ $yearFilter }} (Monthly
                     Breakdown)</h3>
@@ -220,6 +262,7 @@
                 </div>
             </div>
         @else
+            <!-- WAITLIST DATABASE TABLE VIEW (Accessible to both Admin & Staff) -->
             <!-- WAITLIST DATABASE TABLE VIEW -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div class="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -239,24 +282,29 @@
                                 <th class="p-4">Pax</th>
                                 <th class="p-4">Status</th>
                                 <th class="p-4">Created At</th>
+                                @if (auth()->check() && auth()->user()->role === 'admin')
+                                    <th class="p-4">Made By</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($waitlists as $w)
                                 <tr class="hover:bg-slate-50/50 transition">
-                                    <td class="p-4 font-bold text-slate-700">#{{ $w->id }}</td>
-                                    <td class="p-4 font-bold text-slate-900">{{ $w->customer_name }}</td>
+                                    <td class="p-4 text-slate-600">#{{ $w->id }}</td>
+                                    <td class="p-4 text-slate-600">{{ $w->customer_name ?? 'Walk-in Guest' }}</td>
                                     <td class="p-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
-                                    <td class="p-4 font-extrabold text-slate-900">{{ $w->pax }} Persons</td>
-                                    <td class="p-4 font-bold uppercase text-xs text-slate-900">
-                                        {{ ucfirst($w->status) }}
-                                    </td>
+                                    <td class="p-4 text-slate-600">{{ $w->pax }} Persons</td>
+                                    <td class="p-4 text-slate-600 uppercase text-xs">{{ ucfirst($w->status) }}</td>
                                     <td class="p-4 text-slate-600">
                                         {{ $w->created_at ? $w->created_at->format('d M Y, H:i:s') : '-' }}</td>
+                                    @if (auth()->check() && auth()->user()->role === 'admin')
+                                        <td class="p-4 text-slate-600">{{ $w->created_by ?? 'System' }}</td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-12 text-slate-400">
+                                    <td colspan="{{ auth()->check() && auth()->user()->role === 'admin' ? 7 : 6 }}"
+                                        class="text-center py-12 text-slate-400">
                                         No waitlist records found in the database.
                                     </td>
                                 </tr>
@@ -267,6 +315,7 @@
             </div>
         @endif
 
+        <!-- Visitor Log Entries (Admin sees full details, Staff sees up to Ended Session) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="font-bold text-slate-900 text-base">Visitor Log Entries & Dining Durations</h3>
@@ -285,17 +334,19 @@
                             <th class="p-4">Visitor Pax</th>
                             <th class="p-4">Started Session</th>
                             <th class="p-4">Ended Session</th>
-                            <th class="p-4">Time Elapsed</th>
+                            @if (auth()->check() && auth()->user()->role === 'admin')
+                                <th class="p-4">Time Elapsed</th>
+                                <th class="p-4">Made By</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($logs as $log)
                             <tr class="hover:bg-slate-50/50 transition">
-                                <td class="p-4 font-bold text-slate-700">#{{ $log->id }}</td>
-                                <td class="p-4 font-bold text-slate-900">{{ $log->customer_name ?? 'Walk-in Guest' }}
-                                </td>
+                                <td class="p-4 text-slate-600">#{{ $log->id }}</td>
+                                <td class="p-4 text-slate-600">{{ $log->customer_name ?? 'Walk-in Guest' }}</td>
                                 <td class="p-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
-                                <td class="p-4 font-extrabold text-slate-900">{{ $log->pax }} Persons</td>
+                                <td class="p-4 text-slate-600">{{ $log->pax }} Persons</td>
                                 <td class="p-4 text-slate-600">
                                     {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d M Y, H:i:s') : '-' }}
                                 </td>
@@ -306,18 +357,19 @@
                                         In Progress
                                     @endif
                                 </td>
-                                <td class="p-4 font-bold text-slate-800">
-                                    @if ($log->time_elapsed)
-                                        <span
-                                            class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg">{{ $log->time_elapsed }}</span>
-                                    @else
-                                        <span class="text-slate-400 italic">-</span>
-                                    @endif
-                                </td>
+                                @if (auth()->check() && auth()->user()->role === 'admin')
+                                    <td class="p-4 text-slate-600">
+                                        {{ $log->time_elapsed ?? '-' }}
+                                    </td>
+                                    <td class="p-4 text-slate-600">
+                                        {{ $log->created_by ?? '-' }}
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-12 text-slate-400">
+                                <td colspan="{{ auth()->check() && auth()->user()->role === 'admin' ? 8 : 6 }}"
+                                    class="text-center py-12 text-slate-400">
                                     No visitor records found for this filter criteria.
                                 </td>
                             </tr>

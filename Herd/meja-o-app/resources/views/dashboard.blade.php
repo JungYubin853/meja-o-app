@@ -16,28 +16,23 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                {{-- <div class="bg-amber-600 text-white font-bold h-9 w-9 rounded-lg flex items-center justify-center tracking-wider text-base shadow-sm"></div> --}}
                 <div>
                     <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">My Kopi-O Group</h1>
                     <p class="text-[10px] sm:text-xs text-slate-500 font-medium">Table Management System</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                {{-- <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $hasAvailable ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
-                    <span class="h-2 w-2 rounded-full mr-1.5 {{ $hasAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span>
-                    <span class="hidden sm:inline">{{ $hasAvailable ? 'Tables Available' : 'All Occupied' }}</span>
-                    <span class="sm:hidden">{{ $hasAvailable ? 'Available' : 'Full' }}</span>
-                </span> --}}
-
-                <!-- Settings Button on Top Right (Shortened SVG) -->
-                <button @click="settingsModalOpen = true" title="Restaurant Layout Settings"
-                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl transition flex items-center justify-center border border-slate-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
-                        </path>
-                    </svg>
-                </button>
+                @if (auth()->check() && auth()->user()->role === 'admin')
+                    <!-- Settings Button (Hidden for Staff) -->
+                    <button @click="settingsModalOpen = true" title="Restaurant Layout Settings"
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl transition flex items-center justify-center border border-slate-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
+                            </path>
+                        </svg>
+                    </button>
+                @endif
 
                 <!-- Database / Reports Button -->
                 <a href="/database" title="Visitor Analytics & Database"
@@ -48,13 +43,71 @@
                         </path>
                     </svg>
                 </a>
+
+                <!-- Logout Button with Confirmation Modal Trigger -->
+                <div x-data="{ logoutModalOpen: false }" class="inline">
+                    <button @click="logoutModalOpen = true" type="button" title="Logout"
+                        class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl transition flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <!-- Pop-up Confirmation Modal -->
+                    <div x-show="logoutModalOpen"
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4"
+                        x-cloak>
+                        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl border border-slate-100 transform transition-all"
+                            @click.away="logoutModalOpen = false">
+                            <div
+                                class="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                                !
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">Confirm Logout</h3>
+                            <p class="text-xs text-slate-500">Are you sure you want to log out of your session?</p>
+                            <form action="/logout" method="POST" class="flex space-x-3 pt-2">
+                                @csrf
+                                <button type="button" @click="logoutModalOpen = false"
+                                    class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-xs">
+                                    Yes, Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content Container -->
-    <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6" x-data="{ search: '', activeTab: 'all' }">
+
+        <!-- Success Modal Popup -->
+        @if (session('success_waitlist'))
+            <div x-data="{ open: true }" x-show="open"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4"
+                x-cloak>
+                <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl border border-slate-100"
+                    @click.away="open = false">
+                    <div
+                        class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                        ✓</div>
+                    <h3 class="text-base font-bold text-slate-900">Successfully Added to Waitlist</h3>
+                    <p class="text-xs text-slate-500">The customer has been successfully queued into the waiting list.
+                    </p>
+                    <button @click="open = false"
+                        class="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 rounded-xl transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        @endif
 
         @if ($errors->any())
             <div
@@ -65,7 +118,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-            <!-- Waiting Queue Container (Moved to Left on Desktop, Top on Mobile) -->
+            <!-- Waiting Queue Container (Left on Desktop, Top on Mobile) -->
             <div class="order-1 lg:order-1 space-y-6">
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
                     <div class="flex items-center justify-between mb-4">
@@ -78,8 +131,9 @@
                     <form action="/waitlist" method="POST" class="space-y-3 mb-6">
                         @csrf
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Customer Name</label>
-                            <input type="text" name="customer_name" placeholder="e.g., John" required
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Customer Name
+                                (Optional)</label>
+                            <input type="text" name="customer_name" placeholder="e.g., John"
                                 class="w-full text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
                         </div>
                         <div>
@@ -139,7 +193,7 @@
                 </div>
             </div>
 
-            <!-- Table Grid & Section Cards Container (Moved to Right on Desktop, Bottom on Mobile) -->
+            <!-- Table Grid & Section Cards Container (Right on Desktop, Bottom on Mobile) -->
             <div class="order-2 lg:order-2 lg:col-span-3 space-y-6">
 
                 <!-- Controls Header (Search Bar & Floor Map Title) -->
@@ -147,7 +201,8 @@
                     class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 class="text-lg sm:text-xl font-bold text-slate-900">Restaurant Floor Map</h2>
-                        <p class="text-xs text-slate-500">Real-time tracking of table statuses by category sections.</p>
+                        <p class="text-xs text-slate-500">Real-time tracking of table statuses by category sections.
+                        </p>
                     </div>
                     <!-- Search Bar -->
                     <div class="w-full sm:w-64">
@@ -307,10 +362,12 @@
                         <h3 class="text-sm font-bold text-slate-800 mb-1">No Floor Map Configured</h3>
                         <p class="text-xs text-slate-500 mb-4">Click the settings icon in the top right corner to
                             generate your custom restaurant table layout.</p>
-                        <button @click="settingsModalOpen = true"
-                            class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">
-                            Open Layout Generator
-                        </button>
+                        @if (auth()->check() && auth()->user()->role === 'admin')
+                            <button @click="settingsModalOpen = true"
+                                class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs">
+                                Open Layout Generator
+                            </button>
+                        @endif
                     </div>
                 @endif
 
@@ -410,78 +467,81 @@
         </div>
     </div>
 
-    <!-- Settings Modal with Clean Blank Start & Plus (+) Button -->
-    <div x-show="settingsModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4" x-cloak>
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 transform transition-all"
-            @click.away="settingsModalOpen = false" x-data="{ rows: [{ capacity: '', quantity: '' }] }">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-slate-900">Restaurant Layout Generator</h3>
-                <button @click="settingsModalOpen = false" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+    @if (auth()->check() && auth()->user()->role === 'admin')
+        <!-- Settings Modal (Admin Only) -->
+        <div x-show="settingsModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4" x-cloak>
+            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 transform transition-all"
+                @click.away="settingsModalOpen = false" x-data="{ rows: [{ capacity: '', quantity: '' }] }">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-slate-900">Restaurant Layout Generator</h3>
+                    <button @click="settingsModalOpen = false" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <p class="text-xs text-slate-500 mb-4">Configure your restaurant floor map sections dynamically using
+                    the
+                    plus button below.</p>
+
+                <form action="/tables/generate" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                        <template x-for="(row, index) in rows" :key="index">
+                            <div
+                                class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 gap-3">
+                                <div class="flex items-center gap-2 flex-1">
+                                    <span class="text-xs font-bold text-slate-500">Pax Size:</span>
+                                    <input type="number" :name="'capacities[' + index + ']'"
+                                        x-model.number="row.capacity" min="1" required
+                                        class="w-16 text-xs p-2 bg-white border border-slate-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                </div>
+                                <div class="flex items-center gap-2 flex-1">
+                                    <span class="text-xs font-bold text-slate-500">Quantity:</span>
+                                    <input type="number" :name="'quantities[' + index + ']'"
+                                        x-model.number="row.quantity" min="1" required
+                                        class="w-16 text-xs p-2 bg-white border border-slate-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                </div>
+                                <!-- Delete Row Button -->
+                                <button type="button" @click="rows.splice(index, 1)"
+                                    class="text-rose-500 hover:text-rose-700 p-1.5 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Plus (+) Button to Add Custom Table Group -->
+                    <button type="button" @click="rows.push({ capacity: '', quantity: '' })"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 border border-dashed border-slate-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        Add Custom Table Group (+)
+                    </button>
+
+                    <div class="flex space-x-3 pt-2">
+                        <button type="button" @click="settingsModalOpen = false"
+                            class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="w-1/2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-xs">
+                            Generate Layout
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <p class="text-xs text-slate-500 mb-4">Configure your restaurant floor map sections dynamically using the
-                plus button below.</p>
-
-            <form action="/tables/generate" method="POST" class="space-y-4">
-                @csrf
-                <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
-                    <template x-for="(row, index) in rows" :key="index">
-                        <div
-                            class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 gap-3">
-                            <div class="flex items-center gap-2 flex-1">
-                                <span class="text-xs font-bold text-slate-500">Pax Size:</span>
-                                <input type="number" :name="'capacities[' + index + ']'"
-                                    x-model.number="row.capacity" min="1" required
-                                    class="w-16 text-xs p-2 bg-white border border-slate-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                            </div>
-                            <div class="flex items-center gap-2 flex-1">
-                                <span class="text-xs font-bold text-slate-500">Quantity:</span>
-                                <input type="number" :name="'quantities[' + index + ']'"
-                                    x-model.number="row.quantity" min="1" required
-                                    class="w-16 text-xs p-2 bg-white border border-slate-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                            </div>
-                            <!-- Delete Row Button -->
-                            <button type="button" @click="rows.splice(index, 1)"
-                                class="text-rose-500 hover:text-rose-700 p-1.5 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                    </path>
-                                </svg>
-                            </button>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Plus (+) Button to Add Custom Table Group -->
-                <button type="button" @click="rows.push({ capacity: '', quantity: '' })"
-                    class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 border border-dashed border-slate-300">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                        </path>
-                    </svg>
-                    Add Custom Table Group (+)
-                </button>
-
-                <div class="flex space-x-3 pt-2">
-                    <button type="button" @click="settingsModalOpen = false"
-                        class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                        class="w-1/2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-xs">
-                        Generate Layout
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
+    @endif
 
 </body>
 

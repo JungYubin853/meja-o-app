@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->timestamp('started_at')->nullable(); // Renamed from logged_at or mapped
             $table->timestamp('ended_at')->nullable();   // Added session end time
             $table->string('time_elapsed')->nullable();  // Automatically calculated duration (e.g., "1h 15m")
+            $table->string('created_by')->nullable(); // Added here
             $table->timestamps();
         });
     }

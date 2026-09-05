@@ -11,46 +11,48 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $viewMode = $request->input('view', 'waitlist'); // waitlist, hourly, daily, monthly
+        $viewMode = $request->input('view', 'waitlist');
         $dateFilter = $request->input('date', now()->format('Y-m-d'));
         $monthFilter = $request->input('month', now()->format('Y-m'));
         $yearFilter = $request->input('year', now()->format('Y'));
 
-        // --- HOURLY DATA ---
-        $logs = VisitorLog::whereDate('started_at', $dateFilter)->orderBy('started_at', 'desc')->get();
-        $dailyTotal = $logs->sum('pax');
+        // Filter waitlists by selected date
+        $waitlists = Waitlist::whereDate('created_at', $dateFilter)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        $parsedDate = Carbon::parse($dateFilter);
-        $monthlyTotal = VisitorLog::whereYear('started_at', $parsedDate->year)
-            ->whereMonth('started_at', $parsedDate->month)
+        // Filter visitor logs by selected date
+        $logs = VisitorLog::whereDate('started_at', $dateFilter)
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        // Calculations for charts/totals...
+        $dailyTotal = VisitorLog::whereDate('started_at', $dateFilter)->sum('pax');
+        $monthlyTotal = VisitorLog::whereMonth('started_at', \Carbon\Carbon::parse($monthFilter)->month)
+            ->whereYear('started_at', \Carbon\Carbon::parse($monthFilter)->year)
             ->sum('pax');
 
         $hourlyData = [];
-        for ($hour = 0; $hour < 24; $hour++) {
-            $hourlyData[$hour] = VisitorLog::whereDate('started_at', $dateFilter)
-                ->whereRaw('HOUR(started_at) = ?', [$hour])
+        for ($h = 0; $h < 24; $h++) {
+            $hourlyData[$h] = VisitorLog::whereDate('started_at', $dateFilter)
+                ->whereRaw('HOUR(started_at) = ?', [$h])
                 ->sum('pax');
         }
 
-        // --- DAILY DATA (For selected month) ---
-        $parsedMonth = Carbon::parse($monthFilter);
-        $daysInMonth = $parsedMonth->daysInMonth;
         $dailyReportData = [];
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $currentDayStr = $parsedMonth->copy()->day($day)->format('Y-m-d');
-            $dailyReportData[$currentDayStr] = VisitorLog::whereDate('started_at', $currentDayStr)->sum('pax');
+        $daysInMonth = \Carbon\Carbon::parse($monthFilter)->daysInMonth;
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $currDate = $monthFilter . '-' . str_pad($d, 2, '0', STR_PAD_LEFT);
+            $dailyReportData[$currDate] = VisitorLog::whereDate('started_at', $currDate)->sum('pax');
         }
 
-        // --- MONTHLY DATA (For selected year - Yearly Report) ---
         $yearlyReportData = [];
         for ($m = 1; $m <= 12; $m++) {
-            $monthStr = str_pad($m, 2, '0', STR_PAD_LEFT);
-            $yearlyReportData[$monthStr] = VisitorLog::whereYear('started_at', $yearFilter)
+            $mStr = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $yearlyReportData[$mStr] = VisitorLog::whereYear('started_at', $yearFilter)
                 ->whereMonth('started_at', $m)
                 ->sum('pax');
         }
-
-        $waitlists = Waitlist::orderBy('created_at', 'desc')->get();
 
         return view('database', compact(
             'logs',

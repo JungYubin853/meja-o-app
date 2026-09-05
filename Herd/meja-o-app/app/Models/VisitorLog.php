@@ -16,6 +16,7 @@ class VisitorLog extends Model
         'pax',
         'started_at',
         'ended_at',
-        'time_elapsed'
+        'time_elapsed',
+        'created_by', // <-- Add this line here
     ];
 }

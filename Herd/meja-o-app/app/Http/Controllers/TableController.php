@@ -6,6 +6,7 @@ use App\Models\Table;
 use App\Models\Waitlist;
 use App\Models\VisitorLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Add this at the top
 
 class TableController extends Controller
 {
@@ -51,19 +52,25 @@ class TableController extends Controller
     public function storeWaitlist(Request $request)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
+            'customer_name' => 'nullable|string|max:255',
             'pax' => 'required|integer|min:1',
             'phone' => 'nullable|string|max:50',
         ]);
 
+        $customerName = $request->input('customer_name');
+        if (empty($customerName)) {
+            $customerName = 'Walk-in Guest';
+        }
+
         Waitlist::create([
-            'customer_name' => $request->input('customer_name'),
-            'phone' => $request->input('phone'), // Can be null
+            'customer_name' => $customerName,
+            'phone' => $request->input('phone'),
             'pax' => $request->input('pax'),
             'status' => 'waiting',
+            'created_by' => Auth::check() ? Auth::user()->name : 'System', // Captures the exact user's name
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success_waitlist', 'Successfully Added to Waitlist');
     }
 
     public function finishMeal($id)
@@ -118,6 +125,7 @@ class TableController extends Controller
             ->where('status', 'available')
             ->firstOrFail();
 
+        // Properly fetch the waitlist record
         $waitlist = Waitlist::findOrFail($waitlistId);
 
         if ($waitlist->pax > $table->capacity) {
@@ -136,12 +144,13 @@ class TableController extends Controller
             'status' => 'seated'
         ]);
 
-        // Log session start with waitlist info
+        // Log session start with waitlist info & creator name
         VisitorLog::create([
             'customer_name' => $waitlist->customer_name,
             'phone' => $waitlist->phone,
             'pax' => $paxCount,
             'started_at' => now(),
+            'created_by' => $waitlist->created_by, // Passes Bob or Yubin correctly
         ]);
 
         return redirect()->back();
