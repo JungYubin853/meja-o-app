@@ -4,10 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
 class VisitorLog extends Model
 {
     protected $fillable = [
@@ -17,6 +13,6 @@ class VisitorLog extends Model
         'started_at',
         'ended_at',
         'time_elapsed',
-        'created_by', // <-- Add this line here
+        'created_by',
     ];
 }

@@ -11,6 +11,6 @@ class Waitlist extends Model
         'phone',
         'pax',
         'status',
-        'created_by', // <-- Add this line here!
+        'created_by',
     ];
 }

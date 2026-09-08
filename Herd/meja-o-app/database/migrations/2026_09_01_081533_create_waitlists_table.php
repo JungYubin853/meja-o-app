@@ -5,9 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('waitlists', function (Blueprint $table) {
@@ -15,16 +12,12 @@ return new class extends Migration {
             $table->string('customer_name')->nullable();
             $table->string('phone')->nullable();
             $table->integer('pax');
-            $table->string('status')->default('waiting'); // Changed from enum to string
+            $table->string('status')->default('waiting');
             $table->string('created_by')->nullable();
-            // $table->foreignId('added_by_user_id')->nullable()->constrained('users');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('waitlists');
