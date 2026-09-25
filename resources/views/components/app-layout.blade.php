@@ -198,9 +198,7 @@
                                 </a>
                             @endif
                         </div>
-                    </div>
-                </div>
-                
+
                 <!-- Logout Button -->
                 <div class="pt-4 shrink-0 border-t border-slate-100 mt-auto px-5">
                     <button type="button" @click="logoutModalOpen = true"
@@ -259,7 +257,7 @@
                         </div>
 
                         <!-- Menu Navigation Links -->
-                        <div class="space-y-1.5">
+                        <div class="space-y-1.5 flex-1 overflow-y-auto pb-4">
 
                             <!-- 1. Dashboard Link -->
                             @if (Auth::user()->hasPermission('nav_dashboard'))
@@ -356,7 +354,7 @@
                     </div>
                     
                     <!-- Bottom Logout Trigger Button -->
-                    <div class="pt-4 shrink-0 border-t border-slate-100 mt-auto px-5">
+                    <div class="pt-4 shrink-0 border-t border-slate-100 mt-auto ">
                         <button type="button" @click="logoutModalOpen = true"
                             class="w-full bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-bold py-2.5 rounded-xl transition shadow-soft-2xs">
                             Logout
