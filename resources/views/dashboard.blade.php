@@ -573,17 +573,6 @@
     <div x-data="floorCanvas">
 
         
-<div x-data="{ hHeader: 0, hSidebar: 0 }" x-init="
-    setTimeout(() => {
-        hHeader = document.querySelector('header').getBoundingClientRect().height;
-        hSidebar = document.querySelector('aside > div > div').getBoundingClientRect().height;
-        let rectHeader = document.querySelector('header').getBoundingClientRect();
-        let rectSidebar = document.querySelector('aside > div > div').getBoundingClientRect();
-        document.getElementById('debug-box').innerText = 'Header: ' + rectHeader.top + ',' + rectHeader.bottom + ' Sidebar: ' + rectSidebar.top + ',' + rectSidebar.bottom;
-    }, 1000)
-" id="debug-box" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-4 rounded z-50 font-mono text-lg">
-    Loading sizes...
-</div>
 <main class="max-w-[84rem] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
 
             <div class="grid grid-cols-1 lg:grid-cols-7 gap-4 sm:gap-5 items-start">
