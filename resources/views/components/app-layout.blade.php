@@ -238,13 +238,13 @@
                     x-transition:leave="transform transition ease-in-out duration-200"
                     x-transition:leave-start="translate-x-0"
                     x-transition:leave-end="translate-x-full"
-                    class="w-[300px] bg-white shadow-soft-xl flex flex-col px-5 pb-5 border-l border-slate-200 h-full overflow-hidden">
+                    class="w-[300px] bg-white shadow-soft-xl flex flex-col border-l border-slate-200 h-full overflow-hidden">
 
                     <!-- Top Section: Header + Navigation List -->
                     <div class="flex flex-col flex-1 min-h-0">
 
                         <!-- Header with Title & Close Button (X) -->
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="h-16 box-border flex items-center justify-between border-b border-slate-200/80 shrink-0 px-5 mb-6">
                             <div class="leading-tight">
                                 <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight uppercase">NAVIGATION MENU</h3>
                             </div>
@@ -257,7 +257,7 @@
                         </div>
 
                         <!-- Menu Navigation Links -->
-                        <div class="space-y-1.5 flex-1 overflow-y-auto pb-4">
+                        <div class="space-y-1.5 flex-1 overflow-y-auto px-5 pb-4">
 
                             <!-- 1. Dashboard Link -->
                             @if (Auth::user()->hasPermission('nav_dashboard'))
@@ -354,7 +354,7 @@
                     </div>
                     
                     <!-- Bottom Logout Trigger Button -->
-                    <div class="pt-4 shrink-0 border-t border-slate-100 mt-auto ">
+                      <div class="pt-4 shrink-0 border-t border-slate-100 mt-auto px-5 pb-5">
                         <button type="button" @click="logoutModalOpen = true"
                             class="w-full bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-bold py-2.5 rounded-xl transition shadow-soft-2xs">
                             Logout
