@@ -79,16 +79,50 @@
             color: #334155;
             padding: 8px !important;
         }
-    </style>
+    
+        /* Year view (multiMonth) specific styling */
+        .fc .fc-multimonth-daygrid {
+            background-color: #ffffff;
+        }
+        .fc .fc-multimonth-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #334155;
+            padding: 12px 0;
+            text-align: center;
+        }
+        /* Make dots slightly bigger in year view */
+        .fc-daygrid-event-dot {
+            border-width: 4px !important;
+        }
+        /* In year view, hide the event titles completely if they appear, keeping only dots */
+        .fc-multimonth .fc-event-title {
+            display: none !important;
+        }
+        .fc-multimonth .fc-daygrid-event {
+            background: transparent !important;
+            border: none !important;
+            justify-content: center;
+        }
+        .fc-multimonth .fc-event-main {
+            display: flex;
+            justify-content: center;
+        }
+</style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                buttonText: {
+                    multiMonthYear: 'Year',
+                    dayGridMonth: 'Month',
+                    timeGridWeek: 'Week'
+                },
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek'
+                    right: 'multiMonthYear,dayGridMonth,timeGridWeek'
                 },
                 events: '/api/calendar/holidays',
                 height: '100%',
