@@ -9,10 +9,19 @@ return new class extends Migration {
     {
         Schema::create('tables', function (Blueprint $table) {
             $table->id();
-            $table->string('table_number')->unique();
+            $table->foreignId('outlet_id')->constrained('outlets')->cascadeOnDelete();
+            $table->string('table_number')->nullable(); // Remove ->unique(), add ->nullable()
             $table->enum('status', ['available', 'occupied', 'dirty'])->default('available');
-            $table->integer('capacity')->default(4);
+            $table->integer('capacity')->nullable()->default(0); // Allow empty pax default
             $table->integer('pax')->nullable();
+
+            // 2D Layout Grid Properties
+            $table->string('shape')->default('square'); // square, rectangle, circle
+            $table->integer('grid_x')->default(1);
+            $table->integer('grid_y')->default(1);
+            $table->integer('width')->default(2);  // Grid spans (e.g., 2x2 cells)
+            $table->integer('height')->default(2);
+
             $table->timestamp('seated_time')->nullable();
             $table->timestamp('cleared_time')->nullable();
             $table->string('created_by')->nullable();

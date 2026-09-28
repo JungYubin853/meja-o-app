@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('visitor_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('outlet_id')->constrained('outlets')->cascadeOnDelete();
             $table->string('customer_name')->nullable();
             $table->string('phone')->nullable();
             $table->integer('pax');

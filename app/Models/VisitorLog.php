@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class VisitorLog extends Model
 {
     protected $fillable = [
+        'outlet_id',
         'customer_name',
         'phone',
         'pax',
@@ -15,4 +16,9 @@ class VisitorLog extends Model
         'time_elapsed',
         'created_by',
     ];
+
+    public function outlet()
+    {
+        return $this->belongsTo(Outlet::class);
+    }
 }
