@@ -124,6 +124,9 @@
                     center: 'title',
                     right: 'multiMonthYear,dayGridMonth,timeGridWeek'
                 },
+                
+                multiMonthMaxColumns: 4,
+                multiMonthMinWidth: 200,
                 events: '/api/calendar/holidays',
                 height: '100%',
                 firstDay: 1, // Start on Monday
