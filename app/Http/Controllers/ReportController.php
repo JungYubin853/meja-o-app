@@ -144,62 +144,29 @@ class ReportController extends Controller
         
         // 4.5 Customer Habits
         $habitsData = [];
-        $weekdayWeekendData = [];
+        $maxHabitsTime = 0;
         
         if ($viewMode === 'habits') {
-            $completedLogs = (clone $baseLogQuery)->whereNotNull('ended_at')->get();
-            
-            $dayOfWeekAvg = [
-                'Monday' => ['total' => 0, 'count' => 0],
-                'Tuesday' => ['total' => 0, 'count' => 0],
-                'Wednesday' => ['total' => 0, 'count' => 0],
-                'Thursday' => ['total' => 0, 'count' => 0],
-                'Friday' => ['total' => 0, 'count' => 0],
-                'Saturday' => ['total' => 0, 'count' => 0],
-                'Sunday' => ['total' => 0, 'count' => 0],
-            ];
-            
-            $weekdayCount = 0;
-            $weekendHolidayCount = 0;
-
-            $year = date('Y');
-            $cacheKey = "holidays_{$year}";
-            $holidaysData = Cache::remember($cacheKey, 86400, function () use ($year) {
-                $response = Http::get("https://tanggalmerah.upset.dev/api/holidays?year={$year}");
-                return $response->successful() ? $response->json() : null;
-            });
-            $holidayDates = [];
-            if ($holidaysData && $holidaysData['success']) {
-                foreach ($holidaysData['data'] as $item) {
-                    $holidayDates[] = $item['date'];
+            $allOutlets = \App\Models\Outlet::orderBy('name')->get();
+            foreach ($allOutlets as $outlet) {
+                $logs = VisitorLog::where('outlet_id', $outlet->id)->whereNotNull('ended_at')->get();
+                $totalMinutes = 0;
+                foreach ($logs as $log) {
+                    $start = \Carbon\Carbon::parse($log->started_at);
+                    $end = \Carbon\Carbon::parse($log->ended_at);
+                    $totalMinutes += $start->diffInMinutes($end);
+                }
+                $avg = $logs->count() > 0 ? round($totalMinutes / $logs->count()) : 0;
+                
+                $habitsData[] = [
+                    'outlet' => $outlet->name,
+                    'avg_minutes' => $avg
+                ];
+                
+                if ($avg > $maxHabitsTime) {
+                    $maxHabitsTime = $avg;
                 }
             }
-            
-            foreach ($completedLogs as $log) {
-                $start = \Carbon\Carbon::parse($log->started_at);
-                $end = \Carbon\Carbon::parse($log->ended_at);
-                $diffInMinutes = $start->diffInMinutes($end);
-                
-                $dayName = $start->format('l'); // Monday, Tuesday...
-                $dayOfWeekAvg[$dayName]['total'] += $diffInMinutes;
-                $dayOfWeekAvg[$dayName]['count']++;
-                
-                $dateStr = $start->format('Y-m-d');
-                if ($start->isWeekend() || in_array($dateStr, $holidayDates)) {
-                    $weekendHolidayCount++;
-                } else {
-                    $weekdayCount++;
-                }
-            }
-            
-            foreach ($dayOfWeekAvg as $day => $data) {
-                $habitsData[$day] = $data['count'] > 0 ? round($data['total'] / $data['count']) : 0;
-            }
-            
-            $weekdayWeekendData = [
-                'Weekday' => $weekdayCount,
-                'Weekend/Holiday' => $weekendHolidayCount
-            ];
         }
 
         // 5. Initialize chart containers
@@ -241,7 +208,7 @@ class ReportController extends Controller
             'dailyReportData',
             'yearlyReportData',
             'habitsData',
-            'weekdayWeekendData',
+            'maxHabitsTime',
             'waitlists',
             'overallStats',
             'outlets',
