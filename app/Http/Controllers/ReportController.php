@@ -145,6 +145,10 @@ class ReportController extends Controller
         // 4.5 Customer Habits
         $habitsData = [];
         $maxHabitsTime = 0;
+        $habitsDayOfWeek = [];
+        $maxHabitsDay = 0;
+        $habitsHourly = [];
+        $maxHabitsHour = 0;
         
         if ($viewMode === 'habits') {
             $allOutlets = \App\Models\Outlet::orderBy('name')->get();
