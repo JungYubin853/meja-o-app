@@ -19,7 +19,7 @@
         </div>
 
         <div class="flex-1 bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 overflow-hidden flex flex-col">
-            <div id="calendar" class="flex-1 min-h-[600px]"></div>
+            <div id="calendar" class="flex-1 min-h-0"></div>
         </div>
     </div>
 
@@ -108,12 +108,26 @@
             display: flex;
             justify-content: center;
         }
+
+        /* Reduce padding in multi-month year view day headers to prevent scrolling */
+        .fc-multimonth-daygrid .fc-col-header-cell {
+            padding: 4px 0 !important;
+            font-size: 0.75rem;
+        }
+        .fc-multimonth-daygrid .fc-daygrid-day-number {
+            padding: 4px !important;
+            font-size: 0.75rem;
+        }
+        .fc .fc-multimonth-title {
+            padding: 8px 0;
+            font-size: 1rem;
+        }
 </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
+                initialView: 'multiMonthYear',
                 buttonText: {
                     multiMonthYear: 'Year',
                     dayGridMonth: 'Month',
@@ -125,12 +139,19 @@
                     right: 'multiMonthYear,dayGridMonth,timeGridWeek'
                 },
                 
-                multiMonthMaxColumns: 4,
-                multiMonthMinWidth: 200,
+                multiMonthMaxColumns: 6,
+                multiMonthMinWidth: 120,
                 events: '/api/calendar/holidays',
                 height: '100%',
                 firstDay: 1, // Start on Monday
                 navLinks: true, // can click day/week names to navigate views
+
+                  navLinkDayClick: 'timeGridWeek', // clicking a date goes to week view
+                  views: {
+                      multiMonthYear: {
+                          dayHeaderFormat: { weekday: 'narrow' } // S, M, T, W, T, F, S
+                      }
+                  },
                 dayMaxEvents: true, // allow "more" link when too many events
                 eventTimeFormat: {
                     hour: 'numeric',
