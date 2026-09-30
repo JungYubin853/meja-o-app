@@ -152,65 +152,75 @@ class ReportController extends Controller
         
         if ($viewMode === 'habits') {
             $allOutlets = \App\Models\Outlet::orderBy('name')->get();
-            $dayOfWeekData = [
-                'Monday' => ['total' => 0, 'count' => 0],
-                'Tuesday' => ['total' => 0, 'count' => 0],
-                'Wednesday' => ['total' => 0, 'count' => 0],
-                'Thursday' => ['total' => 0, 'count' => 0],
-                'Friday' => ['total' => 0, 'count' => 0],
-                'Saturday' => ['total' => 0, 'count' => 0],
-                'Sunday' => ['total' => 0, 'count' => 0],
-            ];
-            $hourlyDataTracker = [];
-            for ($i=0; $i<24; $i++) {
-                $hourlyDataTracker[str_pad($i, 2, '0', STR_PAD_LEFT)] = ['total' => 0, 'count' => 0];
-            }
+            
+            // To normalize all mini-charts
+            $globalMaxWeekly = 0;
+            $globalMaxHourly = 0;
             
             foreach ($allOutlets as $outlet) {
-                $logs = VisitorLog::where('outlet_id', $outlet->id)->whereNotNull('ended_at')->get();
+                $logs = VisitorLog::where('outlet_id', $outlet->id)->whereDate('started_at', $dateFilter)->whereNotNull('ended_at')->get();
                 $totalMinutes = 0;
+                
+                $outletWeeklyTracker = [
+                    'Mon' => ['total' => 0, 'count' => 0],
+                    'Tue' => ['total' => 0, 'count' => 0],
+                    'Wed' => ['total' => 0, 'count' => 0],
+                    'Thu' => ['total' => 0, 'count' => 0],
+                    'Fri' => ['total' => 0, 'count' => 0],
+                    'Sat' => ['total' => 0, 'count' => 0],
+                    'Sun' => ['total' => 0, 'count' => 0],
+                ];
+                $outletHourlyTracker = [];
+                for ($i=0; $i<24; $i++) {
+                    $outletHourlyTracker[str_pad($i, 2, '0', STR_PAD_LEFT)] = ['total' => 0, 'count' => 0];
+                }
+                
                 foreach ($logs as $log) {
                     $start = \Carbon\Carbon::parse($log->started_at);
                     $end = \Carbon\Carbon::parse($log->ended_at);
-                    $totalMinutes += $start->diffInMinutes($end);
+                    $diffInMinutes = $start->diffInMinutes($end);
                     
-                    $dayStr = $start->format('l');
+                    $totalMinutes += $diffInMinutes;
+                    
+                    $dayStr = substr($start->format('l'), 0, 3);
                     $hourStr = $start->format('H');
                     
-                    $dayOfWeekData[$dayStr]['total'] += $start->diffInMinutes($end);
-                    $dayOfWeekData[$dayStr]['count']++;
+                    $outletWeeklyTracker[$dayStr]['total'] += $diffInMinutes;
+                    $outletWeeklyTracker[$dayStr]['count']++;
                     
-                    $hourlyDataTracker[$hourStr]['total'] += $start->diffInMinutes($end);
-                    $hourlyDataTracker[$hourStr]['count']++;
-
+                    $outletHourlyTracker[$hourStr]['total'] += $diffInMinutes;
+                    $outletHourlyTracker[$hourStr]['count']++;
                 }
+                
                 $avg = $logs->count() > 0 ? round($totalMinutes / $logs->count()) : 0;
-                
-                $habitsData[] = [
-                    'outlet' => $outlet->name,
-                    'avg_minutes' => $avg
-                ];
-                
                 if ($avg > $maxHabitsTime) {
                     $maxHabitsTime = $avg;
                 }
+                
+                $weeklyAvg = [];
+                foreach ($outletWeeklyTracker as $day => $d) {
+                    $wAvg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
+                    $weeklyAvg[$day] = $wAvg;
+                    if ($wAvg > $globalMaxWeekly) $globalMaxWeekly = $wAvg;
+                }
+                
+                $hourlyAvg = [];
+                foreach ($outletHourlyTracker as $hour => $d) {
+                    $hAvg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
+                    $hourlyAvg[$hour] = $hAvg;
+                    if ($hAvg > $globalMaxHourly) $globalMaxHourly = $hAvg;
+                }
+                
+                $habitsData[] = [
+                    'outlet' => $outlet->name,
+                    'avg_minutes' => $avg,
+                    'weekly' => $weeklyAvg,
+                    'hourly' => $hourlyAvg
+                ];
             }
-
-            $habitsDayOfWeek = [];
-            $maxHabitsDay = 0;
-            foreach ($dayOfWeekData as $day => $d) {
-                $avg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
-                $habitsDayOfWeek[$day] = $avg;
-                if ($avg > $maxHabitsDay) $maxHabitsDay = $avg;
-            }
-
-            $habitsHourly = [];
-            $maxHabitsHour = 0;
-            foreach ($hourlyDataTracker as $hour => $d) {
-                $avg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
-                $habitsHourly[$hour] = $avg;
-                if ($avg > $maxHabitsHour) $maxHabitsHour = $avg;
-            }
+            
+            $maxHabitsDay = $globalMaxWeekly;
+            $maxHabitsHour = $globalMaxHourly;
         }
 
         // 5. Initialize chart containers
