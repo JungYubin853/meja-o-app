@@ -95,19 +95,7 @@
         .fc-daygrid-event-dot {
             border-width: 4px !important;
         }
-        /* In year view, hide the event titles completely if they appear, keeping only dots */
-        .fc-multimonth .fc-event-title {
-            display: none !important;
-        }
-        .fc-multimonth .fc-daygrid-event {
-            background: transparent !important;
-            border: none !important;
-            justify-content: center;
-        }
-        .fc-multimonth .fc-event-main {
-            display: flex;
-            justify-content: center;
-        }
+
 
         /* Reduce padding in multi-month year view day headers to prevent scrolling */
         .fc-multimonth-daygrid .fc-col-header-cell {
@@ -149,7 +137,9 @@
                   navLinkDayClick: 'timeGridWeek', // clicking a date goes to week view
                   views: {
                       multiMonthYear: {
-                          dayHeaderFormat: { weekday: 'narrow' } // S, M, T, W, T, F, S
+                          dayHeaderFormat: { weekday: 'narrow' },
+                          eventDisplay: 'background',
+                          dayMaxEvents: false
                       }
                   },
                 dayMaxEvents: true, // allow "more" link when too many events
