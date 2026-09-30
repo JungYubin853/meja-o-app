@@ -7,6 +7,8 @@ use App\Models\Waitlist;
 use App\Models\VisitorLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class ReportController extends Controller
 {
@@ -25,6 +27,8 @@ class ReportController extends Controller
                 $viewMode = 'overall';
             } elseif ($user->hasPermission('rep_daily')) {
                 $viewMode = 'hourly';
+            } elseif ($user->hasPermission('rep_habits')) {
+                $viewMode = 'habits';
             } elseif ($user->hasPermission('rep_waitlist')) {
                 $viewMode = 'waitlist';
             } else {
@@ -38,6 +42,7 @@ class ReportController extends Controller
             'hourly'   => 'rep_daily',
             'daily'    => 'rep_monthly',
             'monthly'  => 'rep_yearly',
+            'habits'   => 'rep_habits',
             'waitlist' => 'rep_waitlist'
         ];
 
@@ -45,6 +50,8 @@ class ReportController extends Controller
             // Redirect to a safe allowed view if they typed a URL they lack permission for
             if ($user->hasPermission('rep_daily')) {
                 return redirect('/database?view=hourly');
+            } elseif ($user->hasPermission('rep_habits')) {
+                $viewMode = 'habits';
             } elseif ($user->hasPermission('rep_waitlist')) {
                 return redirect('/database?view=waitlist');
             }
@@ -134,6 +141,67 @@ class ReportController extends Controller
             $yearlyTotal  = (clone $baseLogQuery)->whereYear('started_at', $yearFilter)->sum('pax');
         }
 
+        
+        // 4.5 Customer Habits
+        $habitsData = [];
+        $weekdayWeekendData = [];
+        
+        if ($viewMode === 'habits') {
+            $completedLogs = (clone $baseLogQuery)->whereNotNull('ended_at')->get();
+            
+            $dayOfWeekAvg = [
+                'Monday' => ['total' => 0, 'count' => 0],
+                'Tuesday' => ['total' => 0, 'count' => 0],
+                'Wednesday' => ['total' => 0, 'count' => 0],
+                'Thursday' => ['total' => 0, 'count' => 0],
+                'Friday' => ['total' => 0, 'count' => 0],
+                'Saturday' => ['total' => 0, 'count' => 0],
+                'Sunday' => ['total' => 0, 'count' => 0],
+            ];
+            
+            $weekdayCount = 0;
+            $weekendHolidayCount = 0;
+
+            $year = date('Y');
+            $cacheKey = "holidays_{$year}";
+            $holidaysData = Cache::remember($cacheKey, 86400, function () use ($year) {
+                $response = Http::get("https://tanggalmerah.upset.dev/api/holidays?year={$year}");
+                return $response->successful() ? $response->json() : null;
+            });
+            $holidayDates = [];
+            if ($holidaysData && $holidaysData['success']) {
+                foreach ($holidaysData['data'] as $item) {
+                    $holidayDates[] = $item['date'];
+                }
+            }
+            
+            foreach ($completedLogs as $log) {
+                $start = \Carbon\Carbon::parse($log->started_at);
+                $end = \Carbon\Carbon::parse($log->ended_at);
+                $diffInMinutes = $start->diffInMinutes($end);
+                
+                $dayName = $start->format('l'); // Monday, Tuesday...
+                $dayOfWeekAvg[$dayName]['total'] += $diffInMinutes;
+                $dayOfWeekAvg[$dayName]['count']++;
+                
+                $dateStr = $start->format('Y-m-d');
+                if ($start->isWeekend() || in_array($dateStr, $holidayDates)) {
+                    $weekendHolidayCount++;
+                } else {
+                    $weekdayCount++;
+                }
+            }
+            
+            foreach ($dayOfWeekAvg as $day => $data) {
+                $habitsData[$day] = $data['count'] > 0 ? round($data['total'] / $data['count']) : 0;
+            }
+            
+            $weekdayWeekendData = [
+                'Weekday' => $weekdayCount,
+                'Weekend/Holiday' => $weekendHolidayCount
+            ];
+        }
+
         // 5. Initialize chart containers
         $hourlyData       = [];
         $dailyReportData  = [];
@@ -172,6 +240,8 @@ class ReportController extends Controller
             'viewMode',
             'dailyReportData',
             'yearlyReportData',
+            'habitsData',
+            'weekdayWeekendData',
             'waitlists',
             'overallStats',
             'outlets',
@@ -197,6 +267,7 @@ class ReportController extends Controller
             'hourly'   => 'rep_daily',
             'daily'    => 'rep_monthly',
             'monthly'  => 'rep_yearly',
+            'habits'   => 'rep_habits',
             'waitlist' => 'rep_waitlist'
         ];
 
