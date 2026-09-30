@@ -71,7 +71,7 @@
                         Overall Analytics & Metrics
                     @elseif ($viewMode === 'waitlist')
                         Waitlist Customer Records
-                    @elseif ($viewMode === 'hourly')
+                    @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
                         Daily Visitor Report (Hourly Breakdown)
                     @elseif ($viewMode === 'daily')
                         Monthly Visitor Report (Daily Breakdown)
@@ -102,7 +102,109 @@
                     </form>
                 @endif
 
-                @if ($viewMode !== 'overall' && $viewMode !== 'waitlist')
+                <!-- CUSTOMER HABITS VIEW -->
+        @if ($viewMode === 'habits')
+            
+            @if ($holidayName)
+                <div class="mb-4 bg-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-50 border border-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-200 rounded-xl p-4 flex items-center gap-3">
+                    <div class="p-2 bg-white rounded-lg shadow-sm">
+                        <svg class="w-5 h-5 text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-900">{{ $holidayType }}</h4>
+                        <p class="text-sm font-medium text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-700">{{ $holidayName }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+                
+                <!-- Complete Daily Log Timeline -->
+                <div class="xl:col-span-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">Customer Visit Log ({{ \Carbon\Carbon::parse($dateFilter)->format('d M Y') }})</h3>
+                    @if(count($habitsDateLog) > 0)
+                        <div class="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2 touch-scroll">
+                            @foreach($habitsDateLog as $log)
+                                <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <div class="w-16 shrink-0 text-center">
+                                        <div class="text-xs font-bold text-slate-900">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</div>
+                                        <div class="text-[10px] font-semibold text-slate-400">{{ \Carbon\Carbon::parse($log->ended_at)->format('H:i') }}</div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs font-bold text-slate-700">{{ $log->customer_name ?? 'Walk-in Guest' }} ({{ $log->pax }} pax)</span>
+                                            <span class="text-xs font-extrabold text-indigo-600">{{ $log->time_elapsed }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                                            @php 
+                                                $startMin = (\Carbon\Carbon::parse($log->started_at)->hour * 60) + \Carbon\Carbon::parse($log->started_at)->minute;
+                                                $endMin = (\Carbon\Carbon::parse($log->ended_at)->hour * 60) + \Carbon\Carbon::parse($log->ended_at)->minute;
+                                                $leftPct = ($startMin / 1440) * 100;
+                                                $widthPct = (($endMin - $startMin) / 1440) * 100;
+                                            @endphp
+                                            <div class="bg-indigo-500 h-1.5 rounded-full" style="margin-left: {{ $leftPct }}%; width: {{ $widthPct }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-xs text-slate-400 font-semibold text-center py-6">No completed visits on this date.</p>
+                    @endif
+                </div>
+
+                <!-- Hourly Distribution -->
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-6">Hourly Average Stay (Selected Date)</h3>
+                    <div class="h-40 flex items-end justify-between gap-0.5 relative">
+                        @php $maxHourly = max(array_merge(array_values($habitsHourly), [1])); @endphp
+                        @foreach($habitsHourly as $hour => $min)
+                            <div class="flex-1 bg-amber-100 hover:bg-amber-500 rounded-t transition-all relative group" style="height: {{ $maxHourly > 0 ? ($min / $maxHourly) * 100 : 0 }}%">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2">
+                        <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+                    </div>
+                </div>
+
+                <!-- Weekly Distribution -->
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-6">Weekly Average Stay (Selected Year)</h3>
+                    <div class="h-40 flex items-end justify-between gap-1.5 relative">
+                        @php $maxWeekly = max(array_merge(array_values($habitsWeekly), [1])); @endphp
+                        @foreach($habitsWeekly as $day => $min)
+                            <div class="flex-1 bg-emerald-100 hover:bg-emerald-500 rounded-t transition-all relative group" style="height: {{ $maxWeekly > 0 ? ($min / $maxWeekly) * 100 : 0 }}%">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2 uppercase">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+
+                <!-- Yearly Distribution -->
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-6">Yearly Average Stay (Selected Year)</h3>
+                    <div class="h-40 flex items-end justify-between gap-1 relative">
+                        @php $maxYearly = max(array_merge(array_values($habitsYearly), [1])); @endphp
+                        @foreach($habitsYearly as $month => $min)
+                            <div class="flex-1 bg-sky-100 hover:bg-sky-500 rounded-t transition-all relative group" style="height: {{ $maxYearly > 0 ? ($min / $maxYearly) * 100 : 0 }}%">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2 uppercase">
+                        <span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+
+        @if ($viewMode !== 'overall' && $viewMode !== 'waitlist')
                     <form method="GET" action="/database" class="flex items-center gap-2 m-0 p-0 w-full sm:w-auto">
                         <input type="hidden" name="view" value="{{ $viewMode }}">
                         @if (isset($selectedOutletId)) <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}"> @endif
@@ -130,7 +232,7 @@
                                 class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
                                 Filter
                             </button>
-                        @elseif ($viewMode === 'hourly')
+                        @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
                             <input type="date" name="date" value="{{ $dateFilter }}"
                                 class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
                             <button type="submit"
@@ -266,8 +368,6 @@
                 </div>
             </div>
 
-            
-
         <!-- MONTHLY REPORT VIEW -->
         @elseif(Auth::user()->hasPermission('rep_monthly') && $viewMode === 'daily')
             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs space-y-4">
@@ -291,8 +391,6 @@
                     @endforeach
                 </div>
             </div>
-
-            
 
         <!-- YEARLY REPORT VIEW -->
         @elseif(Auth::user()->hasPermission('rep_yearly') && $viewMode === 'monthly')
@@ -333,8 +431,6 @@
                     @endforeach
                 </div>
             </div>
-
-            
 
         <!-- WAITLIST DATABASE RECORDS -->
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
@@ -394,159 +490,145 @@
         @endif
 
 
-        <!-- CUSTOMER HABITS VIEW -->
-        @if ($viewMode === 'habits')
-            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-                    <div>
-                        <h3 class="text-lg font-extrabold text-slate-800">Average Dine-In Duration</h3>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Comparing how long customers stay across all outlets.</p>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-5">
-                    @foreach ($habitsData as $data)
-                        <div class="flex flex-col gap-1.5 group p-4 border border-slate-100 rounded-xl hover:border-indigo-100 hover:shadow-soft-xs transition bg-slate-50/50 hover:bg-white">
-                            <div class="flex justify-between items-end text-xs mb-1">
-                                <span class="font-bold text-slate-700 truncate" title="{{ $data['outlet'] }}">{{ $data['outlet'] }}</span>
-                                <span class="font-extrabold text-slate-900">{{ $data['avg_minutes'] }} <span class="text-[9px] text-slate-400 font-semibold">min avg</span></span>
-                            </div>
-                            <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden shadow-inner mb-3">
-                                <div class="bg-indigo-500 group-hover:bg-indigo-400 h-full rounded-full transition-all duration-500" 
-                                    style="width: {{ $maxHabitsTime > 0 ? ($data['avg_minutes'] / $maxHabitsTime * 100) : 0 }}%;"></div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- Mini Weekly Chart -->
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] font-bold text-slate-500 mb-2">Day of Week</span>
-                                    <div class="flex items-end justify-between h-8 gap-0.5" title="Weekly Breakdown">
-                                        @foreach($data['weekly'] as $day => $min)
-                                            <div class="flex-1 bg-emerald-200 hover:bg-emerald-500 rounded-t-sm transition-all relative group/bar" 
-                                                style="height: {{ max(10, $maxHabitsDay > 0 ? ($min / $maxHabitsDay * 100) : 0) }}%">
-                                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover/bar:opacity-100 pointer-events-none z-10 hidden md:block shadow-md">{{ $min }}</div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="flex justify-between text-[7px] text-slate-400 font-extrabold px-1 mt-1 uppercase">
-                                        <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-                                    </div>
-                                </div>
-
-                                <!-- Mini Hourly Chart -->
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] font-bold text-slate-500 mb-2">Hour of Day</span>
-                                    <div class="flex items-end justify-between h-8 gap-[1px]" title="Hourly Breakdown">
-                                        @foreach($data['hourly'] as $hour => $min)
-                                            <div class="flex-1 bg-amber-200 hover:bg-amber-500 rounded-t-sm transition-all relative group/bar" 
-                                                style="height: {{ max(10, $maxHabitsHour > 0 ? ($min / $maxHabitsHour * 100) : 0) }}%">
-                                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover/bar:opacity-100 pointer-events-none z-10 hidden md:block shadow-md">{{ $min }}</div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="flex justify-between text-[7px] text-slate-300 font-extrabold px-0.5 mt-1">
-                                        <span>0</span><span>6</span><span>12</span><span>18</span><span>23</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            
-        @endif
-
         @if ($viewMode !== 'overall' && $viewMode !== 'waitlist')
-                    <form method="GET" action="/database" class="flex items-center gap-2 m-0 p-0 w-full sm:w-auto">
-                        <input type="hidden" name="view" value="{{ $viewMode }}">
-                        @if (isset($selectedOutletId)) <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}"> @endif
+        <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Page Navigator) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
+            x-data="{
+                perPage: 10,
+                currentPage: 1,
+                totalRecords: {{ count($logs) }},
+                get totalPages() {
+                    return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                },
+                nextPage() {
+                    if (this.currentPage < this.totalPages) this.currentPage++;
+                },
+                prevPage() {
+                    if (this.currentPage > 1) this.currentPage--;
+                }
+            }">
 
-                        @if ($viewMode === 'monthly')
-                            @php
-                                $startYear = 2026;
-                                $currentYear = max(2026, (int) date('Y'));
-                            @endphp
-                            <select name="year"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
-                                @for ($y = $startYear; $y <= $currentYear; $y++)
-                                    <option value="{{ $y }}" {{ $yearFilter == $y ? 'selected' : '' }}>
-                                        {{ $y }}</option>
-                                @endfor
-                            </select>
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
-                        @elseif ($viewMode === 'daily')
-                            <input type="month" name="month" value="{{ $monthFilter }}"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
-                        @elseif ($viewMode === 'hourly')
-                            <input type="date" name="date" value="{{ $dateFilter }}"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
-                        @endif
-                    </form>
-                @endif
+            <!-- Table Header: Title, Records Badge, Rows Dropdown, and 1/10 Pagination Stepper -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Visitor Log Entries & Dining Durations</h3>
+                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200 tabular-nums">
+                        {{ count($logs) }} Records
+                    </span>
+                </div>
 
-                @if ($viewMode !== 'waitlist' && $viewMode !== 'overall')
-                    <div class="relative flex items-center w-full sm:w-auto shrink-0" @click.away="exportMenuOpen = false">
-                        <button type="button" @click="exportMenuOpen = !exportMenuOpen"
-                            class="h-10 w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold px-3.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-soft-xs box-border">
-                            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                            </svg>
-                            <span>Export</span>
-                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-
-                        <div x-show="exportMenuOpen" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 top-full mt-2 w-full sm:w-44 bg-white rounded-2xl shadow-soft-xl border border-slate-100 py-1.5 z-30"
-                            x-cloak>
-
-                            <a href="/database/export?type=pdf&view={{ $viewMode }}&date={{ $dateFilter }}&month={{ $monthFilter }}&year={{ $yearFilter }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                target="_blank"
-                                class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-rose-600 transition">
-                                <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                                <span>Export PDF</span>
-                            </a>
-
-                            <a href="/database/export?type=excel&view={{ $viewMode }}&date={{ $dateFilter }}&month={{ $monthFilter }}&year={{ $yearFilter }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-600 transition">
-                                <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
-                                <span>Export Excel (CSV)</span>
-                            </a>
-                        </div>
+                <!-- Right Controls: Rows Dropdown (10, 25, 50, 100) & Page Navigator -->
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <!-- Dropdown: 10, 25, 50, 100 -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] text-slate-500 font-semibold">Show:</span>
+                        <select x-model.number="perPage" @change="currentPage = 1"
+                            class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                            <option :value="10">10</option>
+                            <option :value="25">25</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                        </select>
                     </div>
-                @endif
+
+                    <!-- Page Stepper: ‹ 1 / 10 › -->
+                    <div class="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200">
+                        <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                            :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed text-slate-400' :
+                                'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
+                            class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
+                            title="Previous Page">
+                            ‹
+                        </button>
+                        <span class="text-xs font-extrabold text-slate-800 px-2 tabular-nums select-none">
+                            <span x-text="currentPage"></span> / <span x-text="totalPages"></span>
+                        </span>
+                        <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                            :class="currentPage >= totalPages ? 'opacity-40 cursor-not-allowed text-slate-400' :
+                                'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
+                            class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
+                            title="Next Page">
+                            ›
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- Table Rows Filtered Dynamically by Current Page & Rows Per Page -->
+            <div class="overflow-x-auto touch-scroll">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <th class="p-3.5 sm:p-4">Log ID</th>
+                            <th class="p-3.5 sm:p-4">Customer Name</th>
+                            <th class="p-3.5 sm:p-4">Phone</th>
+                            <th class="p-3.5 sm:p-4">Guests</th>
+                            <th class="p-3.5 sm:p-4">Started</th>
+                            <th class="p-3.5 sm:p-4">Ended</th>
+                            @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                <th class="p-3.5 sm:p-4">Elapsed</th>
+                                <th class="p-3.5 sm:p-4">Staff</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($logs as $log)
+                            <tr class="hover:bg-slate-50/60 transition"
+                                x-show="({{ $loop->iteration }} > (currentPage - 1) * perPage) && ({{ $loop->iteration }} <= currentPage * perPage)"
+                                x-cloak>
+                                <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $log->id }}</td>
+                                <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
+                                    {{ $log->customer_name ?? 'Walk-in Guest' }}</td>
+                                <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
+                                <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
+                                <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
+                                    {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d M, H:i') : '-' }}
+                                </td>
+                                <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
+                                    {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : 'In Progress' }}
+                                </td>
+                                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                    <td class="p-3.5 sm:p-4 font-medium text-slate-700">
+                                        {{ $log->time_elapsed ?? '-' }}</td>
+                                    <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->created_by ?? '-' }}</td>
+                                @endif
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) ? 8 : 6 }}"
+                                    class="text-center py-10 text-slate-400 font-medium">
+                                    No visitor log records found for this filter criteria.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer: "Showing X to Y of Z records" with Secondary Stepper -->
+            @if (count($logs) > 0)
+                <div class="p-3.5 sm:p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                    <span>
+                        Showing <strong class="text-slate-800"
+                            x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
+                        to <strong class="text-slate-800"
+                            x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
+                        of <strong class="text-slate-800" x-text="totalRecords"></strong> records
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                            class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            Previous
+                        </button>
+                        <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                            class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            @endif
         </div>
+            @endif
 
     </main>
 </x-app-layout>

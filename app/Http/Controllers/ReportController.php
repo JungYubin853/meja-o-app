@@ -143,84 +143,95 @@ class ReportController extends Controller
 
         
         // 4.5 Customer Habits
-        $habitsData = [];
-        $maxHabitsTime = 0;
-        $habitsDayOfWeek = [];
-        $maxHabitsDay = 0;
+        $habitsDateLog = [];
         $habitsHourly = [];
-        $maxHabitsHour = 0;
+        $habitsWeekly = [];
+        $habitsYearly = [];
+        $holidayName = null;
+        $holidayType = null;
         
         if ($viewMode === 'habits') {
-            $allOutlets = \App\Models\Outlet::orderBy('name')->get();
-            
-            // To normalize all mini-charts
-            $globalMaxWeekly = 0;
-            $globalMaxHourly = 0;
-            
-            foreach ($allOutlets as $outlet) {
-                $logs = VisitorLog::where('outlet_id', $outlet->id)->whereDate('started_at', $dateFilter)->whereNotNull('ended_at')->get();
-                $totalMinutes = 0;
-                
-                $outletWeeklyTracker = [
-                    'Mon' => ['total' => 0, 'count' => 0],
-                    'Tue' => ['total' => 0, 'count' => 0],
-                    'Wed' => ['total' => 0, 'count' => 0],
-                    'Thu' => ['total' => 0, 'count' => 0],
-                    'Fri' => ['total' => 0, 'count' => 0],
-                    'Sat' => ['total' => 0, 'count' => 0],
-                    'Sun' => ['total' => 0, 'count' => 0],
-                ];
-                $outletHourlyTracker = [];
-                for ($i=0; $i<24; $i++) {
-                    $outletHourlyTracker[str_pad($i, 2, '0', STR_PAD_LEFT)] = ['total' => 0, 'count' => 0];
-                }
-                
-                foreach ($logs as $log) {
-                    $start = \Carbon\Carbon::parse($log->started_at);
-                    $end = \Carbon\Carbon::parse($log->ended_at);
-                    $diffInMinutes = $start->diffInMinutes($end);
-                    
-                    $totalMinutes += $diffInMinutes;
-                    
-                    $dayStr = substr($start->format('l'), 0, 3);
-                    $hourStr = $start->format('H');
-                    
-                    $outletWeeklyTracker[$dayStr]['total'] += $diffInMinutes;
-                    $outletWeeklyTracker[$dayStr]['count']++;
-                    
-                    $outletHourlyTracker[$hourStr]['total'] += $diffInMinutes;
-                    $outletHourlyTracker[$hourStr]['count']++;
-                }
-                
-                $avg = $logs->count() > 0 ? round($totalMinutes / $logs->count()) : 0;
-                if ($avg > $maxHabitsTime) {
-                    $maxHabitsTime = $avg;
-                }
-                
-                $weeklyAvg = [];
-                foreach ($outletWeeklyTracker as $day => $d) {
-                    $wAvg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
-                    $weeklyAvg[$day] = $wAvg;
-                    if ($wAvg > $globalMaxWeekly) $globalMaxWeekly = $wAvg;
-                }
-                
-                $hourlyAvg = [];
-                foreach ($outletHourlyTracker as $hour => $d) {
-                    $hAvg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
-                    $hourlyAvg[$hour] = $hAvg;
-                    if ($hAvg > $globalMaxHourly) $globalMaxHourly = $hAvg;
-                }
-                
-                $habitsData[] = [
-                    'outlet' => $outlet->name,
-                    'avg_minutes' => $avg,
-                    'weekly' => $weeklyAvg,
-                    'hourly' => $hourlyAvg
-                ];
+            // Default to first outlet if none selected
+            if (!$selectedOutletId) {
+                $firstOutlet = \App\Models\Outlet::orderBy('name')->first();
+                $selectedOutletId = $firstOutlet ? $firstOutlet->id : null;
             }
+
+            $dateParsed = \Carbon\Carbon::parse($dateFilter);
+            $year = $dateParsed->year;
+
+            // 1. Fetch Holiday Data
+            $cacheKey = "holidays_{$year}";
+            $holidaysData = Cache::remember($cacheKey, 86400, function () use ($year) {
+                $response = \Illuminate\Support\Facades\Http::get("https://tanggalmerah.upset.dev/api/holidays?year={$year}");
+                return $response->successful() ? $response->json() : null;
+            });
             
-            $maxHabitsDay = $globalMaxWeekly;
-            $maxHabitsHour = $globalMaxHourly;
+            if ($holidaysData && $holidaysData['success']) {
+                foreach ($holidaysData['data'] as $item) {
+                    if ($item['date'] === $dateFilter) {
+                        $holidayName = $item['name'];
+                        // the API usually doesn't have type 'collective_leave' but lets assume if it contains 'Cuti Bersama'
+                        $holidayType = (stripos($item['name'], 'Cuti Bersama') !== false) ? 'Collective Leave' : 'National Holiday';
+                        break;
+                    }
+                }
+            }
+
+            // 2. Fetch all completed logs for the selected outlet for the given year
+            $yearLogs = VisitorLog::where('outlet_id', $selectedOutletId)
+                                  ->whereYear('started_at', $year)
+                                  ->whereNotNull('ended_at')
+                                  ->get();
+
+            // 3. Process logs
+            $hourlyTracker = array_fill(0, 24, ['total' => 0, 'count' => 0]);
+            $weeklyTracker = [
+                'Monday' => ['total' => 0, 'count' => 0],
+                'Tuesday' => ['total' => 0, 'count' => 0],
+                'Wednesday' => ['total' => 0, 'count' => 0],
+                'Thursday' => ['total' => 0, 'count' => 0],
+                'Friday' => ['total' => 0, 'count' => 0],
+                'Saturday' => ['total' => 0, 'count' => 0],
+                'Sunday' => ['total' => 0, 'count' => 0],
+            ];
+            $yearlyTracker = array_fill(1, 12, ['total' => 0, 'count' => 0]);
+
+            foreach ($yearLogs as $log) {
+                $start = \Carbon\Carbon::parse($log->started_at);
+                $end = \Carbon\Carbon::parse($log->ended_at);
+                $diffInMinutes = $start->diffInMinutes($end);
+                
+                // Yearly
+                $yearlyTracker[$start->month]['total'] += $diffInMinutes;
+                $yearlyTracker[$start->month]['count']++;
+
+                // Weekly
+                $dayName = $start->format('l');
+                $weeklyTracker[$dayName]['total'] += $diffInMinutes;
+                $weeklyTracker[$dayName]['count']++;
+
+                // If log is from the SPECIFIC date
+                if ($start->format('Y-m-d') === $dateFilter) {
+                    $habitsDateLog[] = $log; // For the complete visit log timeline
+                    
+                    $hour = (int) $start->format('H');
+                    $hourlyTracker[$hour]['total'] += $diffInMinutes;
+                    $hourlyTracker[$hour]['count']++;
+                }
+            }
+
+            // 4. Calculate Averages
+            for ($i = 0; $i < 24; $i++) {
+                $habitsHourly[str_pad($i, 2, '0', STR_PAD_LEFT)] = $hourlyTracker[$i]['count'] > 0 ? round($hourlyTracker[$i]['total'] / $hourlyTracker[$i]['count']) : 0;
+            }
+            foreach ($weeklyTracker as $day => $data) {
+                $habitsWeekly[$day] = $data['count'] > 0 ? round($data['total'] / $data['count']) : 0;
+            }
+            for ($i = 1; $i <= 12; $i++) {
+                $monthName = \Carbon\Carbon::create()->month($i)->format('M');
+                $habitsYearly[$monthName] = $yearlyTracker[$i]['count'] > 0 ? round($yearlyTracker[$i]['total'] / $yearlyTracker[$i]['count']) : 0;
+            }
         }
 
         // 5. Initialize chart containers
@@ -261,12 +272,7 @@ class ReportController extends Controller
             'viewMode',
             'dailyReportData',
             'yearlyReportData',
-            'habitsData',
-            'maxHabitsTime',
-            'habitsDayOfWeek',
-            'maxHabitsDay',
-            'habitsHourly',
-            'maxHabitsHour',
+            'habitsDateLog', 'habitsHourly', 'habitsWeekly', 'habitsYearly', 'holidayName', 'holidayType',
             'waitlists',
             'overallStats',
             'outlets',
