@@ -148,6 +148,20 @@ class ReportController extends Controller
         
         if ($viewMode === 'habits') {
             $allOutlets = \App\Models\Outlet::orderBy('name')->get();
+            $dayOfWeekData = [
+                'Monday' => ['total' => 0, 'count' => 0],
+                'Tuesday' => ['total' => 0, 'count' => 0],
+                'Wednesday' => ['total' => 0, 'count' => 0],
+                'Thursday' => ['total' => 0, 'count' => 0],
+                'Friday' => ['total' => 0, 'count' => 0],
+                'Saturday' => ['total' => 0, 'count' => 0],
+                'Sunday' => ['total' => 0, 'count' => 0],
+            ];
+            $hourlyDataTracker = [];
+            for ($i=0; $i<24; $i++) {
+                $hourlyDataTracker[str_pad($i, 2, '0', STR_PAD_LEFT)] = ['total' => 0, 'count' => 0];
+            }
+            
             foreach ($allOutlets as $outlet) {
                 $logs = VisitorLog::where('outlet_id', $outlet->id)->whereNotNull('ended_at')->get();
                 $totalMinutes = 0;
@@ -155,6 +169,16 @@ class ReportController extends Controller
                     $start = \Carbon\Carbon::parse($log->started_at);
                     $end = \Carbon\Carbon::parse($log->ended_at);
                     $totalMinutes += $start->diffInMinutes($end);
+                    
+                    $dayStr = $start->format('l');
+                    $hourStr = $start->format('H');
+                    
+                    $dayOfWeekData[$dayStr]['total'] += $start->diffInMinutes($end);
+                    $dayOfWeekData[$dayStr]['count']++;
+                    
+                    $hourlyDataTracker[$hourStr]['total'] += $start->diffInMinutes($end);
+                    $hourlyDataTracker[$hourStr]['count']++;
+
                 }
                 $avg = $logs->count() > 0 ? round($totalMinutes / $logs->count()) : 0;
                 
@@ -166,6 +190,22 @@ class ReportController extends Controller
                 if ($avg > $maxHabitsTime) {
                     $maxHabitsTime = $avg;
                 }
+            }
+
+            $habitsDayOfWeek = [];
+            $maxHabitsDay = 0;
+            foreach ($dayOfWeekData as $day => $d) {
+                $avg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
+                $habitsDayOfWeek[$day] = $avg;
+                if ($avg > $maxHabitsDay) $maxHabitsDay = $avg;
+            }
+
+            $habitsHourly = [];
+            $maxHabitsHour = 0;
+            foreach ($hourlyDataTracker as $hour => $d) {
+                $avg = $d['count'] > 0 ? round($d['total'] / $d['count']) : 0;
+                $habitsHourly[$hour] = $avg;
+                if ($avg > $maxHabitsHour) $maxHabitsHour = $avg;
             }
         }
 
@@ -209,6 +249,10 @@ class ReportController extends Controller
             'yearlyReportData',
             'habitsData',
             'maxHabitsTime',
+            'habitsDayOfWeek',
+            'maxHabitsDay',
+            'habitsHourly',
+            'maxHabitsHour',
             'waitlists',
             'overallStats',
             'outlets',
