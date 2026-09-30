@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="h-full flex flex-col p-4 sm:p-6 lg:p-8">
+    <div class="min-h-[calc(100vh-64px)] flex flex-col p-4 sm:p-6 lg:p-8">
         
         <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -18,8 +18,8 @@
             </div>
         </div>
 
-        <div class="flex-1 bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 overflow-hidden flex flex-col">
-            <div id="calendar" class="flex-1 min-h-0"></div>
+        <div class="flex-1 bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5">
+            <div id="calendar" class="w-full"></div>
         </div>
     </div>
 
@@ -142,7 +142,7 @@
                 multiMonthMaxColumns: 6,
                 multiMonthMinWidth: 120,
                 events: '/api/calendar/holidays',
-                height: '100%',
+                height: 'auto',
                 firstDay: 1, // Start on Monday
                 navLinks: true, // can click day/week names to navigate views
 
