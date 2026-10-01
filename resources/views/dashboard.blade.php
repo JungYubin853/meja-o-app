@@ -1,6 +1,3 @@
-<style>
-body.is-dragging .placed-element { pointer-events: none !important; }
-</style>
 @if (auth()->check() && auth()->user()->isSuperAdmin())
     <script>
         (function() {
@@ -312,8 +309,8 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                 }
             },
             isValidSectionPlacement(ignoreIdx, x, y, w, h) {
-                let gw = {{ $width }};
-                let gh = {{ $height }};
+                let gw = {{ $gridWidth > 0 ? $gridWidth : 15 }};
+                let gh = {{ $gridHeight > 0 ? $gridHeight : 15 }};
                 if (x < 1 || y < 1 || x + w - 1 > gw || y + h - 1 > gh) return false;
                 for (let i=0; i<this.gridSections.length; i++) {
                     if (i !== ignoreIdx) {
@@ -324,8 +321,8 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                 return true;
             },
             isValidTablePlacement(id, x, y, w, h) {
-                let gw = {{ $width }};
-                let gh = {{ $height }};
+                let gw = {{ $gridWidth > 0 ? $gridWidth : 15 }};
+                let gh = {{ $gridHeight > 0 ? $gridHeight : 15 }};
                 if (x < 1 || y < 1 || x + w - 1 > gw || y + h - 1 > gh) return false;
                 for (let t of this.placedTablesBounds) {
                     if (t.id != id) {
@@ -749,7 +746,7 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                                             </button>
 
                                             <div draggable="true"
-                                                @dragstart="document.body.classList.add('is-dragging'); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $table->width }}'); $event.dataTransfer.setData('h', '{{ $table->height }}'); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0');" @dragend="document.body.classList.remove('is-dragging');"
+                                                @dragstart="$event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $table->width }}'); $event.dataTransfer.setData('h', '{{ $table->height }}'); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0');"
                                                 class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -829,7 +826,7 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                                             </button>
 
                                             <div draggable="true"
-                                                @dragstart="if(editMode === 'section') { document.body.classList.add('is-dragging'); $event.dataTransfer.setData('templateIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0'); }" @dragend="document.body.classList.remove('is-dragging');"
+                                                @dragstart="if(editMode === 'section') { $event.dataTransfer.setData('templateIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0'); }"
                                                 class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1"
                                                 :class="editMode === 'section' ? '' : 'opacity-50 cursor-not-allowed pointer-events-none'">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -981,7 +978,7 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                                             editMode === 'section' ? 'pointer-events-auto cursor-grab active:cursor-grabbing hover:ring-2 ring-white/50 shadow-lg z-10' : 'pointer-events-none z-0'
                                          ]"
                                          :draggable="editMode === 'section'"
-                                         @dragstart="if(editMode === 'section') { document.body.classList.add('is-dragging'); let r = $event.currentTarget.getBoundingClientRect(); let z = window.Alpine ? $data.zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); }" @dragend="document.body.classList.remove('is-dragging');"
+                                         @dragstart="if(editMode === 'section') { let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); }"
                                          >
                                          <div x-show="editMode === 'section'" @click.stop="if(justResizedSection) return; openPlacedSectionModal(idx)" class="w-full h-full relative group cursor-pointer">
                                              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 bg-black/10 rounded-xl">
@@ -1008,8 +1005,8 @@ body.is-dragging .placed-element { pointer-events: none !important; }
                                             max(1, $height - (int) $table->grid_y + 1),
                                         );
                                     @endphp
-                                    <div id="table-{{ $table->id }}" class="placed-element" draggable="{{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
-                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="document.body.classList.add('is-dragging'); let r = $event.currentTarget.getBoundingClientRect(); let z = window.Alpine ? $data.zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif @dragend="document.body.classList.remove('is-dragging');"
+                                    <div id="table-{{ $table->id }}" draggable="{{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
+                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif
                                         @click="
                                         if (justResizedTable) return;
                                         selectedTableId = {{ $table->id }};
