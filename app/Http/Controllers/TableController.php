@@ -315,8 +315,8 @@ class TableController extends Controller
     public function updateGridSize(Request $request)
     {
         $request->validate([
-            'grid_width'  => 'required|integer|min:5|max:40',
-            'grid_height' => 'required|integer|min:5|max:40',
+            'grid_width'  => 'required|integer|min:0|max:40',
+            'grid_height' => 'required|integer|min:0|max:40',
             'grid_sections' => 'nullable|string',
             'outlet_id'   => 'nullable|exists:outlets,id',
         ]);

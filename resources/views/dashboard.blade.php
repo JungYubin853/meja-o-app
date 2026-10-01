@@ -46,8 +46,8 @@
                 return maxH;
             },
             validateGridSize(e) {
-                let maxW = 5;
-                let maxH = 5;
+                let maxW = 0;
+                let maxH = 0;
                 
                 let placedTables = {!! json_encode(
                     $tables->where('grid_x', '>', 0)->map(fn($t) => [
@@ -71,12 +71,19 @@
                 let requestedW = parseInt(this.newGridWidth);
                 let requestedH = parseInt(this.newGridHeight);
                 
-                if (requestedW < maxW || requestedH < maxH) {
+                if (requestedW === 0 || requestedH === 0) {
+                    if (placedTables.length > 0 || this.gridSections.length > 0) {
+                        e.preventDefault();
+                        this.gridSizeError = 'It is not possible to empty the 2D Floor Canvas. You need to remove all tables and sections in this outlet that have been placed. Only then you can set it to 0.';
+                        return;
+                    }
+                } else if (requestedW < maxW || requestedH < maxH) {
                     e.preventDefault();
                     this.gridSizeError = 'Cannot reduce size. A table or section is occupying up to column ' + maxW + ' and row ' + maxH + '. Please move them first.';
-                } else {
-                    this.gridSizeError = '';
+                    return;
                 }
+                
+                this.gridSizeError = '';
             },
             isResizingSection: false,
             justResizedSection: false,
@@ -1482,11 +1489,11 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">Width (Columns)</label>
-                                    <input type="number" name="grid_width" :min="getMinGridWidth()" max="40" x-model="newGridWidth" required class="w-full text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
+                                    <input type="number" name="grid_width" min="0" max="40" x-model="newGridWidth" required class="w-full text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">Height (Rows)</label>
-                                    <input type="number" name="grid_height" :min="getMinGridHeight()" max="40" x-model="newGridHeight" required class="w-full text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
+                                    <input type="number" name="grid_height" min="0" max="40" x-model="newGridHeight" required class="w-full text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
                                 </div>
                             </div>
 
