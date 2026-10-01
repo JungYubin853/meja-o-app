@@ -1,3 +1,6 @@
+<style>
+body.is-dragging .placed-element { pointer-events: none !important; }
+</style>
 @if (auth()->check() && auth()->user()->isSuperAdmin())
     <script>
         (function() {
@@ -254,6 +257,83 @@
                 return 'bg-slate-900/40 border-slate-800/80';
             },
             
+            
+            handleGridDrop(e) {
+                let rect = e.currentTarget.getBoundingClientRect();
+                let cellWidthScreen = 40 * this.zoom;
+                
+                // Calculate raw drop column and row
+                let dropCol = Math.floor((e.clientX - rect.left) / cellWidthScreen) + 1;
+                let dropRow = Math.floor((e.clientY - rect.top) / cellWidthScreen) + 1;
+
+                if (this.editMode === 'section') {
+                    let secIdx = e.dataTransfer.getData('sectionIdx');
+                    let tplIdx = e.dataTransfer.getData('templateIdx');
+                    let w = parseInt(e.dataTransfer.getData('w') || 1);
+                    let h = parseInt(e.dataTransfer.getData('h') || 1);
+                    let ox = parseInt(e.dataTransfer.getData('ox') || 0);
+                    let oy = parseInt(e.dataTransfer.getData('oy') || 0);
+                    
+                    let targetCol = dropCol - ox;
+                    let targetRow = dropRow - oy;
+                    
+                    if (secIdx !== '') {
+                        if (!this.isValidSectionPlacement(parseInt(secIdx), targetCol, targetRow, w, h)) return;
+                        this.moveSection(parseInt(secIdx), targetCol, targetRow);
+                    } else if (tplIdx !== '') {
+                        if (!this.isValidSectionPlacement(-1, targetCol, targetRow, w, h)) return;
+                        this.placeSectionFromTemplate(parseInt(tplIdx), targetCol, targetRow);
+                    }
+                } else {
+                    let tableId = e.dataTransfer.getData('text/plain');
+                    if (!tableId) return;
+                    let w = parseInt(e.dataTransfer.getData('w') || 1);
+                    let h = parseInt(e.dataTransfer.getData('h') || 1);
+                    let ox = parseInt(e.dataTransfer.getData('ox') || 0);
+                    let oy = parseInt(e.dataTransfer.getData('oy') || 0);
+                    
+                    let targetCol = dropCol - ox;
+                    let targetRow = dropRow - oy;
+                    
+                    if (!this.isValidTablePlacement(parseInt(tableId), targetCol, targetRow, w, h)) {
+                        // User requested to prevent dropping if out of bounds or collides
+                        // Visual feedback (optional) but for now just return
+                        return;
+                    }
+                    
+                    let bm = JSON.parse(localStorage.getItem('meja_bookmarked_tables') || '[]');
+                    let isClone = bm.includes(parseInt(tableId));
+                    let endpoint = isClone ? ('/tables/' + tableId + '/clone') : ('/tables/' + tableId + '/coordinates');
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        body: JSON.stringify({ grid_x: targetCol, grid_y: targetRow })
+                    }).then(res => { if(res.ok) window.location.reload(); });
+                }
+            },
+            isValidSectionPlacement(ignoreIdx, x, y, w, h) {
+                let gw = {{ $width }};
+                let gh = {{ $height }};
+                if (x < 1 || y < 1 || x + w - 1 > gw || y + h - 1 > gh) return false;
+                for (let i=0; i<this.gridSections.length; i++) {
+                    if (i !== ignoreIdx) {
+                        let s = this.gridSections[i];
+                        if (!(x + w - 1 < s.x || x > s.x + s.w - 1 || y + h - 1 < s.y || y > s.y + s.h - 1)) return false;
+                    }
+                }
+                return true;
+            },
+            isValidTablePlacement(id, x, y, w, h) {
+                let gw = {{ $width }};
+                let gh = {{ $height }};
+                if (x < 1 || y < 1 || x + w - 1 > gw || y + h - 1 > gh) return false;
+                for (let t of this.placedTablesBounds) {
+                    if (t.id != id) {
+                        if (!(x + w - 1 < t.x || x > t.x + t.w - 1 || y + h - 1 < t.y || y > t.y + t.h - 1)) return false;
+                    }
+                }
+                return true;
+            },
             moveSection(idx, col, row) {
                 this.gridSections[idx].x = col;
                 this.gridSections[idx].y = row;
@@ -669,7 +749,7 @@
                                             </button>
 
                                             <div draggable="true"
-                                                @dragstart="$event.dataTransfer.setData('text/plain', '{{ $table->id }}')"
+                                                @dragstart="document.body.classList.add('is-dragging'); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $table->width }}'); $event.dataTransfer.setData('h', '{{ $table->height }}'); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0');" @dragend="document.body.classList.remove('is-dragging');"
                                                 class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -749,7 +829,7 @@
                                             </button>
 
                                             <div draggable="true"
-                                                @dragstart="if(editMode === 'section') { $event.dataTransfer.setData('templateIdx', idx); }"
+                                                @dragstart="if(editMode === 'section') { document.body.classList.add('is-dragging'); $event.dataTransfer.setData('templateIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0'); }" @dragend="document.body.classList.remove('is-dragging');"
                                                 class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1"
                                                 :class="editMode === 'section' ? '' : 'opacity-50 cursor-not-allowed pointer-events-none'">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -886,31 +966,7 @@
 
                                 @for ($row = 1; $row <= $height; $row++)
                                     @for ($col = 1; $col <= $width; $col++)
-                                        <div @dragover.prevent
-                                            @drop.prevent="
-                                            if (editMode === 'section') {
-                                                let secIdx = $event.dataTransfer.getData('sectionIdx');
-                                                let tplIdx = $event.dataTransfer.getData('templateIdx');
-                                                
-                                                if (secIdx !== '') {
-                                                    moveSection(parseInt(secIdx), {{ $col }}, {{ $row }});
-                                                } else if (tplIdx !== '') {
-                                                    placeSectionFromTemplate(parseInt(tplIdx), {{ $col }}, {{ $row }});
-                                                }
-                                            } else {
-                                                let tableId = $event.dataTransfer.getData('text/plain');
-                                                if (!tableId) return;
-                                                let bm = JSON.parse(localStorage.getItem('meja_bookmarked_tables') || '[]');
-                                                let isClone = bm.includes(parseInt(tableId));
-                                                let endpoint = isClone ? ('/tables/' + tableId + '/clone') : ('/tables/' + tableId + '/coordinates');
-                                                fetch(endpoint, {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                                                    body: JSON.stringify({ grid_x: {{ $col }}, grid_y: {{ $row }} })
-                                                }).then(res => { if(res.ok) window.location.reload(); });
-                                            }
-                                         "
-                                            class="border border-slate-800/80 bg-slate-900 w-[38px] h-[38px]"
+                                        <div class="border border-slate-800/80 bg-slate-900 w-[38px] h-[38px]"
                                             style="grid-column: {{ $col }}; grid-row: {{ $row }};">
                                         </div>
                                     @endfor
@@ -925,7 +981,7 @@
                                             editMode === 'section' ? 'pointer-events-auto cursor-grab active:cursor-grabbing hover:ring-2 ring-white/50 shadow-lg z-10' : 'pointer-events-none z-0'
                                          ]"
                                          :draggable="editMode === 'section'"
-                                         @dragstart="if(editMode === 'section') { $event.dataTransfer.setData('sectionIdx', idx); }"
+                                         @dragstart="if(editMode === 'section') { document.body.classList.add('is-dragging'); let r = $event.currentTarget.getBoundingClientRect(); let z = window.Alpine ? $data.zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); }" @dragend="document.body.classList.remove('is-dragging');"
                                          >
                                          <div x-show="editMode === 'section'" @click.stop="if(justResizedSection) return; openPlacedSectionModal(idx)" class="w-full h-full relative group cursor-pointer">
                                              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 bg-black/10 rounded-xl">
@@ -952,8 +1008,8 @@
                                             max(1, $height - (int) $table->grid_y + 1),
                                         );
                                     @endphp
-                                    <div id="table-{{ $table->id }}" draggable="{{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
-                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="$event.dataTransfer.setData('text/plain', '{{ $table->id }}')" @endif
+                                    <div id="table-{{ $table->id }}" class="placed-element" draggable="{{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
+                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="document.body.classList.add('is-dragging'); let r = $event.currentTarget.getBoundingClientRect(); let z = window.Alpine ? $data.zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif @dragend="document.body.classList.remove('is-dragging');"
                                         @click="
                                         if (justResizedTable) return;
                                         selectedTableId = {{ $table->id }};
