@@ -957,7 +957,7 @@
                             </div>
                         @else
                             <!-- Tightly bounded grid board with persistent CSS zoom -->
-                            <div class="inline-grid border border-slate-800 relative select-none"
+                            <div class="inline-grid border border-slate-800 relative select-none" @dragover.prevent @drop.prevent="handleGridDrop($event)"
                                 :style="'zoom: ' + zoom +
                                     '; grid-template-columns: repeat({{ $width }}, 38px); grid-template-rows: repeat({{ $height }}, 38px); gap: 2px; background-color: #0f172a; width: max-content; height: max-content; min-width: max-content; min-height: max-content; grid-auto-columns: 0px; grid-auto-rows: 0px;'">
 
