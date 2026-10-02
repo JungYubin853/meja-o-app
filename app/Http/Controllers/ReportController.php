@@ -67,7 +67,20 @@ class ReportController extends Controller
         $outletId = $user ? $user->outlet_id : null;
         $selectedOutletId = $outletId;
         if ($user && $user->isSuperAdmin()) {
-            $selectedOutletId = $request->input('outlet_id') ?: (\App\Models\Outlet::first()->id ?? null);
+            $sessionOutletId = session('selected_outlet_id');
+            $requestedOutletId = $request->input('outlet_id');
+            if ($requestedOutletId) {
+                $selectedOutletId = $requestedOutletId;
+                session(['selected_outlet_id' => $requestedOutletId]);
+            } elseif ($sessionOutletId && \App\Models\Outlet::find($sessionOutletId)) {
+                $selectedOutletId = $sessionOutletId;
+            } else {
+                $firstOutlet = \App\Models\Outlet::first();
+                $selectedOutletId = $firstOutlet ? $firstOutlet->id : null;
+                if ($selectedOutletId) {
+                    session(['selected_outlet_id' => $selectedOutletId]);
+                }
+            }
         }
         $outlets = \App\Models\Outlet::all();
 

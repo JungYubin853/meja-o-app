@@ -238,7 +238,8 @@
 
                             <!-- Mini Visual Calendar Widget (FullCalendar Style) -->
                             @php
-                                $cDate = \Carbon\Carbon::parse($dateFilter);
+                                $calReq = request('calendar_month');
+                                $cDate = $calReq ? \Carbon\Carbon::parse($calReq . '-01') : \Carbon\Carbon::parse($dateFilter)->startOfMonth();
                                 $sMonth = $cDate->copy()->startOfMonth();
                                 $eMonth = $cDate->copy()->endOfMonth();
                                 $sDow = $sMonth->dayOfWeekIso; 
@@ -259,16 +260,26 @@
                                 }
                             @endphp
                             <div class="bg-white border border-[#e2e8f0] w-full" style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
-                                <div class="flex justify-between items-center bg-white px-2 py-3">
-                                    <a href="?view=habits&date={{ $cDate->copy()->subMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                                <div class="flex justify-between items-center bg-white px-1 py-3">
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->subMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                     </a>
-                                    <h3 class="text-[1.1rem] font-[800] text-[#334155]">{{ $cDate->format('F Y') }}</h3>
-                                    <a href="?view=habits&date={{ $cDate->copy()->addMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                                    <div class="flex items-center gap-1">
+                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month=' + this.value + '-{{ $cDate->format('m') }}'" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none text-right">
+                                            @for($y = 2020; $y <= 2035; $y++)
+                                                <option value="{{ $y }}" {{ $cDate->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                            @endfor
+                                        </select>
+                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->format('Y') }}-' + this.value" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none">
+                                            @foreach(['01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'May','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $name)
+                                                <option value="{{ $num }}" {{ $cDate->format('m') == $num ? 'selected' : '' }}>{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->addMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
                                 </div>
-                                
                                 <table class="w-full border-collapse table-fixed">
                                     <thead>
                                         <tr>
@@ -327,7 +338,11 @@
                                 <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft-xs p-3.5 flex items-center justify-between">
                                     <div>
                                         <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Selected Date</div>
-                                        <div class="text-lg font-extrabold text-slate-800">{{ $formattedDate }}</div>
+                                        <form action="/database" method="GET" class="m-0 p-0">
+                                            <input type="hidden" name="view" value="habits">
+                                            <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" 
+                                                   class="text-lg font-extrabold text-slate-800 border-none bg-transparent p-0 focus:ring-0 cursor-pointer w-[145px] -ml-1">
+                                        </form>
                                     </div>
                                     <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -682,7 +697,7 @@
         @endif
 
 
-        @if ($viewMode !== 'overall' && $viewMode !== 'waitlist')
+        @if ($viewMode !== 'overall' && $viewMode !== 'waitlist' && $viewMode !== 'habits')
         <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Page Navigator) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
             x-data="{
