@@ -207,11 +207,13 @@
                       $classification = $holidayType;
                       $classColor = $holidayType == 'Collective Leave' ? 'amber' : 'rose';
                       $displayName = $dayName . ', ' . $holidayName;
+                      $bgClass = 'bg-gradient-to-br from-' . $classColor . '-50 to-white';
                   } else {
                       $isWeekend = $dateObj->isWeekend();
                       $classification = $isWeekend ? 'Weekend' : 'Weekday';
                       $classColor = $isWeekend ? 'indigo' : 'emerald';
                       $displayName = $dayName;
+                      $bgClass = 'bg-white';
                   }
               @endphp
 
@@ -234,53 +236,86 @@
                                 </form>
                             @endif
 
-                            <!-- Mini Visual Calendar Widget -->
+                            <!-- Mini Visual Calendar Widget (FullCalendar Style) -->
                             @php
                                 $cDate = \Carbon\Carbon::parse($dateFilter);
                                 $sMonth = $cDate->copy()->startOfMonth();
                                 $eMonth = $cDate->copy()->endOfMonth();
                                 $sDow = $sMonth->dayOfWeekIso; 
                                 $dim = $eMonth->day;
-                                $tCells = $sDow - 1 + $dim;
-                                $ePad = $tCells > 35 ? 42 - $tCells : 35 - $tCells;
+                                
+                                // Fetch Holidays for Calendar coloring
+                                $year = $cDate->year;
+                                $holidaysData = \Illuminate\Support\Facades\Cache::get("holidays_{$year}");
+                                $holidayMap = [];
+                                if ($holidaysData && isset($holidaysData['data']) && is_array($holidaysData['data'])) {
+                                    foreach($holidaysData['data'] as $h) {
+                                        $hDt = $h['date'] ?? null;
+                                        if($hDt) {
+                                            $isCollective = (stripos($h['name'], 'Cuti Bersama') !== false);
+                                            $holidayMap[$hDt] = $isCollective ? 'collective' : 'holiday';
+                                        }
+                                    }
+                                }
                             @endphp
-                            <div class="bg-white rounded-xl shadow-soft-xs border border-slate-200/80 p-3 w-full">
-                                <div class="flex justify-between items-center mb-2 px-1">
-                                    <a href="?view=habits&date={{ $cDate->copy()->subMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-slate-400 hover:text-slate-700 transition">
+                            <div class="bg-white border border-[#e2e8f0] w-full" style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                                <div class="flex justify-between items-center bg-white px-2 py-3">
+                                    <a href="?view=habits&date={{ $cDate->copy()->subMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                     </a>
-                                    <h3 class="text-sm font-black text-slate-800">{{ $cDate->format('F Y') }}</h3>
-                                    <a href="?view=habits&date={{ $cDate->copy()->addMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-slate-400 hover:text-slate-700 transition">
+                                    <h3 class="text-[1.1rem] font-[800] text-[#334155]">{{ $cDate->format('F Y') }}</h3>
+                                    <a href="?view=habits&date={{ $cDate->copy()->addMonth()->format('Y-m-d') }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
                                 </div>
-                                <div class="grid grid-cols-7 text-center mb-1">
-                                    @foreach(['M','T','W','T','F','S','S'] as $dayName)
-                                        <div class="text-[10px] font-extrabold text-slate-500 py-1">{{ $dayName }}</div>
-                                    @endforeach
-                                </div>
-                                <div class="grid grid-cols-7 gap-y-1 text-center">
-                                    @for($i = 1; $i < $sDow; $i++)
-                                        <div class="text-[11px] text-slate-300 py-1.5 font-semibold bg-slate-50/50">
-                                            {{ $sMonth->copy()->subDays($sDow - $i)->day }}
-                                        </div>
-                                    @endfor
-                                    @for($day = 1; $day <= $dim; $day++)
-                                        @php 
-                                            $tDate = $cDate->copy()->day($day)->format('Y-m-d');
-                                            $isSel = $tDate === $dateFilter;
+                                
+                                <table class="w-full border-collapse table-fixed">
+                                    <thead>
+                                        <tr>
+                                            @foreach(['M','T','W','T','F','S','S'] as $dayName)
+                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1.5 text-center uppercase">{{ $dayName }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $cells = [];
+                                            for($i = 1; $i < $sDow; $i++) { $cells[] = null; }
+                                            for($day = 1; $day <= $dim; $day++) { $cells[] = $day; }
+                                            while(count($cells) < 42) { $cells[] = null; }
                                         @endphp
-                                        <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}" 
-                                           class="text-[11px] py-1.5 font-bold transition border {{ $isSel ? 'bg-amber-100 text-amber-900 border-amber-200' : 'text-slate-700 bg-white border-transparent hover:border-slate-200 hover:bg-slate-50' }}">
-                                            {{ $day }}
-                                        </a>
-                                    @endfor
-                                    @for($i = 1; $i <= $ePad; $i++)
-                                        <div class="text-[11px] text-slate-300 py-1.5 font-semibold bg-slate-50/50">
-                                            {{ $i }}
-                                        </div>
-                                    @endfor
-                                </div>
+                                        @foreach(array_chunk($cells, 7) as $row)
+                                            <tr>
+                                                @foreach($row as $day)
+                                                    @if($day)
+                                                        @php
+                                                            $tDate = $cDate->copy()->day($day)->format('Y-m-d');
+                                                            $isSel = $tDate === $dateFilter;
+                                                            $hType = $holidayMap[$tDate] ?? null;
+                                                            
+                                                            $bgClassCal = 'bg-white hover:bg-slate-50';
+                                                            if ($hType === 'holiday') {
+                                                                $bgClassCal = 'bg-[#fee2e2] hover:bg-[#fecaca]';
+                                                            } elseif ($hType === 'collective') {
+                                                                $bgClassCal = 'bg-[#fef08a] hover:bg-[#fde047]';
+                                                            }
+                                                            
+                                                            $selBorder = $isSel ? 'border-2 border-indigo-600 shadow-sm z-10' : 'border border-[#e2e8f0]';
+                                                        @endphp
+                                                        <td class="p-0 border border-[#e2e8f0] h-8 relative group text-center align-middle">
+                                                            <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
+                                                               class="flex items-center justify-center w-full h-full text-[0.75rem] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'font-[800] ring-inset ring-2 ring-indigo-600' : '' }}">
+                                                                {{ $day }}
+                                                            </a>
+                                                        </td>
+                                                    @else
+                                                        <td class="border border-[#e2e8f0] bg-white h-8"></td>
+                                                    @endif
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
@@ -300,7 +335,7 @@
                                 </div>
                                 
                                 <!-- Classification -->
-                                <div class="bg-gradient-to-br from-{{ $classColor }}-50 to-white rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-3.5 flex items-center justify-between">
+                                <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-3.5 flex items-center justify-between">
                                     <div class="truncate pr-3">
                                         <div class="text-[10px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
                                         <div class="text-base font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
@@ -318,6 +353,7 @@
                                     </div>
                                 </div>
                             </div>
+
 
                             <!-- 5. Database Table (Moved inside the flex col) -->
                             <div class="bg-white rounded-xl shadow-soft-xs border border-slate-200/80 overflow-hidden flex-1 flex flex-col min-h-[200px]">
