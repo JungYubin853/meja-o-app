@@ -8,6 +8,7 @@ class VisitorLog extends Model
 {
     protected $fillable = [
         'outlet_id',
+        'table_id',
         'customer_name',
         'phone',
         'pax',
@@ -20,5 +21,10 @@ class VisitorLog extends Model
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    public function table()
+    {
+        return $this->belongsTo(Table::class);
     }
 }

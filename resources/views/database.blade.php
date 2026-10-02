@@ -193,106 +193,192 @@
             </div>
         </div>
 
-        <!-- CUSTOMER HABITS VIEW -->
-        @if ($viewMode === 'habits')
-            
-            @if ($holidayName)
-                <div class="mb-6 bg-gradient-to-r from-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-50 to-white border border-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-100 rounded-2xl p-5 flex items-center gap-4 shadow-soft-xs">
-                    <div class="p-2 bg-white rounded-lg shadow-sm">
-                        <svg class="w-5 h-5 text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-900">{{ $holidayType }}</h4>
-                        <p class="text-sm font-medium text-{{ $holidayType == 'Collective Leave' ? 'amber' : 'rose' }}-700">{{ $holidayName }}</p>
-                    </div>
-                </div>
-            @endif
+          <!-- CUSTOMER HABITS VIEW -->
+          @if ($viewMode === 'habits')
+              @php
+                  $dateObj = \Carbon\Carbon::parse($dateFilter);
+                  $dayName = $dateObj->format('l');
+                  $formattedDate = $dateObj->format('n/j/Y'); // 8/4/2026
+                  
+                  if ($holidayName) {
+                      $classification = $holidayType;
+                      $classColor = $holidayType == 'Collective Leave' ? 'amber' : 'rose';
+                      $displayName = $dayName . ', ' . $holidayName;
+                  } else {
+                      $isWeekend = $dateObj->isWeekend();
+                      $classification = $isWeekend ? 'Weekend' : 'Weekday';
+                      $classColor = $isWeekend ? 'indigo' : 'emerald';
+                      $displayName = $dayName;
+                  }
+              @endphp
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
-                
-                <!-- Complete Daily Log Timeline -->
-                <div class="xl:col-span-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Customer Visit Log ({{ \Carbon\Carbon::parse($dateFilter)->format('d M Y') }})</h3>
-                    @if(count($habitsDateLog) > 0)
-                        <div class="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2 touch-scroll">
-                            @foreach($habitsDateLog as $log)
-                                <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                    <div class="w-16 shrink-0 text-center">
-                                        <div class="text-xs font-bold text-slate-900">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</div>
-                                        <div class="text-[10px] font-semibold text-slate-400">{{ \Carbon\Carbon::parse($log->ended_at)->format('H:i') }}</div>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <span class="text-xs font-bold text-slate-700">{{ $log->customer_name ?? 'Walk-in Guest' }} ({{ $log->pax }} pax)</span>
-                                            <span class="text-xs font-extrabold text-indigo-600">{{ $log->time_elapsed }}</span>
-                                        </div>
-                                        <div class="w-full bg-slate-200 rounded-full h-1.5">
-                                            @php 
-                                                $startMin = (\Carbon\Carbon::parse($log->started_at)->hour * 60) + \Carbon\Carbon::parse($log->started_at)->minute;
-                                                $endMin = (\Carbon\Carbon::parse($log->ended_at)->hour * 60) + \Carbon\Carbon::parse($log->ended_at)->minute;
-                                                $leftPct = ($startMin / 1440) * 100;
-                                                $widthPct = (($endMin - $startMin) / 1440) * 100;
-                                            @endphp
-                                            <div class="bg-indigo-500 h-1.5 rounded-full" style="margin-left: {{ $leftPct }}%; width: {{ $widthPct }}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flex flex-col items-center justify-center py-10"><svg class="w-10 h-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4m8-8l-8 8 8 8"></path></svg><p class="text-sm text-slate-400 font-semibold">No completed visits recorded on this date.</p></div>
-                    @endif
-                </div>
+              <div class="space-y-6">
+                  
+                  <!-- 1. Yearly Calendar / Date Picker & 2. Current Date & 3/4. Classification -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <!-- Mini Calendar Selector -->
+                      <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 flex flex-col justify-center items-center">
+                          <h3 class="text-sm font-bold text-slate-800 mb-3 w-full text-left">Select Date</h3>
+                          <form method="GET" action="/database" class="w-full flex items-center gap-2">
+                              <input type="hidden" name="view" value="habits">
+                              @if(isset($selectedOutletId))
+                                  <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}">
+                              @endif
+                              <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="w-full text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 p-2.5 cursor-pointer hover:bg-slate-100 transition">
+                          </form>
+                      </div>
 
-                <!-- Hourly Distribution -->
-                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
-                    <h3 class="text-sm font-bold text-slate-800 mb-6">Hourly Average Stay (Selected Date)</h3>
-                    <div class="h-40 flex items-end justify-between gap-0.5 relative">
-                        @php $maxHourly = max(array_merge(array_values($habitsHourly), [1])); @endphp
-                        @foreach($habitsHourly as $hour => $min)
-                            <div class="flex-1 bg-amber-100 hover:bg-amber-500 rounded-t transition-all relative group" style="height: {{ $maxHourly > 0 ? ($min / $maxHourly) * 100 : 0 }}%">
-                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2">
-                        <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
-                    </div>
-                </div>
+                      <!-- Date Display -->
+                      <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 flex flex-col justify-center items-center text-center">
+                          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Selected Date</h3>
+                          <div class="text-3xl font-black text-slate-900">{{ $formattedDate }}</div>
+                      </div>
 
-                <!-- Weekly Distribution -->
-                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
-                    <h3 class="text-sm font-bold text-slate-800 mb-6">Weekly Average Stay (Selected Year)</h3>
-                    <div class="h-40 flex items-end justify-between gap-1.5 relative">
-                        @php $maxWeekly = max(array_merge(array_values($habitsWeekly), [1])); @endphp
-                        @foreach($habitsWeekly as $day => $min)
-                            <div class="flex-1 bg-emerald-100 hover:bg-emerald-500 rounded-t transition-all relative group" style="height: {{ $maxWeekly > 0 ? ($min / $maxWeekly) * 100 : 0 }}%">
-                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2 uppercase">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                    </div>
-                </div>
+                      <!-- Classification & Holiday Name -->
+                      <div class="bg-gradient-to-br from-{{ $classColor }}-50 to-white rounded-2xl shadow-soft-sm border border-{{ $classColor }}-200 p-5 flex flex-col justify-center">
+                          <div class="flex items-center gap-3 mb-2">
+                              <div class="p-1.5 bg-white rounded-lg shadow-sm border border-{{ $classColor }}-100">
+                                  @if($classification === 'National Holiday')
+                                      <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                  @elseif($classification === 'Collective Leave')
+                                      <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                  @elseif($classification === 'Weekend')
+                                      <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                  @else
+                                      <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                  @endif
+                              </div>
+                              <h3 class="text-sm font-black text-{{ $classColor }}-800 uppercase tracking-wide">{{ $classification }}</h3>
+                          </div>
+                          <p class="text-base font-bold text-{{ $classColor }}-900 leading-tight">{{ $displayName }}</p>
+                      </div>
+                  </div>
 
-                <!-- Yearly Distribution -->
-                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs">
-                    <h3 class="text-sm font-bold text-slate-800 mb-6">Yearly Average Stay (Selected Year)</h3>
-                    <div class="h-40 flex items-end justify-between gap-1 relative">
-                        @php $maxYearly = max(array_merge(array_values($habitsYearly), [1])); @endphp
-                        @foreach($habitsYearly as $month => $min)
-                            <div class="flex-1 bg-sky-100 hover:bg-sky-500 rounded-t transition-all relative group" style="height: {{ $maxYearly > 0 ? ($min / $maxYearly) * 100 : 0 }}%">
-                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 z-10">{{ $min }}m</div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400 font-bold mt-2 uppercase">
-                        <span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span>
-                    </div>
-                </div>
-            </div>
-        @endif
+                  <!-- 5. Database Table -->
+                  <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 overflow-hidden">
+                      <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                          <h3 class="text-sm font-bold text-slate-800">Visit Logs</h3>
+                      </div>
+                      <div class="overflow-x-auto">
+                          <table class="w-full text-left border-collapse">
+                              <thead>
+                                  <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                                      <th class="p-4 py-3">Log ID (Customer)</th>
+                                      <th class="p-4 py-3">Start Session</th>
+                                      <th class="p-4 py-3">Time Elapsed</th>
+                                      <th class="p-4 py-3">Table Number</th>
+                                  </tr>
+                              </thead>
+                              <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
+                                  @forelse($habitsDateLog as $log)
+                                      <tr class="hover:bg-slate-50 transition">
+                                          <td class="p-4">
+                                              <span class="text-xs text-slate-400 font-bold mr-2">#{{ $log->id }}</span> 
+                                              {{ $log->customer_name ?? 'Walk-in Guest' }} 
+                                              <span class="text-xs text-slate-500 font-medium">({{ $log->pax }} pax)</span>
+                                          </td>
+                                          <td class="p-4 text-indigo-600 font-bold">
+                                              {{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}
+                                          </td>
+                                          <td class="p-4 text-emerald-600 font-bold">
+                                              {{ $log->time_elapsed ?? \Carbon\Carbon::parse($log->started_at)->diffInMinutes(\Carbon\Carbon::parse($log->ended_at)) . ' min' }}
+                                          </td>
+                                          <td class="p-4">
+                                              @if($log->table)
+                                                  <span class="inline-flex items-center px-2 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-md text-xs font-bold">
+                                                      {{ $log->table->table_number ?? 'Table ' . $log->table->id }}
+                                                  </span>
+                                              @else
+                                                  <span class="text-slate-400 text-xs">-</span>
+                                              @endif
+                                          </td>
+                                      </tr>
+                                  @empty
+                                      <tr>
+                                          <td colspan="4" class="p-8 text-center text-slate-400 font-semibold">No visits recorded on this date.</td>
+                                      </tr>
+                                  @endforelse
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+
+                  <!-- 6. Gantt Graph -->
+                  <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5">
+                      <h3 class="text-sm font-bold text-slate-800 mb-6">Gantt Graph Visual Analysis</h3>
+                      
+                      @if(count($habitsDateLog) > 0)
+                          <div class="relative w-full overflow-x-auto touch-scroll pb-4">
+                              <div class="min-w-[800px]">
+                                  <!-- Gantt Header (Time Axis 00:00 to 24:00) -->
+                                  <div class="flex items-end h-8 mb-2 border-b border-slate-200 relative ml-32">
+                                      @for($h = 0; $h <= 24; $h += 2)
+                                          <div class="absolute text-[10px] font-bold text-slate-400 -translate-x-1/2" style="left: {{ ($h / 24) * 100 }}%">
+                                              {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
+                                          </div>
+                                          @if($h < 24)
+                                              <div class="absolute h-2 border-l border-slate-200 bottom-0" style="left: {{ ($h / 24) * 100 }}%"></div>
+                                          @endif
+                                      @endfor
+                                      <div class="absolute h-2 border-l border-slate-200 bottom-0" style="left: 100%"></div>
+                                  </div>
+
+                                  <!-- Gantt Rows -->
+                                  <div class="flex flex-col gap-2 relative">
+                                      <!-- Grid lines for background -->
+                                      <div class="absolute inset-0 ml-32 pointer-events-none flex">
+                                          @for($h = 0; $h < 24; $h += 2)
+                                              <div class="flex-1 border-l border-dashed border-slate-100"></div>
+                                          @endfor
+                                          <div class="border-l border-dashed border-slate-100 h-full"></div>
+                                      </div>
+
+                                      @foreach($habitsDateLog as $log)
+                                          @php 
+                                              $start = \Carbon\Carbon::parse($log->started_at);
+                                              $end = $log->ended_at ? \Carbon\Carbon::parse($log->ended_at) : now();
+                                              $startMinOfDay = ($start->hour * 60) + $start->minute;
+                                              $endMinOfDay = ($end->hour * 60) + $end->minute;
+                                              // Handle edge case if end crosses midnight, clamp to 1440 for Gantt view
+                                              if ($endMinOfDay < $startMinOfDay) $endMinOfDay = 1440;
+                                              
+                                              $leftPct = ($startMinOfDay / 1440) * 100;
+                                              $widthPct = (($endMinOfDay - $startMinOfDay) / 1440) * 100;
+                                          @endphp
+                                          <div class="flex items-center group relative">
+                                              <!-- Y-Axis Label (Customer / Table) -->
+                                              <div class="w-32 shrink-0 pr-4 text-right truncate">
+                                                  <div class="text-xs font-bold text-slate-700 truncate" title="{{ $log->customer_name }}">{{ $log->customer_name ?? 'Walk-in' }}</div>
+                                                  <div class="text-[10px] font-semibold text-slate-400">
+                                                      @if($log->table) Tbl {{ $log->table->table_number ?? $log->table->id }} @else - @endif
+                                                  </div>
+                                              </div>
+                                              
+                                              <!-- Track area -->
+                                              <div class="flex-1 h-10 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
+                                                  <!-- The Gantt Bar -->
+                                                  <div class="absolute top-2 bottom-2 bg-indigo-500 rounded-md border border-indigo-600 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-indigo-600 transition cursor-pointer"
+                                                       style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.5) }}%;"
+                                                       title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | Elapsed: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
+                                                      @if($widthPct > 5)
+                                                          <span class="text-[10px] font-extrabold text-white truncate px-1">
+                                                              {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}
+                                                          </span>
+                                                      @endif
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      @endforeach
+                                  </div>
+                              </div>
+                          </div>
+                      @else
+                          <div class="flex flex-col items-center justify-center py-10"><svg class="w-10 h-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4m8-8l-8 8 8 8"></path></svg><p class="text-sm text-slate-400 font-semibold">No visits recorded to graph.</p></div>
+                      @endif
+                  </div>
+              </div>
+          @endif
+
 
 
         

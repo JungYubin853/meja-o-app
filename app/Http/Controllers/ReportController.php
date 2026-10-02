@@ -179,7 +179,7 @@ class ReportController extends Controller
             }
 
             // 2. Fetch all completed logs for the selected outlet for the given year
-            $yearLogs = VisitorLog::where('outlet_id', $selectedOutletId)
+            $yearLogs = VisitorLog::with('table')->where('outlet_id', $selectedOutletId)
                                   ->whereYear('started_at', $year)
                                   ->whereNotNull('ended_at')
                                   ->get();
