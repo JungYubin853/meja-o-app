@@ -63,7 +63,8 @@
 
         </div>
 
-        <!-- Filter & Actions Bar: Perfectly Aligned 1-Row Layout -->
+        @if ($viewMode !== 'habits')
+<!-- Filter & Actions Bar: Perfectly Aligned 1-Row Layout -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h2 class="text-base sm:text-lg font-bold text-slate-900">
@@ -193,7 +194,9 @@
             </div>
         </div>
 
-          <!-- CUSTOMER HABITS VIEW -->
+          
+@endif
+<!-- CUSTOMER HABITS VIEW -->
           @if ($viewMode === 'habits')
               @php
                   $dateObj = \Carbon\Carbon::parse($dateFilter);
@@ -217,16 +220,24 @@
                   <!-- 1. Yearly Calendar / Date Picker & 2. Current Date & 3/4. Classification -->
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <!-- Mini Calendar Selector -->
-                      <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 flex flex-col justify-center items-center">
-                          <h3 class="text-sm font-bold text-slate-800 mb-3 w-full text-left">Select Date</h3>
-                          <form method="GET" action="/database" class="w-full flex items-center gap-2">
-                              <input type="hidden" name="view" value="habits">
-                              @if(isset($selectedOutletId))
-                                  <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}">
-                              @endif
-                              <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="w-full text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 p-2.5 cursor-pointer hover:bg-slate-100 transition">
-                          </form>
-                      </div>
+                        <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 flex flex-col justify-center items-center">
+                            <h3 class="text-sm font-bold text-slate-800 mb-3 w-full text-left">Filters</h3>
+                            <form method="GET" action="/database" class="w-full flex flex-col gap-3">
+                                <input type="hidden" name="view" value="habits">
+                                @if (auth()->check() && auth()->user()->isSuperAdmin())
+                                    <select name="outlet_id" onchange="this.form.submit()" class="w-full text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 p-2.5 cursor-pointer hover:bg-slate-100 transition">
+                                        @foreach ($outlets ?? [] as $outlet)
+                                            <option value="{{ $outlet->id }}" {{ ($selectedOutletId ?? '') == $outlet->id ? 'selected' : '' }}>
+                                                {{ $outlet->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @elseif(isset($selectedOutletId))
+                                    <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}">
+                                @endif
+                                <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="w-full text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 p-2.5 cursor-pointer hover:bg-slate-100 transition">
+                            </form>
+                        </div>
 
                       <!-- Date Display -->
                       <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5 flex flex-col justify-center items-center text-center">
