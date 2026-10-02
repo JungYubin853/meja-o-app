@@ -252,7 +252,7 @@
                                     foreach($holidaysData['data'] as $h) {
                                         $hDt = $h['date'] ?? null;
                                         if($hDt) {
-                                            $isCollective = (stripos($h['name'], 'Cuti Bersama') !== false);
+                                            $isCollective = (isset($h['type']) && $h['type'] === 'leave');
                                             $holidayMap[$hDt] = $isCollective ? 'collective' : 'holiday';
                                         }
                                     }

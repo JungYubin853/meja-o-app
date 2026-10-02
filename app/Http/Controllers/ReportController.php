@@ -172,7 +172,7 @@ class ReportController extends Controller
                     if ($item['date'] === $dateFilter) {
                         $holidayName = $item['name'];
                         // the API usually doesn't have type 'collective_leave' but lets assume if it contains 'Cuti Bersama'
-                        $holidayType = (stripos($item['name'], 'Cuti Bersama') !== false) ? 'Collective Leave' : 'National Holiday';
+                        $holidayType = (isset($item['type']) && $item['type'] === 'leave') ? 'Collective Leave' : 'National Holiday';
                         break;
                     }
                 }
