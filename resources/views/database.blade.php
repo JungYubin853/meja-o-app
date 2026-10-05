@@ -199,7 +199,7 @@
                   } else {
                       $isWeekend = $dateObj->isWeekend();
                       $classification = $isWeekend ? 'Weekend' : 'Weekday';
-                      $classColor = $isWeekend ? 'indigo' : 'emerald';
+                      $classColor = 'slate';
                       $displayName = $dayName;
                       $bgClass = 'bg-white';
                   }
