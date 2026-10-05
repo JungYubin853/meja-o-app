@@ -63,7 +63,7 @@
 
         </div>
 
-        @if ($viewMode !== 'habits')
+        @if ($viewMode !== 'habits' && $viewMode !== 'overall')
 <!-- Filter & Actions Bar: Perfectly Aligned 1-Row Layout -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -113,31 +113,19 @@
                                 $startYear = 2026;
                                 $currentYear = max(2026, (int) date('Y'));
                             @endphp
-                            <select name="year"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
+                            <select name="year" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
                                 @for ($y = $startYear; $y <= $currentYear; $y++)
                                     <option value="{{ $y }}" {{ $yearFilter == $y ? 'selected' : '' }}>
                                         {{ $y }}</option>
                                 @endfor
                             </select>
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
+                            
                         @elseif ($viewMode === 'daily')
-                            <input type="month" name="month" value="{{ $monthFilter }}"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
+                            <input type="month" name="month" value="{{ $monthFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
+                            
                         @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
-                            <input type="date" name="date" value="{{ $dateFilter }}"
-                                class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
-                            <button type="submit"
-                                class="h-10 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 rounded-xl transition shadow-soft-xs flex items-center justify-center shrink-0 box-border">
-                                Filter
-                            </button>
+                            <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
+                            
                         @endif
                     </form>
                 @endif
@@ -163,7 +151,7 @@
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-75"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 top-full mt-2 w-full sm:w-44 bg-white rounded-2xl shadow-soft-xl border border-slate-100 py-1.5 z-30"
+                            class="absolute right-0 top-full mt-2 w-full sm:w-44 bg-white rounded-2xl shadow-soft-xl border border-slate-100 py-1 z-30"
                             x-cloak>
 
                             <a href="/database/export?type=pdf&view={{ $viewMode }}&date={{ $dateFilter }}&month={{ $monthFilter }}&year={{ $yearFilter }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
@@ -220,7 +208,7 @@
               <div class="space-y-6">                    <!-- Compact Main Layout -->
                     <div class="flex flex-col md:flex-row gap-4 mb-6">
                         <!-- Sidebar: Outlet & Calendar -->
-                        <div class="w-full md:w-[280px] shrink-0 flex flex-col gap-3">
+                        <div class="w-full md:w-[220px] shrink-0 flex flex-col gap-3">
                             <!-- Outlet Dropdown -->
                             @if (auth()->check() && auth()->user()->isSuperAdmin())
                                 <form method="GET" action="/database">
@@ -284,7 +272,7 @@
                                     <thead>
                                         <tr>
                                             @foreach(['M','T','W','T','F','S','S'] as $dayName)
-                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1.5 text-center uppercase">{{ $dayName }}</th>
+                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1 text-center uppercase">{{ $dayName }}</th>
                                             @endforeach
                                         </tr>
                                     </thead>
@@ -315,7 +303,7 @@
                                                         @endphp
                                                         <td class="p-0 border border-[#e2e8f0] h-8 relative group text-center align-middle">
                                                             <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                                               class="flex items-center justify-center w-full h-full text-[0.75rem] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'font-[800] ring-inset ring-2 ring-indigo-600' : '' }}">
+                                                               class="flex items-center justify-center w-full h-full text-[11px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'font-[800] ring-inset ring-2 ring-indigo-600' : '' }}">
                                                                 {{ $day }}
                                                             </a>
                                                         </td>
@@ -335,35 +323,35 @@
                             <!-- Top Row: Compact Stats -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <!-- Selected Date -->
-                                <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft-xs p-3.5 flex items-center justify-between">
+                                <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft-xs p-2.5 flex items-center justify-between">
                                     <div>
-                                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Selected Date</div>
+                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Selected Date</div>
                                         <form action="/database" method="GET" class="m-0 p-0">
                                             <input type="hidden" name="view" value="habits">
                                             <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" 
-                                                   class="text-lg font-extrabold text-slate-800 border-none bg-transparent p-0 focus:ring-0 cursor-pointer w-[145px] -ml-1">
+                                                   class="text-sm font-extrabold text-slate-800 border-none bg-transparent p-0 focus:ring-0 cursor-pointer w-[125px] -ml-1">
                                         </form>
                                     </div>
-                                    <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     </div>
                                 </div>
                                 
                                 <!-- Classification -->
-                                <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-3.5 flex items-center justify-between">
+                                <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-2.5 flex items-center justify-between">
                                     <div class="truncate pr-3">
-                                        <div class="text-[10px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
-                                        <div class="text-base font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
+                                        <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
+                                        <div class="text-sm font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
                                     </div>
-                                    <div class="w-10 h-10 shrink-0 rounded-full bg-{{ $classColor }}-100 flex items-center justify-center text-{{ $classColor }}-500 border border-{{ $classColor }}-200">
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-{{ $classColor }}-100 flex items-center justify-center text-{{ $classColor }}-500 border border-{{ $classColor }}-200">
                                         @if($classification === 'National Holiday')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                                         @elseif($classification === 'Collective Leave')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         @elseif($classification === 'Weekend')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         @else
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                         @endif
                                     </div>
                                 </div>
@@ -418,13 +406,10 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-
-                  <!-- 6. Gantt Graph -->
-                  <div class="bg-white rounded-2xl shadow-soft-sm border border-slate-200/80 p-5">
-                      <h3 class="text-sm font-bold text-slate-800 mb-6">Gantt Graph Visual Analysis</h3>
+                            
+                            <!-- 6. Gantt Graph (Moved inside Main Column) -->
+                            <div class="bg-white rounded-xl shadow-soft-xs border border-slate-200/80 p-4 mt-1">
+                      <h3 class="text-sm font-bold text-slate-800 mb-4">Gantt Graph Visual Analysis</h3>
                       
                       @if(count($habitsDateLog) > 0)
                           <div class="relative w-full overflow-x-auto touch-scroll pb-4">
@@ -443,7 +428,7 @@
                                   </div>
 
                                   <!-- Gantt Rows -->
-                                  <div class="flex flex-col gap-2 relative">
+                                  <div class="flex flex-col gap-1.5 relative">
                                       <!-- Grid lines for background -->
                                       <div class="absolute inset-0 ml-32 pointer-events-none flex">
                                           @for($h = 0; $h < 24; $h += 2)
@@ -474,9 +459,9 @@
                                               </div>
                                               
                                               <!-- Track area -->
-                                              <div class="flex-1 h-10 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
+                                              <div class="flex-1 h-8 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
                                                   <!-- The Gantt Bar -->
-                                                  <div class="absolute top-2 bottom-2 bg-indigo-500 rounded-md border border-indigo-600 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-indigo-600 transition cursor-pointer"
+                                                  <div class="absolute top-1.5 bottom-1.5 bg-indigo-500 rounded-md border border-indigo-600 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-indigo-600 transition cursor-pointer"
                                                        style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.5) }}%;"
                                                        title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | Elapsed: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
                                                       @if($widthPct > 5)
@@ -496,6 +481,10 @@
                       @endif
                   </div>
               </div>
+              </div>
+
+          </div>
+
           @endif
 
 
@@ -511,27 +500,27 @@
                               <table class="w-full text-left border-collapse">
                                   <thead>
                                       <tr class="bg-slate-50 border-b border-slate-200/80">
-                                          <th class="p-3 sm:p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Outlet Name</th>
-                                          <th class="p-3 sm:p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Recorded on {{ $dateFilter }}">Day Visitors</th>
-                                          <th class="p-3 sm:p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="{{ \Carbon\Carbon::parse($monthFilter)->format('F Y') }}">Month Visitors</th>
-                                          <th class="p-3 sm:p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Year {{ $yearFilter }}">Year Visitors</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Outlet Name</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Recorded on {{ $dateFilter }}">Day Visitors</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="{{ \Carbon\Carbon::parse($monthFilter)->format('F Y') }}">Month Visitors</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Year {{ $yearFilter }}">Year Visitors</th>
                                       </tr>
                                   </thead>
                                   <tbody class="divide-y divide-slate-100">
                                       @foreach ($overallStats as $stat)
                                           <tr class="hover:bg-slate-50/50 transition">
-                                              <td class="p-3 sm:p-4">
+                                              <td class="px-3 py-2">
                                                   <span class="text-xs sm:text-sm font-bold text-slate-900">{{ $stat['outlet']->name }}</span>
                                               </td>
-                                              <td class="p-3 sm:p-4 whitespace-nowrap text-right">
+                                              <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['daily'] }}</span>
                                                   <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
                                               </td>
-                                              <td class="p-3 sm:p-4 whitespace-nowrap text-right">
+                                              <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['monthly'] }}</span>
                                                   <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
                                               </td>
-                                              <td class="p-3 sm:p-4 whitespace-nowrap text-right">
+                                              <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['yearly'] }}</span>
                                                   <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
                                               </td>
@@ -566,7 +555,7 @@
                             <div class="absolute -top-7 bg-slate-900 text-white text-[10px] font-bold py-1 px-1.5 rounded-md opacity-0 group-hover:opacity-100 transition shadow-md pointer-events-none whitespace-nowrap z-10">
                                 {{ $count }} pax
                             </div>
-                            <div class="w-full bg-slate-800 group-hover:bg-slate-900 rounded-t-md transition-all cursor-pointer"
+                            <div class="w-full max-w-[36px] mx-auto bg-gradient-to-t from-slate-800 to-slate-700 group-hover:from-slate-900 group-hover:to-slate-800 rounded-t-md transition-all cursor-pointer shadow-sm"
                                 style="height: {{ max($heightPercent, 4) }}%;"></div>
                             <span class="text-[9px] font-semibold text-slate-500 mt-2">{{ str_pad($hour, 2, '0', STR_PAD_LEFT) }}h</span>
                             <span class="text-[10px] font-extrabold text-slate-800 mt-0.5 tabular-nums">{{ $count }}</span>
@@ -590,7 +579,7 @@
                             <div class="absolute -top-7 bg-slate-900 text-white text-[10px] font-bold py-1 px-1.5 rounded-md opacity-0 group-hover:opacity-100 transition shadow-md pointer-events-none whitespace-nowrap z-10">
                                 {{ $count }} pax
                             </div>
-                            <div class="w-full bg-slate-800 group-hover:bg-slate-900 rounded-t-md transition-all cursor-pointer"
+                            <div class="w-full max-w-[36px] mx-auto bg-gradient-to-t from-slate-800 to-slate-700 group-hover:from-slate-900 group-hover:to-slate-800 rounded-t-md transition-all cursor-pointer shadow-sm"
                                 style="height: {{ max($heightPercent, 4) }}%;"></div>
                             <span class="text-[9px] font-semibold text-slate-500 mt-2">{{ $dayNum }}</span>
                             <span class="text-[9px] font-extrabold text-slate-800 mt-0.5 tabular-nums">{{ $count }}</span>
@@ -630,7 +619,7 @@
                             <div class="absolute -top-7 bg-slate-900 text-white text-[10px] font-bold py-1 px-1.5 rounded-md opacity-0 group-hover:opacity-100 transition shadow-md pointer-events-none whitespace-nowrap z-10">
                                 {{ $count }} pax
                             </div>
-                            <div class="w-full bg-slate-800 group-hover:bg-slate-900 rounded-t-md transition-all cursor-pointer"
+                            <div class="w-full max-w-[36px] mx-auto bg-gradient-to-t from-slate-800 to-slate-700 group-hover:from-slate-900 group-hover:to-slate-800 rounded-t-md transition-all cursor-pointer shadow-sm"
                                 style="height: {{ max($heightPercent, 4) }}%;"></div>
                             <span class="text-[10px] font-semibold text-slate-500 mt-2">{{ $mLabel }}</span>
                             <span class="text-[10px] font-extrabold text-slate-800 mt-0.5 tabular-nums">{{ $count }}</span>
