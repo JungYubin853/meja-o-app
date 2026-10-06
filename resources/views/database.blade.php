@@ -341,14 +341,6 @@
                             $bgClass = 'bg-white';
                         }
                     @endphp
-
-                    
-                    <div class="px-4 py-4 sm:px-5 border-b border-slate-100 bg-white">
-                        <div class="{{ $bgClass }} w-full rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs px-4 py-3 flex flex-col items-center justify-center text-center">
-                            <div class="text-[10px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-1">{{ $classification }}</div>
-                            <div class="text-[15px] font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
-                        </div>
-                    </div>
                     
                     <!-- Header with Tabs and Pagination -->
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-slate-50/50">
@@ -362,6 +354,13 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
                                 Gantt Graph
                             </button>
+                        </div>
+
+                        
+                        <!-- Classification Badge (Compact) -->
+                        <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs px-4 py-1.5 shrink-0 w-full lg:w-auto text-center flex flex-col justify-center">
+                            <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest leading-none mb-1">{{ $classification }}</div>
+                            <div class="text-xs font-extrabold text-{{ $classColor }}-900 leading-none truncate" title="{{ $displayName }}">{{ $displayName }}</div>
                         </div>
 
                         <!-- Pagination Controls -->
