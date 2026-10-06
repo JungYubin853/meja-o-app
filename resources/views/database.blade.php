@@ -182,7 +182,7 @@
             }" class="flex flex-col gap-4">
 
                 <!-- 1. Top Bar (One long container) -->
-                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class=\"bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row items-center justify-between gap-3\">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
                         @if (auth()->check() && auth()->user()->isSuperAdmin())
                             <form method="GET" action="/database" class="m-0 p-0 w-full sm:w-auto">
