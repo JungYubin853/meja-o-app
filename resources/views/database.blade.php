@@ -358,10 +358,10 @@
 
                         
                         <!-- Classification Badge (Compact) -->
-                        <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs px-4 py-1.5 shrink-0 w-full lg:w-auto text-center flex flex-col justify-center">
-                            <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest leading-none mb-1">{{ $classification }}</div>
-                            <div class="text-xs font-extrabold text-{{ $classColor }}-900 leading-none truncate" title="{{ $displayName }}">{{ $displayName }}</div>
-                        </div>
+                        <div class="px-2 py-1 shrink-0 w-full lg:w-auto text-center flex flex-col justify-center">
+                              <div class="text-[10px] font-black text-{{ $classColor }}-500 uppercase tracking-widest leading-none mb-1">{{ $classification }}</div>
+                              <div class="text-[13px] font-extrabold text-{{ $classColor }}-900 leading-none truncate" title="{{ $displayName }}">{{ $displayName }}</div>
+                          </div>
 
                         <!-- Pagination Controls -->
                         <div class="flex items-center justify-between w-full lg:w-auto gap-4">
