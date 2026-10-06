@@ -369,58 +369,19 @@
                             </div>
                         </div>
 
-                        <!-- Main Content Column -->
-                        <div class="flex-1 flex flex-col gap-3">
-                            <!-- Top Row: Compact Stats -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <!-- Selected Date -->
-                                <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft-xs p-2.5 flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Selected Date</div>
-                                        <form action="/database" method="GET" class="m-0 p-0">
-                                            <input type="hidden" name="view" value="habits">
-                                            <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" 
-                                                   class="text-sm font-extrabold text-slate-800 border-none bg-transparent p-0 focus:ring-0 cursor-pointer w-[125px] -ml-1">
-                                        </form>
-                                    </div>
-                                    <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    </div>
-                                </div>
-                                
-                                <!-- Classification -->
-                                <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-2.5 flex items-center justify-between">
-                                    <div class="truncate pr-3">
-                                        <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
-                                        <div class="text-sm font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
-                                    </div>
-                                    <div class="w-8 h-8 shrink-0 rounded-full bg-{{ $classColor }}-100 flex items-center justify-center text-{{ $classColor }}-500 border border-{{ $classColor }}-200">
-                                        @if($classification === 'National Holiday')
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                                        @elseif($classification === 'Collective Leave')
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        @elseif($classification === 'Weekend')
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        @else
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                </div>
 
-                <!-- 2. Main Content Box (Tabbed) -->
+                        <!-- 2. Main Content Box (Tabbed) -->
                 <div class="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
                     
                     <!-- Header with Tabs and Pagination -->
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-slate-50/50">
                         <!-- Tabs -->
                         <div class="flex bg-slate-200/50 p-1 rounded-lg border border-slate-200/60 w-full sm:w-auto">
-                            <button @click="activeTab = 'table'; currentPage = 1" :class="activeTab === 'table' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-md transition flex items-center justify-center gap-1.5">
+                            <button @click="activeTab = 'table'; currentPage = 1" :class="activeTab === 'table' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold whitespace-nowrap rounded-md transition flex items-center justify-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                                 Visit Logs
                             </button>
-                            <button @click="activeTab = 'gantt'; currentPage = 1" :class="activeTab === 'gantt' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-md transition flex items-center justify-center gap-1.5">
+                            <button @click="activeTab = 'gantt'; currentPage = 1" :class="activeTab === 'gantt' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'" class="flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold whitespace-nowrap rounded-md transition flex items-center justify-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
                                 Gantt Graph
                             </button>
@@ -429,7 +390,7 @@
                         <!-- Pagination Controls -->
                         <div class="flex items-center justify-between w-full lg:w-auto gap-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold text-slate-500">Rows per page:</span>
+                                <span class="text-xs font-semibold text-slate-500 whitespace-nowrap">Rows per page:</span>
                                 <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
