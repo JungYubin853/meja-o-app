@@ -272,8 +272,145 @@
                     </div>
                 </div>
 
+                <div class="flex flex-col md:flex-row gap-4">
+                <!-- Mini Calendar Sidebar -->
+                <div class="w-full md:w-[220px] shrink-0">
+                    <!-- Mini Visual Calendar Widget (FullCalendar Style) -->
+                            @php
+                                $calReq = request('calendar_month');
+                                $cDate = $calReq ? \Carbon\Carbon::parse($calReq . '-01') : \Carbon\Carbon::parse($dateFilter)->startOfMonth();
+                                $sMonth = $cDate->copy()->startOfMonth();
+                                $eMonth = $cDate->copy()->endOfMonth();
+                                $sDow = $sMonth->dayOfWeekIso; 
+                                $dim = $eMonth->day;
+                                
+                                // Fetch Holidays for Calendar coloring
+                                $year = $cDate->year;
+                                $holidaysData = \Illuminate\Support\Facades\Cache::get("holidays_{$year}");
+                                $holidayMap = [];
+                                if ($holidaysData && isset($holidaysData['data']) && is_array($holidaysData['data'])) {
+                                    foreach($holidaysData['data'] as $h) {
+                                        $hDt = $h['date'] ?? null;
+                                        if($hDt) {
+                                            $isCollective = (isset($h['type']) && $h['type'] === 'leave');
+                                            $holidayMap[$hDt] = $isCollective ? 'collective' : 'holiday';
+                                        }
+                                    }
+                                }
+                            @endphp
+                            <div class="bg-white border border-[#e2e8f0] w-full" style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                                <div class="flex justify-between items-center bg-white px-1 py-3">
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->subMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                    </a>
+                                    <div class="flex items-center gap-1">
+                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month=' + this.value + '-{{ $cDate->format('m') }}'" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none text-right">
+                                            @for($y = 2020; $y <= 2035; $y++)
+                                                <option value="{{ $y }}" {{ $cDate->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                            @endfor
+                                        </select>
+                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->format('Y') }}-' + this.value" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none">
+                                            @foreach(['01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'May','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $name)
+                                                <option value="{{ $num }}" {{ $cDate->format('m') == $num ? 'selected' : '' }}>{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->addMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                    </a>
+                                </div>
+                                <table class="w-full border-collapse table-fixed">
+                                    <thead>
+                                        <tr>
+                                            @foreach(['M','T','W','T','F','S','S'] as $dayName)
+                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1 text-center uppercase">{{ $dayName }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $cells = [];
+                                            for($i = 1; $i < $sDow; $i++) { $cells[] = null; }
+                                            for($day = 1; $day <= $dim; $day++) { $cells[] = $day; }
+                                            while(count($cells) < 42) { $cells[] = null; }
+                                        @endphp
+                                        @foreach(array_chunk($cells, 7) as $row)
+                                            <tr>
+                                                @foreach($row as $day)
+                                                    @if($day)
+                                                        @php
+                                                            $tDate = $cDate->copy()->day($day)->format('Y-m-d');
+                                                            $isSel = $tDate === $dateFilter;
+                                                            $hType = $holidayMap[$tDate] ?? null;
+                                                            
+                                                            $bgClassCal = 'bg-white hover:bg-slate-50';
+                                                            if ($hType === 'holiday') {
+                                                                $bgClassCal = 'bg-[#fee2e2] hover:bg-[#fecaca]';
+                                                            } elseif ($hType === 'collective') {
+                                                                $bgClassCal = 'bg-[#fef08a] hover:bg-[#fde047]';
+                                                            }
+                                                            
+                                                            $selBorder = $isSel ? 'border-2 border-indigo-600 shadow-sm z-10' : 'border border-[#e2e8f0]';
+                                                        @endphp
+                                                        <td class="p-0 border border-[#e2e8f0] h-8 relative group text-center align-middle">
+                                                            <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
+                                                               class="flex items-center justify-center w-full h-full text-[11px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'font-[800] ring-inset ring-2 ring-indigo-600' : '' }}">
+                                                                {{ $day }}
+                                                            </a>
+                                                        </td>
+                                                    @else
+                                                        <td class="border border-[#e2e8f0] bg-white h-8"></td>
+                                                    @endif
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Main Content Column -->
+                        <div class="flex-1 flex flex-col gap-3">
+                            <!-- Top Row: Compact Stats -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Selected Date -->
+                                <div class="bg-white rounded-xl border border-slate-200/80 shadow-soft-xs p-2.5 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Selected Date</div>
+                                        <form action="/database" method="GET" class="m-0 p-0">
+                                            <input type="hidden" name="view" value="habits">
+                                            <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" 
+                                                   class="text-sm font-extrabold text-slate-800 border-none bg-transparent p-0 focus:ring-0 cursor-pointer w-[125px] -ml-1">
+                                        </form>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                </div>
+                                
+                                <!-- Classification -->
+                                <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs p-2.5 flex items-center justify-between">
+                                    <div class="truncate pr-3">
+                                        <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
+                                        <div class="text-sm font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
+                                    </div>
+                                    <div class="w-8 h-8 shrink-0 rounded-full bg-{{ $classColor }}-100 flex items-center justify-center text-{{ $classColor }}-500 border border-{{ $classColor }}-200">
+                                        @if($classification === 'National Holiday')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                                        @elseif($classification === 'Collective Leave')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        @elseif($classification === 'Weekend')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                </div>
+
                 <!-- 2. Main Content Box (Tabbed) -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
+                <div class="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
                     
                     <!-- Header with Tabs and Pagination -->
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-slate-50/50">
@@ -430,6 +567,7 @@
                     </div>
 
                 </div>
+            </div>
             </div>
         @endif
         
