@@ -65,23 +65,8 @@
 
         @if ($viewMode !== 'habits' && $viewMode !== 'overall')
 <!-- Filter & Actions Bar: Perfectly Aligned 1-Row Layout -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h2 class="text-base sm:text-lg font-bold text-slate-900">
-                    @if ($viewMode === 'overall')
-                        Overall Analytics & Metrics
-                    @elseif ($viewMode === 'waitlist')
-                        Waitlist Customer Records
-                    @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
-                        Daily Visitor Report (Hourly Breakdown)
-                    @elseif ($viewMode === 'daily')
-                        Monthly Visitor Report (Daily Breakdown)
-                    @elseif ($viewMode === 'monthly')
-                        Yearly Visitor Report (Monthly Breakdown)
-                    @endif
-                </h2>
-                <p class="text-[11px] text-slate-500 font-medium mt-0.5">Analyze customer volume and dining traffic patterns.</p>
-            </div>
+        <div class=\"bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row items-center justify-between gap-3\">
+            
 
             <!-- Controls: Filter & Export (Desktop: 1 row side-by-side; Mobile: Row 1 = Date + Filter, Row 2 = Export) -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
