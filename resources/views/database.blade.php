@@ -343,25 +343,11 @@
                     @endphp
 
                     
-                    <div class="px-4 py-3 sm:px-5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white">
-                        <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Date Classification</div>
-                        <div class="{{ $bgClass }} rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs px-3 py-1.5 flex items-center gap-3 shrink-0">
-                        <div class="truncate text-right">
-                            <div class="text-[9px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-0.5">{{ $classification }}</div>
-                            <div class="text-xs font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
+                    <div class="px-4 py-4 sm:px-5 border-b border-slate-100 bg-white">
+                        <div class="{{ $bgClass }} w-full rounded-xl border border-{{ $classColor }}-200 shadow-soft-xs px-4 py-3 flex flex-col items-center justify-center text-center">
+                            <div class="text-[10px] font-black text-{{ $classColor }}-600 uppercase tracking-widest mb-1">{{ $classification }}</div>
+                            <div class="text-[15px] font-extrabold text-{{ $classColor }}-900 leading-tight truncate" title="{{ $displayName }}">{{ $displayName }}</div>
                         </div>
-                        <div class="w-8 h-8 shrink-0 rounded-full bg-{{ $classColor }}-100 flex items-center justify-center text-{{ $classColor }}-500 border border-{{ $classColor }}-200">
-                            @if($classification === 'National Holiday')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                            @elseif($classification === 'Collective Leave')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            @elseif($classification === 'Weekend')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            @else
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                            @endif
-                        </div>
-                    </div>
                     </div>
                     
                     <!-- Header with Tabs and Pagination -->
