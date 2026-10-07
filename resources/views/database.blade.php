@@ -200,7 +200,7 @@
                       </div>
                   </div>
   
-                  <div class="flex flex-col lg:flex-row gap-4 items-start">
+                  <div class="flex flex-col lg:flex-row gap-4 lg:items-start">
                       <!-- Sidebar: Date Picker, Calendar, Classification -->
                       <div class="w-full lg:w-[280px] shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs p-4 flex flex-col gap-4">
                           
