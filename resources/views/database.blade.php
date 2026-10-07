@@ -400,9 +400,8 @@
                                 @forelse($habitsDateLog as $index => $log)
                                     <tr class="hover:bg-slate-50 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
                                         <td class="px-4 py-3">
-                                            <span class="text-slate-400 font-bold mr-1">#{{ $log->id }}</span> 
-                                            {{ $log->customer_name ?? 'Walk-in Guest' }} 
-                                            <span class="text-slate-500 font-medium ml-1">({{ $log->pax }} pax)</span>
+                                            <span class="text-slate-400 font-bold mr-1">#{{ $index + 1 }}</span> 
+                                            {{ $log->customer_name ?? 'Walk-in Guest' }}
                                         </td>
                                         <td class="px-4 py-3">
                                             <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</span>
