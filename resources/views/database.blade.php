@@ -234,12 +234,12 @@
                                     }
                                 }
                             @endphp
-                            <div class="w-full bg-white">
+                            <div class="w-[240px] shrink-0 mx-auto md:mx-0 bg-white mb-4 md:mb-0">
                                 <div class="flex justify-between items-center py-2 px-1">
                                     <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->subMonth()->format('Y-m') }}" class="text-[#475569] hover:bg-slate-100 p-1.5 rounded-full transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                     </a>
-                                    <div class="text-[1.1rem] font-[800] text-[#334155] tracking-wide">{{ $cDate->format('F') }}</div>
+                                    <div class="text-[1rem] font-[800] text-[#334155]">{{ $cDate->format('F') }}</div>
                                     <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->addMonth()->format('Y-m') }}" class="text-[#475569] hover:bg-slate-100 p-1.5 rounded-full transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
@@ -248,7 +248,7 @@
                                     <thead>
                                         <tr>
                                             @foreach(['S','M','T','W','T','F','S'] as $dayName)
-                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1 text-center uppercase">{{ $dayName }}</th>
+                                                <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.7rem] font-[700] py-1 text-center uppercase">{{ $dayName }}</th>
                                             @endforeach
                                         </tr>
                                     </thead>
@@ -278,14 +278,14 @@
                                                                 $bgClassCal = 'bg-[#fefce8] hover:bg-[#fef08a]';
                                                             }
                                                         @endphp
-                                                        <td class="p-0 border border-[#e2e8f0] h-8 relative group text-center align-middle">
+                                                        <td class="p-0 border border-[#e2e8f0] h-[34px] relative group text-center align-middle">
                                                             <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                                               class="flex items-center justify-center w-full h-full text-[13px] font-[600] text-[#1d4ed8] {{ $bgClassCal }} {{ $isSel ? 'ring-inset ring-2 ring-indigo-600 font-[800]' : '' }}">
+                                                               class="flex items-center justify-center w-full h-full text-[12px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'ring-inset ring-2 ring-indigo-600 font-[800]' : '' }}">
                                                                 {{ $day }}
                                                             </a>
                                                         </td>
                                                     @else
-                                                        <td class="border border-[#e2e8f0] bg-[#f1f5f9] h-8"></td>
+                                                        <td class="border border-[#e2e8f0] bg-[#f1f5f9] h-[34px]"></td>
                                                     @endif
                                                 @endforeach
                                             </tr>
