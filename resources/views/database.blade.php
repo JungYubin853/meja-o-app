@@ -204,14 +204,44 @@
                       <!-- Sidebar: Date Picker, Calendar, Classification -->
                       <div class="w-full lg:w-[280px] shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs p-4 flex flex-col gap-4">
                           
-                          <!-- Native Date Picker (For quick jumping) -->
-                          <form method="GET" action="/database" class="m-0 p-0 w-full">
-                              <input type="hidden" name="view" value="habits">
-                              @if (isset($selectedOutletId)) <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}"> @endif
-                              <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="h-10 w-full text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 box-border m-0 shadow-soft-xs cursor-pointer">
-                          </form>
+                          @php
+                              $dateObj = \Carbon\Carbon::parse($dateFilter);
+                              $dayName = $dateObj->format('l');
+                              
+                              // Holidays lookup logic
+                              $year = $dateObj->year;
+                              $holidaysData = \Illuminate\Support\Facades\Cache::get("holidays_{$year}");
+                              $holidayName = null;
+                              $holidayType = null;
+                              if ($holidaysData && isset($holidaysData['data']) && is_array($holidaysData['data'])) {
+                                  foreach($holidaysData['data'] as $h) {
+                                      if(isset($h['date']) && $h['date'] === $dateFilter) {
+                                          $holidayName = $h['name'];
+                                          $isCollective = (isset($h['type']) && $h['type'] === 'leave');
+                                          $holidayType = $isCollective ? 'Collective Leave' : 'National Holiday';
+                                          break;
+                                      }
+                                  }
+                              }
   
-                          <hr class="border-slate-100 border-t-2">
+                              $isWeekend = in_array($dayName, ['Saturday', 'Sunday']);
+                              if ($holidayType) {
+                                  $classification = $holidayType;
+                                  $displayName = $holidayName;
+                                  $classColor = $holidayType === 'Collective Leave' ? 'yellow' : 'red';
+                              } else {
+                                  $classification = $isWeekend ? 'Weekend' : 'Weekday';
+                                  $displayName = $dayName;
+                                  $classColor = 'slate';
+                              }
+                          @endphp
+                          <div class="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+                              <div class="text-[10px] font-black text-{{ $classColor }}-500 uppercase tracking-widest leading-none mb-1.5 text-center">{{ $classification }}</div>
+                              <div class="text-sm font-extrabold text-slate-800 text-center leading-none">{{ $displayName }}</div>
+                          </div>
+
+<hr class="border-slate-100 border-t-2">
+
   
                           <!-- Mini Visual Calendar Widget (FullCalendar Style) -->
                           @php
@@ -296,41 +326,7 @@
                               </table>
                           </div>
   
-                          @php
-                              $dateObj = \Carbon\Carbon::parse($dateFilter);
-                              $dayName = $dateObj->format('l');
-                              
-                              // Holidays lookup logic
-                              $year = $dateObj->year;
-                              $holidaysData = \Illuminate\Support\Facades\Cache::get("holidays_{$year}");
-                              $holidayName = null;
-                              $holidayType = null;
-                              if ($holidaysData && isset($holidaysData['data']) && is_array($holidaysData['data'])) {
-                                  foreach($holidaysData['data'] as $h) {
-                                      if(isset($h['date']) && $h['date'] === $dateFilter) {
-                                          $holidayName = $h['name'];
-                                          $isCollective = (isset($h['type']) && $h['type'] === 'leave');
-                                          $holidayType = $isCollective ? 'Collective Leave' : 'National Holiday';
-                                          break;
-                                      }
-                                  }
-                              }
-  
-                              $isWeekend = in_array($dayName, ['Saturday', 'Sunday']);
-                              if ($holidayType) {
-                                  $classification = $holidayType;
-                                  $displayName = $holidayName;
-                                  $classColor = $holidayType === 'Collective Leave' ? 'yellow' : 'red';
-                              } else {
-                                  $classification = $isWeekend ? 'Weekend' : 'Weekday';
-                                  $displayName = $dayName;
-                                  $classColor = 'slate';
-                              }
-                          @endphp
-                          <div class="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl border border-slate-200 mt-2">
-                              <div class="text-[10px] font-black text-{{ $classColor }}-500 uppercase tracking-widest leading-none mb-1.5 text-center">{{ $classification }}</div>
-                              <div class="text-sm font-extrabold text-slate-800 text-center leading-none">{{ $displayName }}</div>
-                          </div>
+                          
                       </div>
                       
                       <!-- 2. Main Content Box (Tabbed) -->
@@ -346,8 +342,8 @@
                                       <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                                       Visit Logs
                                   </button>
-                                  <button @click="activeTab = 'graph'" 
-                                          :class="activeTab === 'graph' ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-200/50 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 font-semibold'"
+                                  <button @click="activeTab = 'gantt'" 
+                                          :class="activeTab === 'gantt' ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-200/50 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 font-semibold'"
                                           class="px-4 py-2 text-xs rounded-lg transition-all duration-200 flex items-center gap-2 flex-1 lg:flex-none justify-center whitespace-nowrap">
                                       <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                                       Gantt Graph
