@@ -217,7 +217,7 @@
                                 $cDate = $calReq ? \Carbon\Carbon::parse($calReq . '-01') : \Carbon\Carbon::parse($dateFilter)->startOfMonth();
                                 $sMonth = $cDate->copy()->startOfMonth();
                                 $eMonth = $cDate->copy()->endOfMonth();
-                                $sDow = $sMonth->dayOfWeekIso; 
+                                $sDow = $sMonth->dayOfWeek; 
                                 $dim = $eMonth->day;
                                 
                                 // Fetch Holidays for Calendar coloring
@@ -258,7 +258,7 @@
                                 <table class="w-full border-collapse table-fixed">
                                     <thead>
                                         <tr>
-                                            @foreach(['M','T','W','T','F','S','S'] as $dayName)
+                                            @foreach(['S','M','T','W','T','F','S'] as $dayName)
                                                 <th class="border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] text-[0.75rem] font-[700] py-1 text-center uppercase">{{ $dayName }}</th>
                                             @endforeach
                                         </tr>
@@ -266,7 +266,7 @@
                                     <tbody>
                                         @php
                                             $cells = [];
-                                            for($i = 1; $i < $sDow; $i++) { $cells[] = null; }
+                                            for($i = 0; $i < $sDow; $i++) { $cells[] = null; }
                                             for($day = 1; $day <= $dim; $day++) { $cells[] = $day; }
                                             while(count($cells) < 42) { $cells[] = null; }
                                         @endphp

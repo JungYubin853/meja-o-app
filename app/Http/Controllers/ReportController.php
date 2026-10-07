@@ -58,9 +58,26 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $dateFilter   = $request->input('date', now()->format('Y-m-d'));
-        $monthFilter  = $request->input('month', now()->format('Y-m'));
-        $yearFilter   = $request->input('year', now()->format('Y'));
+        $dateFilter = $request->input('date');
+        if ($dateFilter) {
+            session(['dateFilter_'.$viewMode => $dateFilter]);
+        } else {
+            $dateFilter = session('dateFilter_'.$viewMode, now()->format('Y-m-d'));
+        }
+
+        $monthFilter = $request->input('month');
+        if ($monthFilter) {
+            session(['monthFilter_'.$viewMode => $monthFilter]);
+        } else {
+            $monthFilter = session('monthFilter_'.$viewMode, now()->format('Y-m'));
+        }
+
+        $yearFilter = $request->input('year');
+        if ($yearFilter) {
+            session(['yearFilter_'.$viewMode => $yearFilter]);
+        } else {
+            $yearFilter = session('yearFilter_'.$viewMode, now()->format('Y'));
+        }
 
         $parsedMonth  = Carbon::parse($monthFilter);
 

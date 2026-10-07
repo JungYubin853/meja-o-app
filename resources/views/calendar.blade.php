@@ -99,8 +99,17 @@
 
         /* Reduce padding in multi-month year view day headers to prevent scrolling */
         .fc-multimonth-daygrid .fc-col-header-cell {
-            padding: 4px 0 !important;
+            padding: 0 !important;
             font-size: 0.75rem;
+            aspect-ratio: 1 / 1;
+            vertical-align: middle;
+        }
+        .fc-multimonth-daygrid .fc-col-header-cell-cushion {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 100% !important;
+            width: 100% !important;
         }
         .fc-multimonth-daygrid .fc-daygrid-day-number {
             padding: 4px !important;
@@ -140,7 +149,7 @@
                 multiMonthMinWidth: 120,
                 events: '/api/calendar/holidays',
                 height: 'auto',
-                firstDay: 1, // Start on Monday
+                firstDay: 0, // Start on Monday
                 navLinks: true, // can click day/week names to navigate views
 
                   navLinkDayClick: 'timeGridWeek', // clicking a date goes to week view
