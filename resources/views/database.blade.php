@@ -343,7 +343,7 @@
                       </div>
                       
                       <!-- 2. Main Content Box (Tabbed) -->
-                      <div class="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
+                      <div class="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
                           <!-- Main Content Header (Tabs & Pagination) -->
                           <div class="flex flex-col lg:flex-row items-center justify-between border-b border-slate-100 bg-slate-50/50 p-2 lg:p-4 gap-4">
                               
@@ -468,7 +468,7 @@
                                                 $widthPct = (($endMinOfDay - $startMinOfDay) / 1440) * 100;
                                             @endphp
                                             <div class="flex items-center group relative" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
-                                                <div class="w-32 shrink-0 pr-4 text-right truncate">
+                                                <div class="w-32 shrink-0 pl-2 pr-2 text-left truncate">
                                                     <div class="text-xs font-bold text-slate-700 truncate" title="{{ $log->customer_name }}">{{ $log->customer_name ?? 'Walk-in' }}</div>
                                                     <div class="text-[10px] font-semibold text-slate-400">
                                                         @if($log->table) Tbl {{ $log->table->table_number ?? $log->table->id }} @else - @endif
