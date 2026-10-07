@@ -234,24 +234,13 @@
                                     }
                                 }
                             @endphp
-                            <div class="bg-white border border-[#e2e8f0] w-full" style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
-                                <div class="flex justify-between items-center bg-white px-1 py-3">
-                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->subMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                            <div class="w-full bg-white">
+                                <div class="flex justify-between items-center py-2 px-1">
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->subMonth()->format('Y-m') }}" class="text-[#475569] hover:bg-slate-100 p-1.5 rounded-full transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                     </a>
-                                    <div class="flex items-center gap-1">
-                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month=' + this.value + '-{{ $cDate->format('m') }}'" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none text-right">
-                                            @for($y = 2020; $y <= 2035; $y++)
-                                                <option value="{{ $y }}" {{ $cDate->year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                            @endfor
-                                        </select>
-                                        <select onchange="window.location='?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->format('Y') }}-' + this.value" class="text-[0.95rem] font-[800] text-[#334155] border-none bg-transparent p-0 pr-4 focus:ring-0 cursor-pointer appearance-none">
-                                            @foreach(['01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'May','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $name)
-                                                <option value="{{ $num }}" {{ $cDate->format('m') == $num ? 'selected' : '' }}>{{ $name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->addMonth()->format('Y-m') }}" class="text-[#475569] hover:text-[#0f172a] transition px-2">
+                                    <div class="text-[1.1rem] font-[800] text-[#334155] tracking-wide">{{ $cDate->format('F') }}</div>
+                                    <a href="?view=habits&date={{ $dateFilter }}&calendar_month={{ $cDate->copy()->addMonth()->format('Y-m') }}" class="text-[#475569] hover:bg-slate-100 p-1.5 rounded-full transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
                                 </div>
@@ -277,6 +266,7 @@
                                                         @php
                                                             $tDate = $cDate->copy()->day($day)->format('Y-m-d');
                                                             $isSel = $tDate === $dateFilter;
+                                                            $isToday = $tDate === now()->format('Y-m-d');
                                                             $hType = $holidayMap[$tDate] ?? null;
                                                             
                                                             $bgClassCal = 'bg-white hover:bg-slate-50';
@@ -284,18 +274,18 @@
                                                                 $bgClassCal = 'bg-[#fee2e2] hover:bg-[#fecaca]';
                                                             } elseif ($hType === 'collective') {
                                                                 $bgClassCal = 'bg-[#fef08a] hover:bg-[#fde047]';
+                                                            } elseif ($isToday) {
+                                                                $bgClassCal = 'bg-[#fefce8] hover:bg-[#fef08a]';
                                                             }
-                                                            
-                                                            $selBorder = $isSel ? 'border-2 border-indigo-600 shadow-sm z-10' : 'border border-[#e2e8f0]';
                                                         @endphp
                                                         <td class="p-0 border border-[#e2e8f0] h-8 relative group text-center align-middle">
                                                             <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                                               class="flex items-center justify-center w-full h-full text-[11px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'font-[800] ring-inset ring-2 ring-indigo-600' : '' }}">
+                                                               class="flex items-center justify-center w-full h-full text-[13px] font-[600] text-[#1d4ed8] {{ $bgClassCal }} {{ $isSel ? 'ring-inset ring-2 ring-indigo-600 font-[800]' : '' }}">
                                                                 {{ $day }}
                                                             </a>
                                                         </td>
                                                     @else
-                                                        <td class="border border-[#e2e8f0] bg-white h-8"></td>
+                                                        <td class="border border-[#e2e8f0] bg-[#f1f5f9] h-8"></td>
                                                     @endif
                                                 @endforeach
                                             </tr>
@@ -304,7 +294,6 @@
                                 </table>
                             </div>
                         </div>
-
 
                         <!-- 2. Main Content Box (Tabbed) -->
                 <div class="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
