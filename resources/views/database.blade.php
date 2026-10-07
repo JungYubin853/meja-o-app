@@ -325,7 +325,7 @@
                                                       @endphp
                                                       <td class="p-0 border border-[#e2e8f0] h-[32px] relative group text-center align-middle">
                                                           <a href="?view=habits&date={{ $tDate }}{{ isset($selectedOutletId) ? '&outlet_id='.$selectedOutletId : '' }}"
-                                                              class="flex items-center justify-center w-full h-full text-[12px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'ring-inset ring-2 ring-indigo-600 font-[800]' : '' }}">
+                                                              class="flex items-center justify-center w-full h-full text-[12px] font-[600] text-[#334155] {{ $bgClassCal }} {{ $isSel ? 'ring-inset ring-2 ring-slate-700 font-[800]' : '' }}">
                                                               {{ $day }}
                                                           </a>
                                                       </td>
@@ -476,7 +476,7 @@
                                                 </div>
                                                 
                                                 <div class="flex-1 h-8 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
-                                                    <div class="absolute top-1.5 bottom-1.5 bg-indigo-500 rounded-md border border-indigo-600 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-indigo-600 transition cursor-pointer"
+                                                    <div class="absolute top-1.5 bottom-1.5 bg-slate-700 rounded-md border border-slate-800 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-slate-800 transition cursor-pointer"
                                                          style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.5) }}%;"
                                                          title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | Elapsed: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
                                                         @if($widthPct > 5)
