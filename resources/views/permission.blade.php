@@ -8,12 +8,12 @@
                 
                 <!-- Search Bar -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-soft-xs space-y-3">
-                    <label class="block text-sm font-bold text-slate-900">Search User by Email</label>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
                     <form @submit.prevent="searchUser" class="flex gap-2">
                         <input type="email" x-model="searchEmail" required placeholder="Enter user's email address..."
-                            class="flex-1 text-xs p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                            class="flex-1 text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                         <button type="submit" :disabled="loading"
-                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs">
+                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs">
                             <span x-show="!loading">Search</span>
                             <span x-show="loading">...</span>
                         </button>
@@ -26,13 +26,12 @@
 
                 <!-- User List -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
-                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-900">User List</h3>
-                            <p class="text-[11px] text-slate-500 font-medium">Click a user to configure.</p>
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-bold text-slate-800">User List</h3>
                         </div>
                         <div class="flex flex-col items-end gap-1.5">
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-1 rounded-full border border-slate-200" x-text="allUsersList.length + ' Users'"></span>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200" x-text="allUsersList.length + ' Users'"></span>
                             <div class="flex items-center gap-1.5">
                                 <span class="text-[9px] font-bold text-slate-400 tracking-wider">SHOW</span>
                                 <select x-model.number="userLimit" class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer">
@@ -46,8 +45,8 @@
 
                     <div class="overflow-x-auto max-h-[500px] overflow-y-auto touch-scroll">
                         <table class="w-full text-left border-collapse text-xs sm:text-sm">
-                            <thead class="sticky top-0 bg-slate-50 z-10 shadow-sm border-b border-slate-200">
-                                <tr class="text-slate-700 font-semibold">
+                            <thead class="sticky top-0 bg-slate-50/80 z-10 shadow-sm border-b border-slate-200">
+                                <tr class="text-slate-500 text-[10px] uppercase tracking-wider font-bold">
                                     <th class="p-3 sm:p-4">Name / Email</th>
                                 </tr>
                             </thead>
@@ -56,7 +55,7 @@
                                     <tr class="hover:bg-slate-50 transition cursor-pointer" 
                                         @click="searchEmail = u.email; searchUser(); window.scrollTo({top: 0, behavior: 'smooth'});">
                                         <td class="p-3 sm:p-4">
-                                            <div class="font-bold text-slate-900 text-sm" x-text="u.name"></div>
+                                            <div class="font-bold text-slate-800 text-xs" x-text="u.name"></div>
                                             <div class="text-slate-500 text-[11px] mt-0.5" x-text="u.email"></div>
                                         </td>
                                     </tr>
@@ -84,18 +83,18 @@
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
                         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <h2 class="text-lg font-bold text-slate-900">Access Control Settings</h2>
-                                <p class="text-sm font-semibold text-slate-500 mt-0.5" x-text="user.email"></p>
+                                <h2 class="text-sm font-bold text-slate-800">Access Control Settings</h2>
+                                <p class="text-xs font-semibold text-slate-500 mt-0.5" x-text="user.email"></p>
                             </div>
                             <button @click="savePermissions" :disabled="saving"
-                                class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-sm shrink-0">
+                                class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs shrink-0">
                                 <span x-show="!saving">Save Permissions</span>
                                 <span x-show="saving">Saving...</span>
                             </button>
                         </div>
                         
                         <template x-if="successMsg">
-                            <div class="p-3 mx-5 mt-5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+                            <div class="p-3 mx-5 mt-5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold flex items-center gap-2">
                                 <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
@@ -107,29 +106,29 @@
                             <!-- Dashboard -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="font-bold text-slate-800">Dashboard</span>
+                                    <span class="text-sm font-bold text-slate-800">Dashboard</span>
                                     <input type="checkbox" x-model="permissions.nav_dashboard" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_dashboard" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Create New Table Container</span>
+                                        <span class="text-xs font-semibold text-slate-700">Create New Table Container</span>
                                         <input type="checkbox" x-model="permissions.dash_create_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">2D Floor Canvas</span>
+                                        <span class="text-xs font-semibold text-slate-700">2D Floor Canvas</span>
                                         <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Guest Seating</span>
+                                        <span class="text-xs font-semibold text-slate-700">Guest Seating</span>
                                         <input type="checkbox" x-model="permissions.dash_guest_seating" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Waitlist</span>
+                                        <span class="text-xs font-semibold text-slate-700">Waitlist</span>
                                         <input type="checkbox" x-model="permissions.dash_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Edit Table Specs</span>
+                                        <span class="text-xs font-semibold text-slate-700">Edit Table Specs</span>
                                         <input type="checkbox" x-model="permissions.dash_edit_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -137,36 +136,36 @@
 
                             <!-- Waitlist -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="font-bold text-slate-800">Waitlist</span>
+                                <span class="text-sm font-bold text-slate-800">Waitlist</span>
                                 <input type="checkbox" x-model="permissions.nav_waitlist" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Reports & Database -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="font-bold text-slate-800">Reports & Database</span>
+                                    <span class="text-sm font-bold text-slate-800">Reports & Database</span>
                                     <input type="checkbox" x-model="permissions.nav_reports" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_reports" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Overall</span>
+                                        <span class="text-xs font-semibold text-slate-700">Overall</span>
                                         <input type="checkbox" x-model="permissions.rep_overall" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Daily Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Daily Report</span>
                                         <input type="checkbox" x-model="permissions.rep_daily" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Monthly Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Monthly Report</span>
                                         <input type="checkbox" x-model="permissions.rep_monthly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Yearly Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Yearly Report</span>
                                         <input type="checkbox" x-model="permissions.rep_yearly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Waitlist Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Waitlist Report</span>
                                         <input type="checkbox" x-model="permissions.rep_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -174,24 +173,24 @@
 
                             <!-- Profile -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="font-bold text-slate-800">Profile</span>
+                                <span class="text-sm font-bold text-slate-800">Profile</span>
                                 <input type="checkbox" x-model="permissions.nav_profile" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Account Management -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="font-bold text-slate-800">Account Management</span>
+                                    <span class="text-sm font-bold text-slate-800">Account Management</span>
                                     <input type="checkbox" x-model="permissions.nav_account_mgmt" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_account_mgmt" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">Create New Account</span>
+                                        <span class="text-xs font-semibold text-slate-700">Create New Account</span>
                                         <input type="checkbox" x-model="permissions.acc_create_account" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-sm font-semibold text-slate-700">User List</span>
+                                        <span class="text-xs font-semibold text-slate-700">User List</span>
                                         <input type="checkbox" x-model="permissions.acc_user_list" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -199,7 +198,7 @@
 
                             <!-- Role & User Permission -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="font-bold text-slate-800">Role & User Permission</span>
+                                <span class="text-sm font-bold text-slate-800">Role & User Permission</span>
                                 <input type="checkbox" x-model="permissions.nav_role_permission" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
                         </div>
