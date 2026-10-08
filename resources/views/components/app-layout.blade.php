@@ -147,6 +147,7 @@
                             @endif
 
                             <!-- Tutorial Link -->
+                            @if(Auth::user()->hasPermission('nav_tutorial'))
                             <a href="/tutorial"
                                 class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('tutorial*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('tutorial*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
@@ -156,7 +157,9 @@
                                 </div>
                                 <span>Tutorial & Guidelines</span>
                             </a>
+                            @endif
                             <!-- Calendar Link -->
+                            @if(Auth::user()->hasPermission('nav_calendar'))
                             <a href="/calendar"
                                 class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('calendar*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('calendar*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
@@ -310,6 +313,7 @@
                             @endif
 
                             <!-- Tutorial Link -->
+                            @if(Auth::user()->hasPermission('nav_tutorial'))
                             <a href="/tutorial"
                                 class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('tutorial*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('tutorial*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
@@ -319,7 +323,9 @@
                                 </div>
                                 <span>Tutorial & Guidelines</span>
                             </a>
+                            @endif
                             <!-- Calendar Link -->
+                            @if(Auth::user()->hasPermission('nav_calendar'))
                             <a href="/calendar"
                                 class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('calendar*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('calendar*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">

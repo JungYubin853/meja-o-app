@@ -76,6 +76,8 @@ class User extends Authenticatable
             'rep_yearly' => $this->isAdmin(),
             'rep_waitlist' => true,
             'rep_habits' => $this->isAdmin(),
+            'nav_tutorial' => true,
+            'nav_calendar' => true,
             'nav_profile' => true,
             'nav_account_mgmt' => $this->isAdmin(),
             'acc_create_account' => false,

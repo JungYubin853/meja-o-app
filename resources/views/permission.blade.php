@@ -168,8 +168,24 @@
                                         <span class="text-xs font-semibold text-slate-700">Waitlist Report</span>
                                         <input type="checkbox" x-model="permissions.rep_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">Customer Habits</span>
+                                        <input type="checkbox" x-model="permissions.rep_habits" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
                                 </div>
                             </div>
+
+                            <!-- Tutorial & Guidelines -->
+                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+                                <span class="text-sm font-bold text-slate-800">Tutorial & Guidelines</span>
+                                <input type="checkbox" x-model="permissions.nav_tutorial" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                            </label>
+
+                            <!-- Calendar -->
+                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+                                <span class="text-sm font-bold text-slate-800">Calendar</span>
+                                <input type="checkbox" x-model="permissions.nav_calendar" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                            </label>
 
                             <!-- Profile -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
@@ -268,6 +284,9 @@ $script = @'
                             rep_monthly: data.role === 'admin',
                             rep_yearly: data.role === 'admin',
                             rep_waitlist: data.role === 'admin' || data.role === 'staff',
+                            rep_habits: data.role === 'admin',
+                            nav_tutorial: data.role === 'admin' || data.role === 'staff',
+                            nav_calendar: data.role === 'admin' || data.role === 'staff',
                             nav_profile: data.role === 'admin' || data.role === 'staff',
                             nav_account_mgmt: data.role === 'admin',
                             acc_create_account: false,

@@ -56,10 +56,12 @@
                 </a>
             @endif
 
+            @if (Auth::user()->hasPermission('rep_habits'))
             <a href="/database?view=habits"
             class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'habits' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
             Customer Habits
             </a>
+            @endif
 
         </div>
 
