@@ -1,21 +1,21 @@
 <x-app-layout title="Meja-O | Role & Permission">
     <main class="w-full max-w-[84rem] mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 min-h-[calc(100vh-4rem)]" x-data="permissionManager()">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
             
             <!-- LEFT COLUMN: Search & User List -->
-            <div class="lg:col-span-4 xl:col-span-4 space-y-6">
+            <div class="w-full lg:w-[320px] shrink-0 space-y-6">
                 
                 <!-- Search Bar -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-soft-xs space-y-3">
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
                     <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
                     <form @submit.prevent="searchUser" class="flex gap-2">
                         <input type="email" x-model="searchEmail" required placeholder="Enter user's email address..."
                             class="flex-1 text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                         <button type="submit" :disabled="loading"
-                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs">
-                            <span x-show="!loading">Search</span>
-                            <span x-show="loading">...</span>
+                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold w-10 h-[38px] rounded-xl flex items-center justify-center transition shadow-soft-xs active:scale-98 disabled:opacity-50 shrink-0">
+                            <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
                     </form>
                     
@@ -67,7 +67,7 @@
             </div>
 
             <!-- RIGHT COLUMN: Permissions Editor -->
-            <div class="lg:col-span-8 xl:col-span-8">
+            <div class="flex-1 min-w-0">
                 
                 <template x-if="!user && !loading">
                     <div class="bg-slate-50 border border-slate-200/80 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center h-full min-h-[300px] shadow-soft-xs">

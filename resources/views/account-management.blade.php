@@ -26,7 +26,21 @@
             <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
 
             @if (Auth::user()->hasPermission('acc_create_account'))
-                <div class="w-full lg:w-[320px] shrink-0 bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-4">
+                <div class="w-full lg:w-[320px] shrink-0 space-y-6">
+                    <!-- Search Bar -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User</label>
+                        <form method="GET" action="/account-management" class="flex gap-2">
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name or email..."
+                                class="flex-1 w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                            <button type="submit"
+                                class="bg-slate-900 hover:bg-slate-800 text-white font-bold w-10 h-[38px] rounded-xl flex items-center justify-center transition shadow-soft-xs active:scale-98 shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-4">
                     <div class="border-b border-slate-100 pb-3">
                         <h2 class="text-sm font-bold text-slate-800">Create New Account</h2>
                     </div>
@@ -80,6 +94,7 @@
                             </button>
                         </div>
                     </form>
+                </div>
                 </div>
             @endif
 
