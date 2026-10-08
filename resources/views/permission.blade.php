@@ -223,6 +223,15 @@ $script = @'
                 user: null,
                 permissions: {},
 
+                init() {
+                    const params = new URLSearchParams(window.location.search);
+                    const email = params.get('email');
+                    if (email) {
+                        this.searchEmail = email;
+                        this.searchUser();
+                    }
+                },
+
                 get displayedUsers() {
                     return this.allUsersList.slice(0, parseInt(this.userLimit));
                 },
