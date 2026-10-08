@@ -169,6 +169,7 @@
                                 </div>
                                 <span>Calendar</span>
                             </a>
+                            @endif
 
                             <!-- 4. Profile Link -->
                             @if (Auth::user()->hasPermission('nav_profile'))
@@ -335,6 +336,7 @@
                                 </div>
                                 <span>Calendar</span>
                             </a>
+                            @endif
 
                             <!-- 4. Profile Link -->
                             @if (Auth::user()->hasPermission('nav_profile'))
