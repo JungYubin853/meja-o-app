@@ -26,41 +26,40 @@
             <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
 
             @if (Auth::user()->hasPermission('acc_create_account'))
-                <div class="w-full lg:w-[320px] shrink-0 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-soft-xs space-y-5">
-                    <div class="border-b border-slate-100 pb-4">
-                        <h2 class="text-base sm:text-lg font-bold text-slate-900">Create New Account (Super Admin)</h2>
-                        <p class="text-xs text-slate-500 font-medium">Provision new staff, admin, or super admin accounts across all outlets.</p>
+                <div class="w-full lg:w-[320px] shrink-0 bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-4">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800">Create New Account</h2>
                     </div>
 
                     <form action="/users" method="POST" class="space-y-4">
                         @csrf
                         <div class="flex flex-col gap-4">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Full Name</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Full Name</label>
                                 <input type="text" name="name" required
-                                    class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Email Address</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Email Address</label>
                                 <input type="email" name="email" required
-                                    class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-4">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Role</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role</label>
                                 <select name="role" required
-                                    class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                                     <option value="staff">Staff</option>
                                     <option value="admin">Admin</option>
                                     <option value="super_admin">Super Admin</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Assign Outlet</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Assign Outlet</label>
                                 <select name="outlet_id"
-                                    class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                                     <option value="">None (For Super Admin)</option>
                                     @foreach ($outlets as $outlet)
                                         <option value="{{ $outlet->id }}">{{ $outlet->name }}</option>
@@ -68,15 +67,15 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Temporary Password</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Temporary Password</label>
                                 <input type="password" name="password" required
-                                    class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
                         </div>
 
                         <div class="flex justify-end pt-2">
                             <button type="submit"
-                                class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-soft-xs active:scale-98">
+                                class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98">
                                 Create Account
                             </button>
                         </div>
@@ -94,15 +93,37 @@
                     prevPage() { if (this.currentPage > 1) this.currentPage--; }
                 }" class="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900">User List</h3>
-                            <p class="text-xs text-slate-500 font-medium">Read, oversee, and delete staff accounts.</p>
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-bold text-slate-800">User List</h3>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
+                                {{ count($allUsers) }} Users
+                            </span>
                         </div>
                         
-                        <!-- Pagination Controls -->
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold text-slate-500 whitespace-nowrap">Rows per page:</span>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <!-- Filters -->
+                            <form method="GET" action="/account-management" class="flex items-center gap-2">
+                            <select name="outlet_id" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
+                                <option value="">All Outlets</option>
+                                @foreach($outlets as $outlet)
+                                    <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="role" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
+                                <option value="">All Roles</option>
+                                <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Staff</option>
+                            </select>
+                            @if(request()->filled('role') || request()->filled('outlet_id'))
+                                <a href="/account-management" class="text-[11px] font-bold text-slate-400 hover:text-slate-800 ml-1">Clear</a>
+                            @endif
+                        </form>
+
+                            <!-- Pagination Controls -->
+                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2 hidden sm:flex">
+                                <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Rows per page:</span>
                                 <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
@@ -120,43 +141,44 @@
                                 </button>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                 <div class="overflow-x-auto touch-scroll">
                     <table class="w-full text-left border-collapse text-xs sm:text-sm">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                                <th class="p-3.5 sm:p-4">Name</th>
-                                <th class="p-3.5 sm:p-4">Email</th>
-                                <th class="p-3.5 sm:p-4">Outlet / Brand</th>
-                                <th class="p-3.5 sm:p-4">Role</th>
-                                <th class="p-3.5 sm:p-4 text-right">Action</th>
+                            <tr class="bg-slate-50/80 text-slate-500 text-[10px] uppercase tracking-wider font-bold border-b border-slate-200">
+                                <th class="p-3">Name</th>
+                                <th class="p-3">Email</th>
+                                <th class="p-3">Outlet / Brand</th>
+                                <th class="p-3">Role</th>
+                                <th class="p-3 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach ($allUsers as $index => $u)
                                 <tr class="hover:bg-slate-50/60 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)" x-cloak>
-                                    <td class="p-3.5 sm:p-4 font-bold text-slate-900">{{ $u->name }}</td>
-                                    <td class="p-3.5 sm:p-4 text-slate-600">{{ $u->email }}</td>
-                                    <td class="p-3.5 sm:p-4 font-medium text-slate-800">{{ $u->outlet->name ?? 'ALL OUTLETS' }}</td>
-                                    <td class="p-3.5 sm:p-4">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase {{ $u->role === 'admin' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
+                                    <td class="p-3 text-xs font-bold text-slate-800">{{ $u->name }}</td>
+                                    <td class="p-3 text-xs font-semibold text-slate-500">{{ $u->email }}</td>
+                                    <td class="p-3 text-xs font-bold text-slate-700">{{ $u->outlet->name ?? 'ALL OUTLETS' }}</td>
+                                    <td class="p-3">
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider {{ $u->role === 'admin' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
                                             {{ $u->role }}
                                         </span>
                                     </td>
-                                    <td class="p-3.5 sm:p-4 text-right">
+                                    <td class="p-3 text-right">
                                         @if ($u->id !== $user->id)
                                             <form action="/users/{{ $u->id }}" method="POST"
                                                 onsubmit="return confirm('Are you sure you want to delete user {{ $u->name }}?');" class="inline-block">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                    class="text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition">
+                                                    class="text-[10px] font-bold uppercase tracking-wider text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition">
                                                     Delete
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="text-xs text-slate-400 italic">Current User</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current User</span>
                                         @endif
                                     </td>
                                 </tr>

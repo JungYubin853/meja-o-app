@@ -78,10 +78,20 @@ class AuthController extends Controller
         }
 
         if ($user->isSuperAdmin()) {
-            $allUsers = User::with('outlet')->get();
+            $query = User::with('outlet');
         } else {
-            $allUsers = User::where('outlet_id', $user->outlet_id)->with('outlet')->get();
+            $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
         }
+
+        if (request()->filled('role')) {
+            $query->where('role', request('role'));
+        }
+        
+        if (request()->filled('outlet_id')) {
+            $query->where('outlet_id', request('outlet_id'));
+        }
+
+        $allUsers = $query->get();
         
         $outlets = \App\Models\Outlet::all();
 
