@@ -659,11 +659,11 @@
         
 <main class="max-w-[84rem] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
 
-            <div class="grid grid-cols-1 lg:grid-cols-7 gap-4 sm:gap-5 items-start">
+            <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
 
-                <!-- ADMIN INVENTORY: Order-2 on Mobile, 2 Columns on Desktop -->
+                <!-- ADMIN INVENTORY: Order-2 on Mobile, Fixed Width on Desktop -->
                 @if (Auth::user()->hasPermission('dash_create_table'))
-                    <div class="order-2 lg:order-1 lg:col-span-2 space-y-4">
+                    <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
                         <!-- EDIT MODE TRAY -->
                         @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
@@ -860,8 +860,7 @@
 
                 <!-- 2D FLOOR PLAN CANVAS -->
                 @if (Auth::user()->hasPermission('dash_floor_canvas'))
-                    <div
-                        class="order-1 lg:order-2 {{ Auth::user()->hasPermission('dash_create_table') ? 'lg:col-span-5' : 'lg:col-span-7' }} space-y-3">
+                    <div class="order-1 lg:order-2 flex-1 min-w-0 space-y-3">
 
                     <!-- Map Toolbar Bar -->
                     <div
