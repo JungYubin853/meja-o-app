@@ -659,7 +659,7 @@
         
 <main class="max-w-[84rem] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
 
-            <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
+            <div class="flex flex-col lg:flex-row gap-6 items-start w-full max-w-full">
 
                 <!-- ADMIN INVENTORY: Order-2 on Mobile, Fixed Width on Desktop -->
                 @if (Auth::user()->hasPermission('dash_create_table'))
@@ -860,7 +860,7 @@
 
                 <!-- 2D FLOOR PLAN CANVAS -->
                 @if (Auth::user()->hasPermission('dash_floor_canvas'))
-                    <div class="order-1 lg:order-2 flex-1 min-w-0 space-y-3">
+                    <div class="order-1 lg:order-2 flex-1 min-w-0 w-full space-y-3">
 
                     <!-- Map Toolbar Bar -->
                     <div
@@ -925,7 +925,7 @@
 
                     <!-- 2D Canvas Workspace -->
                     <div
-                        class="bg-slate-950 -mx-3 sm:mx-0 rounded-none sm:rounded-2xl border-t border-b-0 border-x-0 sm:border border-slate-800 overflow-auto p-2 sm:p-4 relative max-h-[70vh] sm:max-h-[600px] h-auto shadow-soft-xl touch-scroll">
+                        class="bg-slate-950 -mx-3 sm:mx-0 rounded-none sm:rounded-2xl border-t border-b-0 border-x-0 sm:border border-slate-800 overflow-auto p-2 sm:p-4 relative max-h-[70vh] sm:max-h-[600px] h-auto shadow-soft-xl touch-scroll w-[calc(100%+1.5rem)] sm:w-full max-w-[100vw] sm:max-w-full">
 
                         @php
                             $width = (int) ($gridWidth ?? 0);
