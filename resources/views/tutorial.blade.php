@@ -39,7 +39,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <div class="space-y-3">
                             <h3 class="font-bold text-slate-800 text-lg">{{ __('1. Placing Tables & Sections') }}</h3>
-                            <p class="text-slate-600 text-sm leading-relaxed">{{ __('To add tables {{ __('or') }} col{{ __('or') }}ed sections to your flo{{ __('or') }} plan, you must first create them in the left-hand invent{{ __('or') }}y panel using the') }} <strong>Create New Table</strong> {{ __('or') }} <strong>{{ __('Create New Section') }}</strong> {{ __('buttons. Once created, simply') }} <strong>{{ __('Drag and Drop') }}</strong> {{ __('them directly onto the grid on the right side.') }}</p>
+                            <p class="text-slate-600 text-sm leading-relaxed">{{ __('To add tables or colored sections to your floor plan, you must first create them in the left-hand inventory panel using the') }} <strong>Create New Table</strong> {{ __('or') }} <strong>{{ __('Create New Section') }}</strong> {{ __('buttons. Once created, simply') }} <strong>{{ __('Drag and Drop') }}</strong> {{ __('them directly onto the grid on the right side.') }}</p>
                         </div>
                         <div class="space-y-3">
                             <h3 class="font-bold text-slate-800 text-lg">2. Edit Modes</h3>

@@ -45,7 +45,7 @@
                         class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
                 </div>
                 <div>
-                    <input type="number" name="pax" placeholder="{{ __('Guests ({{ __('Pax') }})') }}" min="1" required
+                    <input type="number" name="pax" placeholder="{{ __('Guests (Pax)') }}" min="1" required
                         class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
                 </div>
 

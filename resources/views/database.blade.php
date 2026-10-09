@@ -403,7 +403,7 @@
                                     <tr class="hover:bg-slate-50 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
                                         <td class="px-4 py-3">
                                             <span class="text-slate-400 font-bold mr-1">#{{ $index + 1 }}</span> 
-                                            {{ $log->customer_name ?? '{{ __('Walk-in Guest') }}' }}
+                                            {{ $log->customer_name ?? __('Walk-in Guest') }}
                                         </td>
                                         <td class="px-4 py-3">
                                             <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</span>
@@ -672,7 +672,7 @@
                                 <tr class="hover:bg-slate-50/60 transition">
                                     <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $w->id }}</td>
                                     <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
-                                        {{ $w->customer_name ?? '{{ __('Walk-in Guest') }}' }}</td>
+                                        {{ $w->customer_name ?? __('Walk-in Guest') }}</td>
                                     <td class="p-3.5 sm:p-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
                                     <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $w->pax }} Pax</td>
                                     <td class="p-3.5 sm:p-4">
@@ -748,7 +748,7 @@
                             :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed text-slate-400' :
                                 'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
                             class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="{{ __('{{ __('Previous') }} Page') }}">
+                            title="{{ __('Previous Page') }}">
                             ‹
                         </button>
                         <span class="text-xs font-extrabold text-slate-800 px-2 tabular-nums select-none">
@@ -758,7 +758,7 @@
                             :class="currentPage >= totalPages ? 'opacity-40 cursor-not-allowed text-slate-400' :
                                 'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
                             class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="{{ __('{{ __('Next') }} Page') }}">
+                            title="{{ __('Next Page') }}">
                             ›
                         </button>
                     </div>
@@ -789,14 +789,14 @@
                                 x-cloak>
                                 <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $log->id }}</td>
                                 <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
-                                    {{ $log->customer_name ?? '{{ __('Walk-in Guest') }}' }}</td>
+                                    {{ $log->customer_name ?? __('Walk-in Guest') }}</td>
                                 <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
                                 <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
                                 <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
                                     {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d M, H:i') : '-' }}
                                 </td>
                                 <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
-                                    {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : '{{ __('In Progress') }}' }}
+                                    {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : __('In Progress') }}
                                 </td>
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <td class="p-3.5 sm:p-4 font-medium text-slate-700">
@@ -808,7 +808,7 @@
                             <tr>
                                 <td colspan="{{ auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) ? 8 : 6 }}"
                                     class="text-center py-10 text-slate-400 font-medium">
-                                    {{ __('No visitor log {{ __('records') }} found for this filter criteria.') }}
+                                    {{ __('No visitor log records found for this filter criteria.') }}
                                 </td>
                             </tr>
                         @endforelse

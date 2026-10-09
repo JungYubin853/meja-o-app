@@ -731,7 +731,7 @@
                                                     {{ $table->table_number ?: '—' }}
                                                 </p>
                                                 <p class="text-[10px] text-slate-500 font-medium">
-                                                    {{ $table->capacity ? $table->capacity . ' {{ __('Pax') }}' : '0 {{ __('Pax') }}' }}
+                                                    {{ $table->capacity ? $table->capacity . ' ' . __('Pax') : '0 ' . __('Pax') }}
                                                     ({{ $table->width }}×{{ $table->height }})
                                                 </p>
                                             </div>
