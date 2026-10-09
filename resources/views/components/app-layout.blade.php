@@ -49,7 +49,8 @@
 <body {{ $attributes->merge(['class' => 'bg-slate-100 text-slate-800 min-h-screen font-sans antialiased selection:bg-amber-100 selection:text-amber-900']) }}
     x-data="{
         sideMenuOpen: false,
-        logoutModalOpen: false
+        logoutModalOpen: false,
+        langModalOpen: false
     }">
 
     <div class="min-h-screen flex flex-col lg:pr-[300px]">
