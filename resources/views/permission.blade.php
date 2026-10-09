@@ -3,8 +3,26 @@
 
         <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
             
-            <!-- LEFT COLUMN: Bulk Template Management -->
+            <!-- LEFT COLUMN: Bulk Template Management & Search -->
             <div class="w-full lg:w-[320px] shrink-0 space-y-6">
+                
+                <!-- Search User -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User</label>
+                    <form @submit.prevent="searchUser()" class="flex gap-2">
+                        <input type="text" x-model="searchQuery" required placeholder="Search name or email..."
+                            class="flex-1 w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                        <button type="submit" :disabled="loading"
+                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold w-10 h-[38px] rounded-xl flex items-center justify-center transition shadow-soft-xs active:scale-98 disabled:opacity-50 shrink-0">
+                            <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </button>
+                    </form>
+                    <template x-if="error">
+                        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mt-2" x-text="error"></div>
+                    </template>
+                </div>
+
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col overflow-hidden">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -209,6 +227,7 @@ $script = @'
                 bulkStep: 'select',
                 divergentUsers: [],
                 bulkOverwrite: false,
+                searchQuery: '',
 
                 init() {
                     const params = new URLSearchParams(window.location.search);
@@ -218,7 +237,10 @@ $script = @'
                     }
                 },
 
-                async searchUser(email) {
+                async searchUser(query = null) {
+                    const term = query || this.searchQuery;
+                    if (!term) return;
+                    
                     this.error = '';
                     this.successMsg = '';
                     this.loading = true;
@@ -226,7 +248,7 @@ $script = @'
                     this.bulkMode = null;
                     
                     try {
-                        const response = await fetch('/api/permissions/search?email=' + encodeURIComponent(email));
+                        const response = await fetch('/api/permissions/search?email=' + encodeURIComponent(term));
                         if (!response.ok) {
                             throw new Error('User not found.');
                         }

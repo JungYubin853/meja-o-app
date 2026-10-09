@@ -71,7 +71,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/api/permissions/search', function (Illuminate\Http\Request $request) {
         if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
-        $user = App\Models\User::where('email', $request->email)->with('outlet')->first();
+        
+        $term = $request->email; // Term passed from frontend
+        $user = App\Models\User::where('email', $term)
+            ->orWhere('name', 'like', "%{$term}%")
+            ->with('outlet')
+            ->first();
         if (!$user) return response()->json(['error' => 'User not found'], 404);
         
         // Return user with their current actual permissions resolved with defaults
