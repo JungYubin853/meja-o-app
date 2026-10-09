@@ -1,10 +1,10 @@
-﻿<x-app-layout title="Meja-O | Tut{{ __('or') }}ial & Guidelines">
+﻿<x-app-layout title="Meja-O | {{ __('Tutorial & Guidelines') }}">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-20">
         
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Tut{{ __('or') }}ial & Guidelines</h1>
-            <p class="text-slate-500 mt-2 text-sm sm:text-base">Welcome to the My Kopi-O Table Management System. Below is a comprehensive guide to help Staff and Admins navigate and utilize all the features effectively.</p>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ __('Tutorial & Guidelines') }}</h1>
+            <p class="text-slate-500 mt-2 text-sm sm:text-base">{{ __('Welcome to the My Kopi-O Table Management System. Below is a comprehensive guide to help Staff and Admins navigate and utilize all the features effectively.') }}</p>
         </div>
 
         <div class="space-y-6" x-data="{ activeTab: 'dashboard' }">
@@ -12,16 +12,16 @@
             <!-- Navigation Tabs -->
             <div class="flex overflow-x-auto gap-2 pb-2 hide-scrollbar">
                 <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 b{{ __('or') }}der b{{ __('or') }}der-slate-200'" class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-col{{ __('or') }}s duration-200">
-                    Flo{{ __('or') }} Plan & Tables
+                    {{ __('Floor Plan & Tables') }}
                 </button>
                 <button @click="activeTab = 'live'" :class="activeTab === 'live' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 b{{ __('or') }}der b{{ __('or') }}der-slate-200'" class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-col{{ __('or') }}s duration-200">
-                    Live Operations
+                    {{ __('Live Operations') }}
                 </button>
                 <button @click="activeTab = 'waitlist'" :class="activeTab === 'waitlist' ? 'bg-sky-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 b{{ __('or') }}der b{{ __('or') }}der-slate-200'" class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-col{{ __('or') }}s duration-200">
                     Waitlist
                 </button>
                 <button @click="activeTab = 'admin'" :class="activeTab === 'admin' ? 'bg-indigo-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 b{{ __('or') }}der b{{ __('or') }}der-slate-200'" class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-col{{ __('or') }}s duration-200">
-                    Admin & Rep{{ __('or') }}ts
+                    {{ __('Admin & Reports') }}
                 </button>
             </div>
 
@@ -33,7 +33,7 @@
                         <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentCol{{ __('or') }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"></path></svg>
                         </span>
-                        Interactive Flo{{ __('or') }} Plan Builder
+                        {{ __('Interactive Floor Plan Builder') }}
                     </h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -42,22 +42,22 @@
                             <p class="text-slate-600 text-sm leading-relaxed">{{ __('To add tables or colored sections to your floor plan, you must first create them in the left-hand inventory panel using the') }} <strong>Create New Table</strong> {{ __('or') }} <strong>{{ __('Create New Section') }}</strong> {{ __('buttons. Once created, simply') }} <strong>{{ __('Drag and Drop') }}</strong> {{ __('them directly onto the grid on the right side.') }}</p>
                         </div>
                         <div class="space-y-3">
-                            <h3 class="font-bold text-slate-800 text-lg">2. Edit Modes</h3>
+                            <h3 class="font-bold text-slate-800 text-lg">{{ __('2. Edit Modes') }}</h3>
                             <p class="text-slate-600 text-sm leading-relaxed">Use the <strong>EDIT MODE</strong> toggle on the left panel to switch between editing Tables {{ __('or') }} Sections. You can only drag, resize, {{ __('or') }} delete items that match your active Edit Mode. The inactive items will become blurred and unclickable.</p>
                         </div>
                         <div class="space-y-3">
-                            <h3 class="font-bold text-slate-800 text-lg">3. Resizing & Moving</h3>
+                            <h3 class="font-bold text-slate-800 text-lg">{{ __('3. Resizing & Moving') }}</h3>
                             <p class="text-slate-600 text-sm leading-relaxed">Once placed on the grid, you can move items by dragging them to a new square. To resize a col{{ __('or') }}ed section, hover over its bottom-right c{{ __('or') }}ner until you see the circular handle, click, and drag it to expand {{ __('or') }} shrink the section.</p>
                         </div>
                         <div class="space-y-3">
-                            <h3 class="font-bold text-slate-800 text-lg">4. Canvas Dimensions</h3>
+                            <h3 class="font-bold text-slate-800 text-lg">{{ __('4. Canvas Dimensions') }}</h3>
                             <p class="text-slate-600 text-sm leading-relaxed">Need a bigger room? Click the <strong>Canvas Dimensions</strong> button above the grid to increase the number of columns and rows. You cannot shrink the grid if there are tables {{ __('or') }} sections currently occupying the outermost edges.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab Content: Live Operations -->
+            <!-- Tab Content: {{ __('Live Operations') }} -->
             <div x-show="activeTab === 'live'" x-transition.opacity.duration.300ms class="space-y-4" style="display: none;">
                 <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft-xl b{{ __('or') }}der b{{ __('or') }}der-slate-100">
                     <h2 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-3">

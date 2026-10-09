@@ -22,45 +22,33 @@
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 touch-scroll scrollbar-none">
             @if (Auth::user()->hasPermission('rep_overall'))
                 <a href="/database?view=overall"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'overall' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-                    Overall
-                </a>
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'overall' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Overall\') }}</a>
             @endif
 
             @if (Auth::user()->hasPermission('rep_daily'))
                 <a href="/database?view=hourly&date={{ $dateFilter }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'hourly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-                    Daily Report
-                </a>
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'hourly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Daily Report\') }}</a>
             @endif
             
             @if (Auth::user()->hasPermission('rep_monthly'))
                 <a href="/database?view=daily&month={{ $monthFilter }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'daily' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-                    Monthly Report
-                </a>
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'daily' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Monthly Report\') }}</a>
             @endif
             
             @if (Auth::user()->hasPermission('rep_yearly'))
                 <a href="/database?view=monthly&year={{ $yearFilter }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'monthly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-                    Yearly Report
-                </a>
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'monthly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Yearly Report\') }}</a>
             @endif
 
             
             @if (Auth::user()->hasPermission('rep_waitlist'))
                 <a href="/database?view=waitlist"
-                class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'waitlist' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-                Waitlist
-                </a>
+                class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'waitlist' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Waitlist\') }}</a>
             @endif
 
             @if (Auth::user()->hasPermission('rep_habits'))
             <a href="/database?view=habits"
-            class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'habits' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">
-            Customer Habits
-            </a>
+            class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'habits' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __(\'Customer Habits\') }}</a>
             @endif
 
         </div>
