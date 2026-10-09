@@ -98,4 +98,46 @@ Route::middleware(['auth'])->group(function () {
         $user->save();
         return response()->json(['success' => true]);
     });
+
+    Route::get('/api/permissions/bulk-check', function (Illuminate\Http\Request $request) {
+        if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
+        $role = $request->role; // 'admin' or 'staff'
+        $users = App\Models\User::where('role', $role)->get();
+        
+        $divergentUsers = [];
+        foreach($users as $u) {
+            if (!empty($u->permissions)) {
+                $divergentUsers[] = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email];
+            }
+        }
+        
+        $dummyUser = new App\Models\User(['role' => $role]);
+        $defaultPerms = $dummyUser->getDefaultPermissions();
+        
+        return response()->json([
+            'divergent_users' => $divergentUsers,
+            'default_permissions' => $defaultPerms,
+        ]);
+    });
+
+    Route::post('/api/permissions/bulk-update', function (Illuminate\Http\Request $request) {
+        if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
+        $role = $request->role;
+        $permissions = $request->permissions;
+        $overwriteCustom = filter_var($request->overwrite_custom, FILTER_VALIDATE_BOOLEAN);
+
+        $users = App\Models\User::where('role', $role)->get();
+        $updatedCount = 0;
+        foreach($users as $u) {
+            $isCustom = !empty($u->permissions);
+            if ($isCustom && !$overwriteCustom) {
+                continue; // Skip if they have custom permissions and we are keeping them
+            }
+            $u->permissions = $permissions;
+            $u->save();
+            $updatedCount++;
+        }
+        
+        return response()->json(['success' => true, 'updated_count' => $updatedCount]);
+    });
 });

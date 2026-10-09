@@ -3,90 +3,60 @@
 
         <div class="flex flex-col lg:flex-row gap-6 items-start w-full">
             
-            <!-- LEFT COLUMN: Search & User List -->
+            <!-- LEFT COLUMN: Bulk Template Management -->
             <div class="w-full lg:w-[320px] shrink-0 space-y-6">
-                
-                <!-- Search Bar -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User by Email</label>
-                    <form @submit.prevent="searchUser" class="flex gap-2">
-                        <input type="email" x-model="searchEmail" required placeholder="Enter user's email address..."
-                            class="flex-1 text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
-                        <button type="submit" :disabled="loading"
-                            class="bg-slate-900 hover:bg-slate-800 text-white font-bold w-10 h-[38px] rounded-xl flex items-center justify-center transition shadow-soft-xs active:scale-98 disabled:opacity-50 shrink-0">
-                            <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        </button>
-                    </form>
-                    
-                    <template x-if="error">
-                        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mt-2" x-text="error"></div>
-                    </template>
-                </div>
-
-                <!-- User List -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col overflow-hidden">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <h3 class="text-sm font-bold text-slate-800">User List</h3>
-                        </div>
-                        <div class="flex flex-col items-end gap-1.5">
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200" x-text="allUsersList.length + ' Users'"></span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-bold text-slate-400 tracking-wider">SHOW</span>
-                                <select x-model.number="userLimit" class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                </select>
-                            </div>
+                            <h3 class="text-sm font-bold text-slate-800">Bulk Template Management</h3>
                         </div>
                     </div>
-
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto touch-scroll">
-                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
-                            <thead class="sticky top-0 bg-slate-50/80 z-10 shadow-sm border-b border-slate-200">
-                                <tr class="text-slate-500 text-[10px] uppercase tracking-wider font-bold">
-                                    <th class="p-3 sm:p-4">Name / Email</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <template x-for="u in displayedUsers" :key="u.id">
-                                    <tr class="hover:bg-slate-50 transition cursor-pointer" 
-                                        @click="searchEmail = u.email; searchUser(); window.scrollTo({top: 0, behavior: 'smooth'});">
-                                        <td class="p-3 sm:p-4">
-                                            <div class="font-bold text-slate-800 text-xs" x-text="u.name"></div>
-                                            <div class="text-slate-500 text-[11px] mt-0.5" x-text="u.email"></div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
+                    <div class="p-4 sm:p-5 space-y-4">
+                        <button type="button" @click="initBulk('staff')"
+                            class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
+                            :class="bulkMode === 'staff' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">All Staff</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Manage default permissions for staff</div>
+                            </div>
+                            <svg class="w-5 h-5 transition" :class="bulkMode === 'staff' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <button type="button" @click="initBulk('admin')"
+                            class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
+                            :class="bulkMode === 'admin' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">All Admins</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Manage default permissions for admins</div>
+                            </div>
+                            <svg class="w-5 h-5 transition" :class="bulkMode === 'admin' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
                     </div>
                 </div>
             </div>
-
+            
             <!-- RIGHT COLUMN: Permissions Editor -->
             <div class="flex-1 min-w-0">
                 
-                <template x-if="!user && !loading">
+                <template x-if="!user && !bulkMode && !loading">
                     <div class="bg-slate-50 border border-slate-200/80 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center h-full min-h-[300px] shadow-soft-xs">
                         <svg class="w-12 h-12 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
                         </svg>
-                        <h3 class="text-sm font-bold text-slate-700 mb-1" x-text="error ? 'No User Found!' : 'No User Selected'"></h3>
-                        <p class="text-xs text-slate-500 max-w-xs mx-auto" x-text="error ? 'We couldn\'t find an account matching that email address.' : 'Select a user from the list on the left or search by email to edit their granular access permissions.'"></p>
+                        <h3 class="text-sm font-bold text-slate-700 mb-1" x-text="error ? 'Error Encountered!' : 'No Target Selected'"></h3>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto" x-text="error ? error : 'Choose a bulk template on the left, or select a specific user from Account Management to edit their granular access permissions.'"></p>
                     </div>
                 </template>
 
-                <template x-if="user">
+                <template x-if="user || bulkMode">
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
                         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <h2 class="text-sm font-bold text-slate-800">Access Control Settings</h2>
-                                <p class="text-xs font-semibold text-slate-500 mt-0.5" x-text="user.email"></p>
+                                <h2 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                                    <span x-text="user ? 'Access Control Settings' : 'Bulk Editing: ' + (bulkMode === 'staff' ? 'All Staff' : 'All Admins')"></span>
+                                </h2>
+                                <p class="text-xs font-semibold text-slate-500 mt-0.5" x-text="user ? user.email : 'Applying template to all users in this role'"></p>
                             </div>
-                            <button @click="savePermissions" :disabled="saving"
+                            <button type="submit" :disabled="saving"
                                 class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs shrink-0">
                                 <span x-show="!saving">Save Permissions</span>
                                 <span x-show="saving">Saving...</span>
@@ -225,12 +195,9 @@
     </main>
 '
 $script = @'
-    <script>
+        <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('permissionManager', () => ({
-                allUsersList: @json($allUsers),
-                userLimit: 5,
-                searchEmail: '',
                 loading: false,
                 saving: false,
                 error: '',
@@ -238,27 +205,28 @@ $script = @'
                 user: null,
                 permissions: {},
 
+                bulkMode: null,
+                bulkStep: 'select',
+                divergentUsers: [],
+                bulkOverwrite: false,
+
                 init() {
                     const params = new URLSearchParams(window.location.search);
                     const email = params.get('email');
                     if (email) {
-                        this.searchEmail = email;
-                        this.searchUser();
+                        this.searchUser(email);
                     }
                 },
 
-                get displayedUsers() {
-                    return this.allUsersList.slice(0, parseInt(this.userLimit));
-                },
-
-                async searchUser() {
+                async searchUser(email) {
                     this.error = '';
                     this.successMsg = '';
                     this.loading = true;
                     this.user = null;
+                    this.bulkMode = null;
                     
                     try {
-                        const response = await fetch('/api/permissions/search?email=' + encodeURIComponent(this.searchEmail));
+                        const response = await fetch('/api/permissions/search?email=' + encodeURIComponent(email));
                         if (!response.ok) {
                             throw new Error('User not found.');
                         }
@@ -269,7 +237,6 @@ $script = @'
                         
                         this.user = data;
                         
-                        // Default structure if user has no specific permissions saved yet
                         const defaultPerms = {
                             nav_dashboard: data.role === 'admin' || data.role === 'staff',
                             dash_create_table: data.role === 'admin',
@@ -294,7 +261,6 @@ $script = @'
                             nav_role_permission: false
                         };
                         
-                        // Merge saved permissions with defaults
                         this.permissions = { ...defaultPerms, ...data.permissions };
 
                     } catch (err) {
@@ -302,6 +268,39 @@ $script = @'
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                async initBulk(role) {
+                    this.loading = true;
+                    this.error = '';
+                    this.successMsg = '';
+                    this.user = null;
+                    this.bulkMode = role;
+                    
+                    try {
+                        const response = await fetch(`/api/permissions/bulk-check?role=${role}`);
+                        if (!response.ok) throw new Error('Failed to fetch bulk data.');
+                        const data = await response.json();
+                        
+                        this.divergentUsers = data.divergent_users;
+                        this.permissions = data.default_permissions;
+                        
+                        if (this.divergentUsers.length > 0) {
+                            this.bulkStep = 'warn';
+                        } else {
+                            this.bulkStep = 'edit';
+                            this.bulkOverwrite = true;
+                        }
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                saveBulk(overwrite) {
+                    this.bulkOverwrite = overwrite;
+                    this.bulkStep = 'edit';
                 },
 
                 async savePermissions() {
@@ -314,7 +313,7 @@ $script = @'
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({ permissions: this.permissions })
                         });
@@ -322,6 +321,38 @@ $script = @'
                         if (!response.ok) throw new Error('Failed to save permissions.');
                         
                         this.successMsg = 'Permissions updated successfully!';
+                        setTimeout(() => this.successMsg = '', 3000);
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+
+                async saveBulkPermissions() {
+                    this.saving = true;
+                    this.successMsg = '';
+                    this.error = '';
+
+                    try {
+                        const response = await fetch('/api/permissions/bulk-update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ 
+                                role: this.bulkMode,
+                                permissions: this.permissions,
+                                overwrite_custom: this.bulkOverwrite
+                            })
+                        });
+                        
+                        if (!response.ok) throw new Error('Failed to bulk save permissions.');
+                        const data = await response.json();
+                        
+                        this.successMsg = `Permissions successfully applied to ${data.updated_count} ${this.bulkMode}s!`;
+                        setTimeout(() => this.successMsg = '', 4000);
                     } catch (err) {
                         this.error = err.message;
                     } finally {
