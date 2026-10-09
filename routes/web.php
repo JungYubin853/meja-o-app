@@ -171,4 +171,24 @@ Route::middleware(['auth'])->group(function () {
         
         return response()->json(['success' => true, 'updated_count' => $updatedCount]);
     });
+
+    Route::post('/api/permissions/save-default-template', function (Illuminate\Http\Request $request) {
+        if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
+        $role = $request->role;
+        $permissions = $request->permissions;
+        
+        $superAdmin = App\Models\User::where('role', 'super_admin')->first();
+        if ($superAdmin) {
+            $perms = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : ((array)$superAdmin->permissions ?: []);
+            if ($role === 'staff') {
+                $perms['_staff_defaults'] = $permissions;
+            } else {
+                $perms['_admin_defaults'] = $permissions;
+            }
+            $superAdmin->permissions = $perms;
+            $superAdmin->save();
+        }
+        
+        return response()->json(['success' => true]);
+    });
 });

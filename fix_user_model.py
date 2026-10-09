@@ -1,61 +1,41 @@
-<?php
+file_path = r"C:\Users\LEGION\Herd\meja-o-app\app\Models\User.php"
+with open(file_path, "r", encoding="utf-8") as f:
+    content = f.read()
 
-namespace App\Models;
+import re
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-
-class User extends Authenticatable
-{
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'outlet_id', // Changed from brand
-    ];
-
-    public function outlet()
+old_func = """    public function getDefaultPermissions()
     {
-        return $this->belongsTo(Outlet::class);
-    }
-    
-    public function isSuperAdmin()
-    {
-        return $this->role === 'super_admin';
-    }
+        if ($this->isSuperAdmin()) {
+            return []; // Super Admin has access to everything
+        }
 
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'permissions' => 'array',
+            'nav_dashboard' => true,
+            'dash_create_table' => $this->isAdmin(),
+            'dash_floor_canvas' => true,
+            'dash_guest_seating' => true,
+            'dash_waitlist' => true,
+            'dash_edit_table' => $this->isAdmin(),
+            'nav_waitlist' => true,
+            'nav_reports' => true,
+            'rep_overall' => $this->isAdmin(),
+            'rep_daily' => true,
+            'rep_monthly' => $this->isAdmin(),
+            'rep_yearly' => $this->isAdmin(),
+            'rep_waitlist' => true,
+            'rep_habits' => $this->isAdmin(),
+            'nav_tutorial' => true,
+            'nav_calendar' => true,
+            'nav_profile' => true,
+            'nav_account_mgmt' => $this->isAdmin(),
+            'acc_create_account' => false,
+            'acc_user_list' => $this->isAdmin(),
+            'nav_role_permission' => false,
         ];
-    }
+    }"""
 
-    public function getHardcodedDefaults()
+new_func = """    public function getHardcodedDefaults()
     {
         if ($this->isSuperAdmin()) {
             return [];
@@ -109,20 +89,10 @@ class User extends Authenticatable
         }
 
         return $this->getHardcodedDefaults();
-    }
+    }"""
 
-    public function hasPermission($key)
-    {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
+content = content.replace(old_func, new_func)
 
-        $perms = $this->permissions ?? [];
-        if (array_key_exists($key, $perms)) {
-            return (bool) $perms[$key];
-        }
-
-        $defaults = $this->getDefaultPermissions();
-        return $defaults[$key] ?? false;
-    }
-}
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(content)
+print("Updated User.php to support dynamic defaults.")

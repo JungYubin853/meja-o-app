@@ -26,27 +26,55 @@
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col overflow-hidden">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <h3 class="text-sm font-bold text-slate-800">Bulk Template Management</h3>
+                            <h3 class="text-sm font-bold text-slate-800">Bulk Overwrite Users</h3>
                         </div>
                     </div>
                     <div class="p-4 sm:p-5 space-y-4">
-                        <button type="button" @click="initBulk('staff')"
+                        <button type="button" @click="initBulk('staff', false)"
                             class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
                             :class="bulkMode === 'staff' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
                             <div>
                                 <div class="text-xs font-bold text-slate-900">All Staff</div>
-                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Manage default permissions for staff</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Overwrite existing staff</div>
                             </div>
                             <svg class="w-5 h-5 transition" :class="bulkMode === 'staff' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
-                        <button type="button" @click="initBulk('admin')"
+                        <button type="button" @click="initBulk('admin', false)"
                             class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
                             :class="bulkMode === 'admin' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
                             <div>
                                 <div class="text-xs font-bold text-slate-900">All Admins</div>
-                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Manage default permissions for admins</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Overwrite existing admins</div>
                             </div>
                             <svg class="w-5 h-5 transition" :class="bulkMode === 'admin' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col overflow-hidden">
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-bold text-slate-800">Base Default Templates</h3>
+                        </div>
+                    </div>
+                    <div class="p-4 sm:p-5 space-y-4">
+                        <button type="button" @click="initBulk('staff', true)"
+                            class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
+                            :class="bulkMode === 'staff_default' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Staff Defaults</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Set baseline for newly created staff</div>
+                            </div>
+                            <svg class="w-5 h-5 transition" :class="bulkMode === 'staff_default' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <button type="button" @click="initBulk('admin', true)"
+                            class="w-full text-left p-3.5 rounded-xl border-2 transition group flex items-center justify-between"
+                            :class="bulkMode === 'admin_default' ? 'border-slate-900 bg-slate-50' : 'border-slate-100 hover:border-slate-300'">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Admin Defaults</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Set baseline for newly created admins</div>
+                            </div>
+                            <svg class="w-5 h-5 transition" :class="bulkMode === 'admin_default' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
                 </div>
@@ -82,9 +110,14 @@
                                         </p>
                                         <ul class="mt-3 space-y-1.5 bg-amber-100/50 p-3 rounded-xl border border-amber-200/50">
                                             <template x-for="du in divergentUsers" :key="du.id">
-                                                <li class="text-[11px] font-bold text-amber-900 flex items-center gap-2">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                                    <span x-text="du.name + ' (' + du.email + ')'"></span>
+                                                <li class="text-[11px] font-bold text-amber-900 flex items-center justify-between gap-2">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                                        <span x-text="du.name + ' (' + du.email + ')'"></span>
+                                                    </div>
+                                                    <button type="button" @click="searchUser(du.email)" class="w-7 h-7 bg-amber-200 hover:bg-amber-300 rounded-lg flex items-center justify-center transition shrink-0" title="Manage this specific user">
+                                                        <svg class="w-3.5 h-3.5 text-amber-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                    </button>
                                                 </li>
                                             </template>
                                         </ul>
@@ -109,9 +142,9 @@
                         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h2 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                                    <span x-text="user ? 'Access Control Settings' : 'Bulk Editing: ' + (bulkMode === 'staff' ? 'All Staff' : 'All Admins')"></span>
+                                    <span x-text="user ? 'Access Control Settings' : (bulkMode.includes('default') ? 'Edit Base Default: ' : 'Bulk Overwrite: ') + (bulkMode.includes('staff') ? 'Staff' : 'Admins')"></span>
                                 </h2>
-                                <p class="text-xs font-semibold text-slate-500 mt-0.5" x-text="user ? user.email : 'Applying template to all users in this role'"></p>
+                                <p class="text-xs font-semibold text-slate-500 mt-0.5" x-text="user ? user.email : (bulkMode.includes('default') ? 'Changes will apply to newly created accounts.' : 'Changes will overwrite all existing accounts.')"></p>
                             </div>
                             <button type="button" @click="user ? savePermissions() : saveBulkPermissions()" :disabled="saving"
                                 class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg transition shadow-soft-xs active:scale-98 disabled:opacity-50 text-xs shrink-0">
@@ -133,29 +166,29 @@
                             <!-- Dashboard -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="text-sm font-bold text-slate-800">Dashboard</span>
+                                    <span class="text-sm font-bold text-slate-800">Dashboard<span x-cloak x-show="user && permissions.nav_dashboard !== defaultPerms.nav_dashboard" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                     <input type="checkbox" x-model="permissions.nav_dashboard" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_dashboard" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Create New Table Container</span>
+                                        <span class="text-xs font-semibold text-slate-700">Create New Table Container<span x-cloak x-show="user && permissions.dash_create_table !== defaultPerms.dash_create_table" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_create_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">2D Floor Canvas</span>
+                                        <span class="text-xs font-semibold text-slate-700">2D Floor Canvas<span x-cloak x-show="user && permissions.dash_floor_canvas !== defaultPerms.dash_floor_canvas" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Guest Seating</span>
+                                        <span class="text-xs font-semibold text-slate-700">Guest Seating<span x-cloak x-show="user && permissions.dash_guest_seating !== defaultPerms.dash_guest_seating" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_guest_seating" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Waitlist</span>
+                                        <span class="text-xs font-semibold text-slate-700">Waitlist<span x-cloak x-show="user && permissions.dash_waitlist !== defaultPerms.dash_waitlist" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Edit Table Specs</span>
+                                        <span class="text-xs font-semibold text-slate-700">Edit Table Specs<span x-cloak x-show="user && permissions.dash_edit_table !== defaultPerms.dash_edit_table" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_edit_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -163,40 +196,40 @@
 
                             <!-- Waitlist -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">Waitlist</span>
+                                <span class="text-sm font-bold text-slate-800">Waitlist<span x-cloak x-show="user && permissions.nav_waitlist !== defaultPerms.nav_waitlist" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_waitlist" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Reports & Database -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="text-sm font-bold text-slate-800">Reports & Database</span>
+                                    <span class="text-sm font-bold text-slate-800">Reports & Database<span x-cloak x-show="user && permissions.nav_reports !== defaultPerms.nav_reports" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                     <input type="checkbox" x-model="permissions.nav_reports" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_reports" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Overall</span>
+                                        <span class="text-xs font-semibold text-slate-700">Overall<span x-cloak x-show="user && permissions.rep_overall !== defaultPerms.rep_overall" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_overall" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Daily Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Daily Report<span x-cloak x-show="user && permissions.rep_daily !== defaultPerms.rep_daily" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_daily" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Monthly Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Monthly Report<span x-cloak x-show="user && permissions.rep_monthly !== defaultPerms.rep_monthly" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_monthly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Yearly Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Yearly Report<span x-cloak x-show="user && permissions.rep_yearly !== defaultPerms.rep_yearly" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_yearly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Waitlist Report</span>
+                                        <span class="text-xs font-semibold text-slate-700">Waitlist Report<span x-cloak x-show="user && permissions.rep_waitlist !== defaultPerms.rep_waitlist" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Customer Habits</span>
+                                        <span class="text-xs font-semibold text-slate-700">Customer Habits<span x-cloak x-show="user && permissions.rep_habits !== defaultPerms.rep_habits" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_habits" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -204,36 +237,36 @@
 
                             <!-- Tutorial & Guidelines -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">Tutorial & Guidelines</span>
+                                <span class="text-sm font-bold text-slate-800">Tutorial & Guidelines<span x-cloak x-show="user && permissions.nav_tutorial !== defaultPerms.nav_tutorial" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_tutorial" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Calendar -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">Calendar</span>
+                                <span class="text-sm font-bold text-slate-800">Calendar<span x-cloak x-show="user && permissions.nav_calendar !== defaultPerms.nav_calendar" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_calendar" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Profile -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">Profile</span>
+                                <span class="text-sm font-bold text-slate-800">Profile<span x-cloak x-show="user && permissions.nav_profile !== defaultPerms.nav_profile" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_profile" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
 
                             <!-- Account Management -->
                             <div class="space-y-3">
                                 <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                    <span class="text-sm font-bold text-slate-800">Account Management</span>
+                                    <span class="text-sm font-bold text-slate-800">Account Management<span x-cloak x-show="user && permissions.nav_account_mgmt !== defaultPerms.nav_account_mgmt" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                     <input type="checkbox" x-model="permissions.nav_account_mgmt" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                 </label>
                                 
                                 <div x-show="permissions.nav_account_mgmt" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Create New Account</span>
+                                        <span class="text-xs font-semibold text-slate-700">Create New Account<span x-cloak x-show="user && permissions.acc_create_account !== defaultPerms.acc_create_account" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.acc_create_account" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">User List</span>
+                                        <span class="text-xs font-semibold text-slate-700">User List<span x-cloak x-show="user && permissions.acc_user_list !== defaultPerms.acc_user_list" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.acc_user_list" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>
@@ -241,7 +274,7 @@
 
                             <!-- Role & User Permission -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">Role & User Permission</span>
+                                <span class="text-sm font-bold text-slate-800">Role & User Permission<span x-cloak x-show="user && permissions.nav_role_permission !== defaultPerms.nav_role_permission" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_role_permission" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
                         </div>
@@ -262,6 +295,7 @@ $script = @'
                 successMsg: '',
                 user: null,
                 permissions: {},
+                defaultPerms: {},
 
                 bulkMode: null,
                 bulkStep: 'select',
@@ -323,7 +357,8 @@ $script = @'
                             nav_role_permission: false
                         };
                         
-                        this.permissions = { ...defaultPerms, ...data.permissions };
+                        this.defaultPerms = data.default_permissions || defaultPerms;
+                        this.permissions = { ...this.defaultPerms, ...data.permissions };
 
                     } catch (err) {
                         this.error = err.message;
@@ -332,26 +367,32 @@ $script = @'
                     }
                 },
 
-                async initBulk(role) {
+                async initBulk(role, isBaseDefault = false) {
                     this.loading = true;
                     this.error = '';
                     this.successMsg = '';
                     this.user = null;
-                    this.bulkMode = role;
+                    this.bulkMode = isBaseDefault ? role + '_default' : role;
                     
                     try {
                         const response = await fetch(`/api/permissions/bulk-check?role=${role}`);
                         if (!response.ok) throw new Error('Failed to fetch bulk data.');
                         const data = await response.json();
                         
-                        this.divergentUsers = data.divergent_users;
                         this.permissions = data.default_permissions;
+                        this.defaultPerms = data.default_permissions;
                         
-                        if (this.divergentUsers.length > 0) {
-                            this.bulkStep = 'warn';
-                        } else {
+                        if (isBaseDefault) {
                             this.bulkStep = 'edit';
-                            this.bulkOverwrite = true;
+                            this.bulkOverwrite = false;
+                        } else {
+                            this.divergentUsers = data.divergent_users;
+                            if (this.divergentUsers.length > 0) {
+                                this.bulkStep = 'warn';
+                            } else {
+                                this.bulkStep = 'edit';
+                                this.bulkOverwrite = true;
+                            }
                         }
                     } catch (err) {
                         this.error = err.message;
@@ -397,14 +438,18 @@ $script = @'
                     this.error = '';
 
                     try {
-                        const response = await fetch('/api/permissions/bulk-update', {
+                        const isBaseDefault = this.bulkMode.endsWith('_default');
+                        const role = isBaseDefault ? this.bulkMode.replace('_default', '') : this.bulkMode;
+                        const endpoint = isBaseDefault ? '/api/permissions/save-default-template' : '/api/permissions/bulk-update';
+
+                        const response = await fetch(endpoint, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({ 
-                                role: this.bulkMode,
+                                role: role,
                                 permissions: this.permissions,
                                 overwrite_custom: this.bulkOverwrite
                             })
@@ -413,7 +458,12 @@ $script = @'
                         if (!response.ok) throw new Error('Failed to bulk save permissions.');
                         const data = await response.json();
                         
-                        this.successMsg = `Permissions successfully applied to ${data.updated_count} ${this.bulkMode}s!`;
+                        if (isBaseDefault) {
+                            this.successMsg = `Global default template for ${role}s successfully updated!`;
+                        } else {
+                            this.successMsg = `Permissions successfully applied to ${data.updated_count} ${role}s!`;
+                        }
+                        
                         setTimeout(() => this.successMsg = '', 4000);
                     } catch (err) {
                         this.error = err.message;
