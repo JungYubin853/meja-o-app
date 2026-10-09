@@ -647,7 +647,7 @@
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
                 <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">{{ __('Waitlist {{ __('Records') }} Database') }}</h3>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">{{ __('Waitlist Records Database') }}</h3>
                     <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200">
                         {{ count($waitlists) }} {{ __('Records') }}
                     </span>
