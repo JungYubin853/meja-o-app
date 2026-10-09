@@ -683,7 +683,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                <span>Create New Table</span>
+                                <span>{{ __('Create New Table') }}</span>
                             </button>
 
                             <div class="flex items-center justify-between pt-1 border-t border-slate-100">
@@ -1523,7 +1523,7 @@
 
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Create New Table</h3>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900">{{ __('Create New Table') }}</h3>
                             <p class="text-[11px] text-slate-500">Define table specifications and dimensions.</p>
                         </div>
                         <button @click="settingsModalOpen = false"
