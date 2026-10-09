@@ -1,4 +1,4 @@
-<!-- Immediate Session Redirect: If user accessed /database with no query parameter, redirect to their last active tab immediately -->
+<!-- Immediate Session Redirect: If user accessed /database with no query parameter, redirect {{ __('to') }} their last active tab immediately -->
 <script>
     (function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -161,7 +161,7 @@
                                         d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                     </path>
                                 </svg>
-                                <span>Export Excel (CSV)</span>
+                                <span>{{ __('Export Excel (CSV)') }}</span>
                             </a>
                         </div>
                     </div>
@@ -368,7 +368,7 @@
                               <!-- Pagination Controls -->
                               <div class="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-4">
                                   <div class="flex items-center gap-2">
-                                      <span class="text-xs font-semibold text-slate-500 whitespace-nowrap">Rows per page:</span>
+                                      <span class="text-xs font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                                       <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
                                           <option value="10">10</option>
                                           <option value="25">25</option>
@@ -392,10 +392,10 @@
                         <table class="w-full text-left border-collapse min-h-[300px]">
                             <thead>
                                 <tr class="border-b border-slate-200 bg-white text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sticky top-0 shadow-sm z-10">
-                                    <th class="px-4 py-3 bg-white">Log ID (Customer)</th>
+                                    <th class="px-4 py-3 bg-white">{{ __('Log ID') }} (Customer)</th>
                                     <th class="px-4 py-3 bg-white">Start Session</th>
-                                    <th class="px-4 py-3 bg-white">Time Elapsed</th>
-                                    <th class="px-4 py-3 bg-white">Table Number</th>
+                                    <th class="px-4 py-3 bg-white">Time {{ __('Elapsed') }}</th>
+                                    <th class="px-4 py-3 bg-white">{{ __('Table Number') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-[11px] font-semibold text-slate-700">
@@ -403,7 +403,7 @@
                                     <tr class="hover:bg-slate-50 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
                                         <td class="px-4 py-3">
                                             <span class="text-slate-400 font-bold mr-1">#{{ $index + 1 }}</span> 
-                                            {{ $log->customer_name ?? 'Walk-in Guest' }}
+                                            {{ $log->customer_name ?? '{{ __('Walk-in Guest') }}' }}
                                         </td>
                                         <td class="px-4 py-3">
                                             <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</span>
@@ -435,7 +435,7 @@
                         @if(count($habitsDateLog) > 0)
                             <div class="relative w-full overflow-x-auto touch-scroll pb-4">
                                 <div class="min-w-[800px]">
-                                    <!-- Gantt Header (Time Axis 00:00 to 24:00) -->
+                                    <!-- Gantt Header (Time Axis 00:00 {{ __('to') }} 24:00) -->
                                     <div class="flex items-end h-8 mb-2 border-b border-slate-200 relative ml-32">
                                         @for($h = 0; $h <= 24; $h += 2)
                                             <div class="absolute text-[10px] font-bold text-slate-400 -translate-x-1/2" style="left: {{ ($h / 24) * 100 }}%">
@@ -480,7 +480,7 @@
                                                 <div class="flex-1 h-8 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
                                                     <div class="absolute top-1.5 bottom-1.5 bg-slate-700 rounded-md border border-slate-800 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-slate-800 transition cursor-pointer"
                                                          style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.5) }}%;"
-                                                         title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | Elapsed: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
+                                                         title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | {{ __('Elapsed') }}: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
                                                         @if($widthPct > 5)
                                                             <span class="text-[10px] font-extrabold text-white truncate px-1">
                                                                 {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}
@@ -496,7 +496,7 @@
                         @else
                             <div class="flex flex-col items-center justify-center py-10">
                                 <svg class="w-10 h-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4m8-8l-8 8 8 8"></path></svg>
-                                <p class="text-sm text-slate-400 font-semibold">No visits recorded to graph.</p>
+                                <p class="text-sm text-slate-400 font-semibold">No visits recorded {{ __('to') }} graph.</p>
                             </div>
                         @endif
                     </div>
@@ -529,15 +529,15 @@
                                               </td>
                                               <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['daily'] }}</span>
-                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
+                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">{{ __('Pax') }}</span>
                                               </td>
                                               <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['monthly'] }}</span>
-                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
+                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">{{ __('Pax') }}</span>
                                               </td>
                                               <td class="px-3 py-2 whitespace-nowrap text-right">
                                                   <span class="text-sm font-extrabold text-slate-900 tabular-nums">{{ $stat['yearly'] }}</span>
-                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">Pax</span>
+                                                  <span class="text-[10px] text-slate-400 font-semibold ml-0.5">{{ __('Pax') }}</span>
                                               </td>
                                           </tr>
                                       @endforeach
@@ -657,13 +657,13 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                                 <th class="p-3.5 sm:p-4">ID</th>
-                                <th class="p-3.5 sm:p-4">Customer Name</th>
-                                <th class="p-3.5 sm:p-4">Phone</th>
-                                <th class="p-3.5 sm:p-4">Guests</th>
-                                <th class="p-3.5 sm:p-4">Status</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Customer Name') }}</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Phone') }}</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Guests') }}</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Status') }}</th>
                                 <th class="p-3.5 sm:p-4">Created At</th>
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                    <th class="p-3.5 sm:p-4">Staff</th>
+                                    <th class="p-3.5 sm:p-4">{{ __('Staff') }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -672,7 +672,7 @@
                                 <tr class="hover:bg-slate-50/60 transition">
                                     <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $w->id }}</td>
                                     <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
-                                        {{ $w->customer_name ?? 'Walk-in Guest' }}</td>
+                                        {{ $w->customer_name ?? '{{ __('Walk-in Guest') }}' }}</td>
                                     <td class="p-3.5 sm:p-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
                                     <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $w->pax }} Pax</td>
                                     <td class="p-3.5 sm:p-4">
@@ -690,7 +690,7 @@
                                 <tr>
                                     <td colspan="{{ auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) ? 7 : 6 }}"
                                         class="text-center py-10 text-slate-400 font-medium">
-                                        No waitlist records found in the database.
+                                        No waitlist {{ __('records') }} found in the database.
                                     </td>
                                 </tr>
                             @endforelse
@@ -732,7 +732,7 @@
                 <div class="flex items-center gap-2 self-end sm:self-auto">
                     <!-- Dropdown: 10, 25, 50, 100 -->
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[11px] text-slate-500 font-semibold">Show:</span>
+                        <span class="text-[11px] text-slate-500 font-semibold">{{ __('Show:') }}</span>
                         <select x-model.number="perPage" @change="currentPage = 1"
                             class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
                             <option :value="10">10</option>
@@ -748,7 +748,7 @@
                             :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed text-slate-400' :
                                 'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
                             class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="Previous Page">
+                            title="{{ __('{{ __('Previous') }} Page') }}">
                             ‹
                         </button>
                         <span class="text-xs font-extrabold text-slate-800 px-2 tabular-nums select-none">
@@ -758,7 +758,7 @@
                             :class="currentPage >= totalPages ? 'opacity-40 cursor-not-allowed text-slate-400' :
                                 'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
                             class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="Next Page">
+                            title="{{ __('{{ __('Next') }} Page') }}">
                             ›
                         </button>
                     </div>
@@ -770,15 +770,15 @@
                 <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
                         <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                            <th class="p-3.5 sm:p-4">Log ID</th>
-                            <th class="p-3.5 sm:p-4">Customer Name</th>
-                            <th class="p-3.5 sm:p-4">Phone</th>
-                            <th class="p-3.5 sm:p-4">Guests</th>
-                            <th class="p-3.5 sm:p-4">Started</th>
-                            <th class="p-3.5 sm:p-4">Ended</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Log ID') }}</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Customer Name') }}</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Phone') }}</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Guests') }}</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Started') }}</th>
+                            <th class="p-3.5 sm:p-4">{{ __('Ended') }}</th>
                             @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                <th class="p-3.5 sm:p-4">Elapsed</th>
-                                <th class="p-3.5 sm:p-4">Staff</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Elapsed') }}</th>
+                                <th class="p-3.5 sm:p-4">{{ __('Staff') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -789,14 +789,14 @@
                                 x-cloak>
                                 <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $log->id }}</td>
                                 <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
-                                    {{ $log->customer_name ?? 'Walk-in Guest' }}</td>
+                                    {{ $log->customer_name ?? '{{ __('Walk-in Guest') }}' }}</td>
                                 <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
                                 <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
                                 <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
                                     {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d M, H:i') : '-' }}
                                 </td>
                                 <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
-                                    {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : 'In Progress' }}
+                                    {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : '{{ __('In Progress') }}' }}
                                 </td>
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <td class="p-3.5 sm:p-4 font-medium text-slate-700">
@@ -808,7 +808,7 @@
                             <tr>
                                 <td colspan="{{ auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) ? 8 : 6 }}"
                                     class="text-center py-10 text-slate-400 font-medium">
-                                    No visitor log records found for this filter criteria.
+                                    {{ __('No visitor log {{ __('records') }} found for this filter criteria.') }}
                                 </td>
                             </tr>
                         @endforelse
@@ -816,24 +816,24 @@
                 </table>
             </div>
 
-            <!-- Table Footer: "Showing X to Y of Z records" with Secondary Stepper -->
+            <!-- Table Footer: "{{ __('Showing') }} X {{ __('to') }} Y {{ __('of') }} Z {{ __('records') }}" with Secondary Stepper -->
             @if (count($logs) > 0)
                 <div class="p-3.5 sm:p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
                     <span>
-                        Showing <strong class="text-slate-800"
+                        {{ __('Showing') }} <strong class="text-slate-800"
                             x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
-                        to <strong class="text-slate-800"
+                        {{ __('to') }} <strong class="text-slate-800"
                             x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
-                        of <strong class="text-slate-800" x-text="totalRecords"></strong> records
+                        {{ __('of') }} <strong class="text-slate-800" x-text="totalRecords"></strong> {{ __('records') }}
                     </span>
                     <div class="flex items-center gap-1.5">
                         <button type="button" @click="prevPage()" :disabled="currentPage === 1"
                             class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            Previous
+                            {{ __('Previous') }}
                         </button>
                         <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
                             class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            Next
+                            {{ __('Next') }}
                         </button>
                     </div>
                 </div>

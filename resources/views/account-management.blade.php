@@ -29,9 +29,9 @@
                 <div class="w-full lg:w-[320px] shrink-0 space-y-6">
                     <!-- Search Bar -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search User</label>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Search User') }}</label>
                         <form method="GET" action="/account-management" class="flex gap-2">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name or email..."
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('Search name or email...') }}"
                                 class="flex-1 w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             <button type="submit"
                                 class="bg-slate-900 hover:bg-slate-800 text-white font-bold w-10 h-[38px] rounded-xl flex items-center justify-center transition shadow-soft-xs active:scale-98 shrink-0">
@@ -42,19 +42,19 @@
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-4">
                     <div class="border-b border-slate-100 pb-3">
-                        <h2 class="text-sm font-bold text-slate-800">Create New Account</h2>
+                        <h2 class="text-sm font-bold text-slate-800">{{ __('Create New Account') }}</h2>
                     </div>
 
                     <form action="/users" method="POST" class="space-y-4">
                         @csrf
                         <div class="flex flex-col gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Full Name</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Full Name') }}</label>
                                 <input type="text" name="name" required
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Email Address</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Email Address') }}</label>
                                 <input type="email" name="email" required
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
@@ -62,26 +62,26 @@
 
                         <div class="flex flex-col gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Role') }}</label>
                                 <select name="role" required
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
-                                    <option value="staff">Staff</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="super_admin">Super Admin</option>
+                                    <option value="staff">{{ __('Staff') }}</option>
+                                    <option value="admin">{{ __('Admin') }}</option>
+                                    <option value="super_admin">{{ __('Super Admin') }}</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Assign Outlet</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Assign Outlet') }}</label>
                                 <select name="outlet_id"
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
-                                    <option value="">None (For Super Admin)</option>
+                                    <option value="">{{ __('None (For Super Admin)') }}</option>
                                     @foreach ($outlets as $outlet)
                                         <option value="{{ $outlet->id }}">{{ $outlet->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Temporary Password</label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Temporary Password') }}</label>
                                 <input type="password" name="password" required
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
@@ -109,7 +109,7 @@
                 }" class="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <h3 class="text-sm font-bold text-slate-800">User List</h3>
+                            <h3 class="text-sm font-bold text-slate-800">{{ __('User List') }}</h3>
                             <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
                                 {{ count($allUsers) }} Users
                             </span>
@@ -119,16 +119,16 @@
                             <!-- Filters -->
                             <form method="GET" action="/account-management" class="flex items-center gap-2">
                             <select name="outlet_id" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
-                                <option value="">All Outlets</option>
+                                <option value="">{{ __('All Outlets') }}</option>
                                 @foreach($outlets as $outlet)
                                     <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
                                 @endforeach
                             </select>
                             <select name="role" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
-                                <option value="">All Roles</option>
-                                <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Staff</option>
+                                <option value="">{{ __('All Roles') }}</option>
+                                <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>{{ __('Super Admin') }}</option>
+                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
+                                <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
                             </select>
                             @if(request()->filled('role') || request()->filled('outlet_id'))
                                 <a href="/account-management" class="text-[11px] font-bold text-slate-400 hover:text-slate-800 ml-1">Clear</a>
@@ -138,7 +138,7 @@
                             <!-- Pagination Controls -->
                             <div class="flex items-center gap-4">
                             <div class="flex items-center gap-2 hidden sm:flex">
-                                <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Rows per page:</span>
+                                <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                                 <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
@@ -163,11 +163,11 @@
                     <table class="w-full text-left border-collapse text-xs sm:text-sm">
                         <thead>
                             <tr class="bg-slate-50/80 text-slate-500 text-[10px] uppercase tracking-wider font-bold border-b border-slate-200">
-                                <th class="p-3">Name</th>
-                                <th class="p-3">Email</th>
-                                <th class="p-3">Outlet / Brand</th>
-                                <th class="p-3">Role</th>
-                                <th class="p-3 text-right">Action</th>
+                                <th class="p-3">{{ __('Name') }}</th>
+                                <th class="p-3">{{ __('Email') }}</th>
+                                <th class="p-3">{{ __('Outlet / Brand') }}</th>
+                                <th class="p-3">{{ __('Role') }}</th>
+                                <th class="p-3 text-right">{{ __('Action') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -193,7 +193,7 @@
                                                     onsubmit="return confirm('Are you sure you want to delete user {{ $u->name }}?');" class="inline-block m-0">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" title="Delete User"
+                                                    <button type="submit" title="{{ __('Delete User') }}"
                                                         class="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-500 hover:text-rose-700 transition">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>

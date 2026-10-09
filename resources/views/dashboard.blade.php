@@ -620,31 +620,31 @@
                 this.inventoryModalOpen = true;
             },
 
-            appendPax(num) {
+            append{{ __('Pax') }}(num) {
                 let val = (this.paxCount || '').toString() + num;
                 let parsed = parseInt(val);
                 if (!isNaN(parsed)) {
                     this.paxCount = parsed;
-                    this.validatePax();
+                    this.validate{{ __('Pax') }}();
                 }
             },
-            clearPax() {
+            clear{{ __('Pax') }}() {
                 this.paxCount = '';
                 this.paxError = '';
             },
-            decrementPax() {
+            decrement{{ __('Pax') }}() {
                 let current = parseInt(this.paxCount) || 0;
                 this.paxCount = Math.max(1, current - 1);
-                this.validatePax();
+                this.validate{{ __('Pax') }}();
             },
-            incrementPax() {
+            increment{{ __('Pax') }}() {
                 let current = parseInt(this.paxCount) || 0;
                 this.paxCount = current + 1;
-                this.validatePax();
+                this.validate{{ __('Pax') }}();
             },
-            validatePax() {
+            validate{{ __('Pax') }}() {
                 if (this.paxCount && parseInt(this.paxCount) > parseInt(this.tableCapacity)) {
-                    this.paxError = `Exceeds max capacity (${this.tableCapacity} Pax)`;
+                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
                 } else {
                     this.paxError = '';
                 }
@@ -669,8 +669,8 @@
                         @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                         <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
                             <div class="flex bg-slate-100 p-1 rounded-xl">
-                                <button type="button" @click="editMode = 'table'" :class="editMode === 'table' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">Table Edit</button>
-                                <button type="button" @click="editMode = 'section'" :class="editMode === 'section' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">Section Edit</button>
+                                <button type="button" @click="editMode = 'table'" :class="editMode === 'table' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">{{ __('Table Edit') }}</button>
+                                <button type="button" @click="editMode = 'section'" :class="editMode === 'section' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">{{ __('Section Edit') }}</button>
                             </div>
                         </div>
                         @endif
@@ -690,7 +690,7 @@
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">Unplaced
                                         Inventory</h3>
-                                    <p class="text-[11px] text-slate-500">Drag to floor or click card to edit/delete</p>
+                                    <p class="text-[11px] text-slate-500">{{ __('Drag to floor or click card to edit/delete') }}</p>
                                 </div>
                                 <span
                                     class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">
@@ -698,7 +698,7 @@
                                 </span>
                             </div>
 
-                            <!-- Unplaced Inventory Tray -->
+                            <!-- {{ __('Unplaced Inventory') }} Tray -->
                             <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto pr-1 border border-dashed border-slate-200 p-2.5 rounded-xl bg-slate-50/70"
                                 @dragover.prevent
                                 @drop.prevent="
@@ -731,7 +731,7 @@
                                                     {{ $table->table_number ?: '—' }}
                                                 </p>
                                                 <p class="text-[10px] text-slate-500 font-medium">
-                                                    {{ $table->capacity ? $table->capacity . ' Pax' : '0 Pax' }}
+                                                    {{ $table->capacity ? $table->capacity . ' {{ __('Pax') }}' : '0 {{ __('Pax') }}' }}
                                                     ({{ $table->width }}×{{ $table->height }})
                                                 </p>
                                             </div>
@@ -770,7 +770,7 @@
                                         <div
                                             class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
                                             ✓</div>
-                                        <p class="text-xs text-slate-500 font-medium">No Available Tables</p>
+                                        <p class="text-xs text-slate-500 font-medium">{{ __('No Available Tables') }}</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -782,19 +782,19 @@
                         
                         <!-- SECTION INVENTORY TRAY CONTAINER -->
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5 mb-4">
-                            <!-- + Create New Section Button -->
+                            <!-- + {{ __('Create New Section') }} Button -->
                             <button type="button" @click="sectionModalOpen = true; editSecTemplateIdx = -1; editPlacedSecIdx = -1; newSecName = ''; newSecColor = 'blue'; newSecW = 5; newSecH = 5;"
                                 class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-98">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                <span>Create New Section</span>
+                                <span>{{ __('Create New Section') }}</span>
                             </button>
 
                             <div class="flex items-center justify-between pt-1 border-t border-slate-100">
                                 <div>
-                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">Unplaced Sections</h3>
-                                    <p class="text-[11px] text-slate-500">Drag to floor or click card to edit/delete</p>
+                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
+                                    <p class="text-[11px] text-slate-500">{{ __('Drag to floor or click card to edit/delete') }}</p>
                                 </div>
                                 <span class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200" x-text="sectionTemplates.length">
                                 </span>
@@ -848,7 +848,7 @@
                                 
                                 <div x-show="sectionTemplates.length === 0" class="text-center py-8">
                                     <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">✓</div>
-                                    <p class="text-xs text-slate-500 font-medium">No Available Sections</p>
+                                    <p class="text-xs text-slate-500 font-medium">{{ __('No Available Sections') }}</p>
                                 </div>
                             </div>
 
@@ -874,11 +874,11 @@
                                 </h2>
                                 <p class="text-[11px] text-slate-500 font-medium flex items-center gap-2 mt-0.5">
                                     <span class="inline-flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Available
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ __('Available') }}
                                     </span>
                                     <span class="text-slate-300">·</span>
                                     <span class="inline-flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Occupied
+                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> {{ __('Occupied') }}
                                     </span>
                                 </p>
                             </div>
@@ -906,7 +906,7 @@
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <button @click="gridSizeModalOpen = true"
                                         class="inline-flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 h-9 rounded-xl transition border border-slate-200 shadow-soft-xs">
-                                        Canvas Size
+                                        {{ __('Canvas Size') }}
                                     </button>
                                 @endif
                             </div>
@@ -1084,11 +1084,11 @@
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2">
                         <h3 class="text-base font-bold text-slate-900">
-                            Table <span x-text="tableNumber || '—'"></span>
+                            {{ __('Table') }} <span x-text="tableNumber || '—'"></span>
                         </h3>
                         <span class="text-slate-300">·</span>
                         <span class="text-xs font-semibold text-slate-500">
-                            Max Capacity: <strong class="text-slate-800" x-text="tableCapacity"></strong> Pax
+                            {{ __('Max Capacity:') }} <strong class="text-slate-800" x-text="tableCapacity"></strong> {{ __('Pax') }}
                         </span>
                     </div>
                     <button @click="modalOpen = false"
@@ -1103,7 +1103,7 @@
                             :class="activeModalTab === 'seating' ? 'bg-white text-slate-900 shadow-soft-xs font-bold' :
                                 'text-slate-600 font-medium hover:text-slate-900'"
                             class="flex-1 text-[11px] font-bold py-2 rounded-lg transition text-center truncate px-1">
-                            Guest Seating
+                            {{ __('Guest Seating') }}
                         </button>
                     @endif
                     @if (Auth::user()->hasPermission('dash_waitlist'))
@@ -1111,7 +1111,7 @@
                             :class="activeModalTab === 'waitlist' ? 'bg-white text-slate-900 shadow-soft-xs font-bold' :
                                 'text-slate-600 font-medium hover:text-slate-900'"
                             class="flex-1 text-[11px] font-bold py-2 rounded-lg transition text-center truncate px-1">
-                            Waitlist
+                            {{ __('Waitlist') }}
                         </button>
                     @endif
                     @if (Auth::user()->hasPermission('dash_edit_table'))
@@ -1119,7 +1119,7 @@
                             :class="activeModalTab === 'settings' ? 'bg-white text-slate-900 shadow-soft-xs font-bold' :
                                 'text-slate-600 font-medium hover:text-slate-900'"
                             class="flex-1 text-[11px] font-bold py-2 rounded-lg transition text-center truncate px-1">
-                            Edit Specs
+                            {{ __('Edit Specs') }}
                         </button>
                     @endif
                 </div>
@@ -1132,7 +1132,7 @@
                         <form :action="'/tables/' + selectedTableId + '/seat'" method="POST"
                             @submit.prevent="
                             if (parseInt(paxCount) > parseInt(tableCapacity)) {
-                                paxError = 'Warning: ' + paxCount + ' Pax exceeds capacity (' + tableCapacity + ' Pax)';
+                                paxError = 'Warning: ' + paxCount + ' {{ __('Pax') }} exceeds capacity (' + tableCapacity + ' {{ __('Pax') }})';
                                 return;
                             }
                             // Instantly update local state so there is zero lag
@@ -1164,56 +1164,55 @@
 
                                 <div
                                     class="bg-slate-50 border-2 border-slate-200 focus-within:border-slate-800 focus-within:bg-white rounded-2xl p-2 px-3 flex items-center justify-between transition">
-                                    <button type="button" @click="decrementPax()"
+                                    <button type="button" @click="decrement{{ __('Pax') }}()"
                                         class="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-lg flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition shrink-0">-</button>
 
                                     <div class="text-center flex-1 px-2">
                                         <span
-                                            class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">Total
-                                            Guests</span>
+                                            class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">{{ __('Total Guests') }}</span>
                                         <input type="number" name="pax" min="1"
                                             x-model.number="paxCount" placeholder="0" required
                                             class="w-full text-2xl font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center placeholder-slate-300 tabular-nums leading-tight">
                                     </div>
 
-                                    <button type="button" @click="incrementPax()"
+                                    <button type="button" @click="increment{{ __('Pax') }}()"
                                         class="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-lg flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition shrink-0">+</button>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 w-full">
-                                    <button type="button" @click="appendPax(1)"
+                                    <button type="button" @click="append{{ __('Pax') }}(1)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">1</button>
-                                    <button type="button" @click="appendPax(2)"
+                                    <button type="button" @click="append{{ __('Pax') }}(2)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">2</button>
-                                    <button type="button" @click="appendPax(3)"
+                                    <button type="button" @click="append{{ __('Pax') }}(3)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">3</button>
 
-                                    <button type="button" @click="appendPax(4)"
+                                    <button type="button" @click="append{{ __('Pax') }}(4)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">4</button>
-                                    <button type="button" @click="appendPax(5)"
+                                    <button type="button" @click="append{{ __('Pax') }}(5)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">5</button>
-                                    <button type="button" @click="appendPax(6)"
+                                    <button type="button" @click="append{{ __('Pax') }}(6)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">6</button>
 
-                                    <button type="button" @click="appendPax(7)"
+                                    <button type="button" @click="append{{ __('Pax') }}(7)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">7</button>
-                                    <button type="button" @click="appendPax(8)"
+                                    <button type="button" @click="append{{ __('Pax') }}(8)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">8</button>
-                                    <button type="button" @click="appendPax(9)"
+                                    <button type="button" @click="append{{ __('Pax') }}(9)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">9</button>
 
-                                    <button type="button" @click="clearPax()"
-                                        class="h-12 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200/80 active:scale-95">CLEAR</button>
-                                    <button type="button" @click="appendPax(0)"
+                                    <button type="button" @click="clear{{ __('Pax') }}()"
+                                        class="h-12 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200/80 active:scale-95">{{ __('CLEAR') }}</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(0)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">0</button>
                                     <button type="button"
-                                        @click="paxCount = paxCount ? paxCount.toString().slice(0, -1) : ''; validatePax();"
+                                        @click="paxCount = paxCount ? paxCount.toString().slice(0, -1) : ''; validate{{ __('Pax') }}();"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-xl transition border border-slate-200/80 flex items-center justify-center active:scale-95">⌫</button>
                                 </div>
 
                                 <button type="submit"
                                     class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-sm active:scale-98">
-                                    Seat Guests & Start Session
+                                    {{ __('Seat Guests & Start Session') }}
                                 </button>
                             </div>
                         </form>
@@ -1256,7 +1255,7 @@
                 @if (Auth::user()->hasPermission('dash_waitlist'))
                 <!-- TAB 2: WAITLIST -->
                 <div x-show="activeModalTab === 'waitlist'" class="space-y-3 pt-1">
-                    <div class="text-[11px] font-semibold text-slate-500 mb-2">Waitlist Customers (Pax &le; <span x-text="tableCapacity"></span>)</div>
+                    <div class="text-[11px] font-semibold text-slate-500 mb-2">{{ __('Waitlist') }} Customers ({{ __('Pax') }} &le; <span x-text="tableCapacity"></span>)</div>
                     <div class="space-y-2 max-h-[350px] overflow-y-auto pr-1 touch-scroll">
                         @forelse ($waitlist as $w)
                             <div x-show="{{ $w->pax }} <= parseInt(tableCapacity || 99)" class="bg-slate-50 border border-slate-200 p-3 rounded-xl flex justify-between items-center">
@@ -1265,11 +1264,11 @@
                                     <div class="text-[10px] text-slate-500 mt-0.5">{{ $w->phone ?: 'No Phone' }} &bull; {{ \Carbon\Carbon::parse($w->created_at)->diffForHumans() }}</div>
                                 </div>
                                 <div class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-bold text-[10px]">
-                                    {{ $w->pax }} Pax
+                                    {{ $w->pax }} {{ __('Pax') }}
                                 </div>
                             </div>
                         @empty
-                            <div class="text-xs font-semibold text-slate-400 text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">No waitlist customers.</div>
+                            <div class="text-xs font-semibold text-slate-400 text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">{{ __('No waitlist customers.') }}</div>
                         @endforelse
                     </div>
                 </div>
@@ -1280,13 +1279,13 @@
                     <div x-show="activeModalTab === 'settings'" class="space-y-3.5 pt-1">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Table Number</label>
-                                <input type="text" x-model="tableNumber" placeholder="e.g. T-01"
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Table Number') }}</label>
+                                <input type="text" x-model="tableNumber" placeholder="{{ __('e.g. T-01') }}"
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-semibold text-slate-600 mb-1">Capacity
-                                    (Pax)</label>
+                                    ({{ __('Pax') }})</label>
                                 <input type="number" min="1" x-model="tableCapacity" placeholder="e.g. 4"
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
                             </div>
@@ -1295,7 +1294,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div
                                 class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Width:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Width:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="tableWidth = Math.max(1, tableWidth - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
@@ -1307,7 +1306,7 @@
                             </div>
                             <div
                                 class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Height:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Height:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="tableHeight = Math.max(1, tableHeight - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
@@ -1328,7 +1327,7 @@
                         }).then(res => { if(res.ok) window.location.reload(); });
                     "
                             class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl transition shadow-sm active:scale-98">
-                            Save Table Specifications
+                            {{ __('Save Table Specifications') }}
                         </button>
 
                         <div class="pt-2 border-t border-slate-100">
@@ -1338,7 +1337,7 @@
                                 @method('DELETE')
                                 <button type="submit"
                                     class="w-full bg-white hover:bg-rose-50 text-rose-600 text-xs font-bold py-2.5 rounded-xl transition border border-rose-200">
-                                    Delete Table Permanently
+                                    {{ __('Delete Table Permanently') }}
                                 </button>
                             </form>
                         </div>
@@ -1385,12 +1384,12 @@
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Table Name /
                                         No.</label>
-                                    <input type="text" x-model="invNumber" placeholder="e.g. T-01"
+                                    <input type="text" x-model="invNumber" placeholder="{{ __('e.g. T-01') }}"
                                         class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Capacity
-                                        (Pax)</label>
+                                        ({{ __('Pax') }})</label>
                                     <input type="number" min="1" x-model="invCapacity" placeholder="e.g. 4"
                                         class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
                                 </div>
@@ -1399,7 +1398,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div
                                     class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                    <span class="text-[11px] font-semibold text-slate-600">Width:</span>
+                                    <span class="text-[11px] font-semibold text-slate-600">{{ __('Width:') }}</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" @click="invWidth = Math.max(1, invWidth - 1)"
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">-</button>
@@ -1411,7 +1410,7 @@
                                 </div>
                                 <div
                                     class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                    <span class="text-[11px] font-semibold text-slate-600">Height:</span>
+                                    <span class="text-[11px] font-semibold text-slate-600">{{ __('Height:') }}</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" @click="invHeight = Math.max(1, invHeight - 1)"
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">-</button>
@@ -1432,7 +1431,7 @@
                             }).then(res => { if(res.ok) { inventoryModalOpen = false; window.location.reload(); } });
                         "
                                 class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl transition shadow-sm">
-                                Save Changes
+                                {{ __('Save Changes') }}
                             </button>
 
                             <div class="pt-1 border-t border-slate-100">
@@ -1442,7 +1441,7 @@
                                     @method('DELETE')
                                     <button type="submit"
                                         class="w-full bg-white hover:bg-rose-50 text-rose-600 text-xs font-bold py-2.5 rounded-xl border border-rose-200 transition">
-                                        Delete Table Permanently
+                                        {{ __('Delete Table Permanently') }}
                                     </button>
                                 </form>
                             </div>
@@ -1498,7 +1497,7 @@
 
                             <div class="flex gap-2.5 pt-6">
                                 @if ($gridWidth > 0 && $gridHeight > 0)
-                                    <button type="button" @click="gridSizeModalOpen = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-3 rounded-xl transition">Cancel</button>
+                                    <button type="button" @click="gridSizeModalOpen = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-3 rounded-xl transition">{{ __('Cancel') }}</button>
                                 @endif
                                 <button type="submit" class="{{ $gridWidth > 0 && $gridHeight > 0 ? 'w-1/2' : 'w-full' }} bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-md transition active:scale-98">
                                     Apply Size
@@ -1555,15 +1554,15 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Table Number
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Table Number') }}
                                     (Opt.)</label>
                                 <input type="text" name="table_number" value="{{ old('table_number') }}"
-                                    placeholder="e.g. T-01"
+                                    placeholder="{{ __('e.g. T-01') }}"
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-semibold text-slate-600 mb-1">Capacity
-                                    (Pax)</label>
+                                    ({{ __('Pax') }})</label>
                                 <input type="number" name="capacity" min="1" value="{{ old('capacity') }}"
                                     placeholder="e.g. 4"
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
@@ -1583,7 +1582,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div
                                 class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Width:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Width:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newWidth = Math.max(1, newWidth - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
@@ -1595,7 +1594,7 @@
                             </div>
                             <div
                                 class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Height:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Height:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newHeight = Math.max(1, newHeight - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
@@ -1623,7 +1622,7 @@
                     
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="editSecTemplateIdx >= 0 ? 'Edit Section Template' : (editPlacedSecIdx >= 0 ? 'Edit Placed Section' : 'Create New Section')"></h3>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="editSecTemplateIdx >= 0 ? 'Edit Section Template' : (editPlacedSecIdx >= 0 ? 'Edit Placed Section' : '{{ __('Create New Section') }}')"></h3>
                             <p class="text-[11px] text-slate-500">Configure layout section properties.</p>
                         </div>
                         <button type="button" @click="sectionModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">?</button>
@@ -1648,7 +1647,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Width:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Width:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newSecW = Math.max(1, parseInt(newSecW) - 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
                                     <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums" x-text="newSecW"></span>
@@ -1656,7 +1655,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">Height:</span>
+                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Height:') }}</span>
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newSecH = Math.max(1, parseInt(newSecH) - 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
                                     <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums" x-text="newSecH"></span>
@@ -1669,7 +1668,7 @@
                     <div class="pt-4 border-t border-slate-100 space-y-2 mt-4">
                         <button type="button" @click="saveSection()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl shadow-md transition active:scale-98">Save</button>
                         <button type="button" x-show="editSecTemplateIdx >= 0 || editPlacedSecIdx >= 0" @click="deleteSection()" class="w-full bg-white hover:bg-rose-50 text-rose-600 text-xs font-bold py-2.5 rounded-xl transition border border-rose-200">Delete Section Permanently</button>
-                        <button type="button" x-show="editSecTemplateIdx < 0 && editPlacedSecIdx < 0" @click="sectionModalOpen = false" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition border border-slate-200">Cancel</button>
+                        <button type="button" x-show="editSecTemplateIdx < 0 && editPlacedSecIdx < 0" @click="sectionModalOpen = false" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition border border-slate-200">{{ __('Cancel') }}</button>
                     </div>
                 </div>
             </div>

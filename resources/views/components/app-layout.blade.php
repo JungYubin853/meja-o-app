@@ -443,7 +443,7 @@
                             @endif
                         </a>
                     </div>
-                    <button type="button" @click="langModalOpen = false" class="w-full py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition mt-2">Cancel</button>
+                    <button type="button" @click="langModalOpen = false" class="w-full py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition mt-2">{{ __('Cancel') }}</button>
                 </div>
             </div>
         </div>
@@ -469,7 +469,7 @@
                 <div class="flex gap-2">
                     <button type="button" @click="logoutModalOpen = false"
                         class="w-1/2 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
-                        Cancel
+                        {{ __('Cancel') }}
                     </button>
                     <form action="/logout" method="POST" class="w-1/2 m-0">
                         @csrf

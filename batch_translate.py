@@ -1,15 +1,11 @@
-{
-    "NAVIGATION MENU": "MENU NAVIGASI",
-    "Create New Table": "Bikin Meja Baru",
-    "Dashboard": "Beranda",
-    "Waitlist": "Daftar Tunggu",
-    "Reports & Database": "Laporan & Basis Data",
-    "Tutorial & Guidelines": "Tutorial & Panduan",
-    "Calendar": "Kalender",
-    "Profile": "Profil",
-    "Account Management": "Manajemen Akun",
-    "Role & User Permission": "Peran & Izin Pengguna",
-    "Logout": "Keluar",
+﻿# -*- coding: utf-8 -*-
+import os
+import json
+import re
+
+views_dir = r"C:\Users\LEGION\Herd\meja-o-app\resources\views"
+
+translations = {
     "Table Edit": "Edit Meja",
     "Section Edit": "Edit Area",
     "Create New Section": "Bikin Area Baru",
@@ -17,7 +13,7 @@
     "Unplaced Sections": "Area Belum Ditempatkan",
     "Drag to floor or click card to edit/delete": "Seret ke lantai atau klik kartu untuk edit/hapus",
     "No Available Sections": "Tidak Ada Area Tersedia",
-    "Table —": "Meja —",
+    "Table \u2014": "Meja \u2014",
     "Max Capacity:": "Kapasitas Maks:",
     "Pax": "Orang",
     "Guest Seating": "Tempat Duduk Tamu",
@@ -25,7 +21,7 @@
     "Total Guests": "Total Tamu",
     "CLEAR": "HAPUS",
     "Seat Guests & Start Session": "Dudukkan Tamu & Mulai Sesi",
-    "Waitlist Customers (Pax ≤ ": "Pelanggan Daftar Tunggu (Orang ≤ ",
+    "Waitlist Customers (Pax \u2264 ": "Pelanggan Daftar Tunggu (Orang \u2264 ",
     "Waitlist Customers": "Pelanggan Daftar Tunggu",
     "No waitlist customers.": "Tidak ada pelanggan di daftar tunggu.",
     "Table Number": "Nomor Meja",
@@ -39,6 +35,8 @@
     "No Available Tables": "Tidak Ada Meja Tersedia",
     "Available": "Tersedia",
     "Occupied": "Terisi",
+    
+    # Waitlist page
     "Waitlist Management": "Manajemen Daftar Tunggu",
     "Customer Name": "Nama Pelanggan",
     "Number of Guests": "Jumlah Tamu",
@@ -49,6 +47,8 @@
     "Waiting Time": "Waktu Tunggu",
     "Seat": "Dudukkan",
     "Cancel": "Batal",
+    
+    # Profile
     "Profile Information": "Informasi Profil",
     "Update your account's profile information and email address.": "Perbarui informasi profil dan alamat email akun Anda.",
     "Full Name": "Nama Lengkap",
@@ -61,6 +61,8 @@
     "Current Password": "Kata Sandi Saat Ini",
     "New Password": "Kata Sandi Baru",
     "Confirm Password": "Konfirmasi Kata Sandi",
+    
+    # Account Management
     "User List": "Daftar Pengguna",
     "Create New Account": "Bikin Akun Baru",
     "Users": "Pengguna",
@@ -70,6 +72,8 @@
     "Delete User": "Hapus Pengguna",
     "Are you sure you want to delete this user?": "Apakah Anda yakin ingin menghapus pengguna ini?",
     "Password": "Kata Sandi",
+    
+    # Permissions
     "Search User": "Cari Pengguna",
     "Bulk Overwrite Users": "Timpa Massal Pengguna",
     "All Staff": "Semua Staf",
@@ -90,6 +94,8 @@
     "Changes will apply to newly created accounts.": "Perubahan akan diterapkan pada akun yang baru dibuat.",
     "Changes will overwrite all existing accounts.": "Perubahan akan menimpa semua akun yang ada.",
     "Save Permissions": "Simpan Izin",
+    
+    # Database
     "Visitor Analytics & Database": "Analitik Pengunjung & Basis Data",
     "Total Visitors": "Total Pengunjung",
     "Avg. Party Size": "Rata-rata Ukuran Rombongan",
@@ -110,78 +116,73 @@
     "Rows per page:": "Baris per halaman:",
     "Previous Page": "Halaman Sebelumnya",
     "Next Page": "Halaman Berikutnya",
+    
+    # Calendar
     "Shift Scheduling & Events": "Penjadwalan Shift & Acara",
+    
+    # Tutorial
     "How to use Meja-O": "Cara menggunakan Meja-O",
     "Floor Canvas Setup": "Pengaturan Kanvas Lantai",
     "Adding Tables": "Menambahkan Meja",
-    "Resizing & Moving": "Mengubah Ukuran & Memindahkan",
-    "Table &mdash;": "Meja &mdash;",
-    "Waitlist Customers (Pax &le; ": "Pelanggan Daftar Tunggu (Orang &le; ",
-    "Waiting": "Menunggu",
-    "Add New Party to Queue": "Tambah Rombongan Baru ke Antrean",
-    "Customer Name (e.g. John)": "Nama Pelanggan (mis. John)",
-    "Phone (Optional)": "No. HP (Opsional)",
-    "Guests (Pax)": "Tamu (Orang)",
-    "Add to Queue": "Tambah ke Antrean",
-    "Live Waiting Queue": "Antrean Tunggu Langsung",
-    "Arrived": "Tiba",
-    "Waiting for": "Menunggu selama",
-    "Cancel this party from the waiting queue?": "Batalkan rombongan ini dari antrean?",
-    "No parties currently in the waitlist.": "Tidak ada rombongan di daftar tunggu saat ini.",
-    "Log ID": "ID Log",
-    "Phone": "No. HP",
-    "Guests": "Tamu",
-    "Started": "Mulai",
-    "Ended": "Selesai",
-    "Elapsed": "Durasi",
-    "Staff": "Staf",
-    "Walk-in Guest": "Tamu Langsung",
-    "In Progress": "Sedang Berlangsung",
-    "No visitor log records found for this filter criteria.": "Tidak ada catatan log pengunjung untuk kriteria filter ini.",
-    "Showing": "Menampilkan",
-    "to": "sampai",
-    "of": "dari",
-    "records": "catatan",
-    "Previous": "Sebelumnya",
-    "Next": "Berikutnya",
-    "Show:": "Tampilkan:",
-    "1. Placing Tables & Sections": "1. Menempatkan Meja & Area",
-    "To add tables or colored sections to your floor plan, you must first create them in the left-hand inventory panel using the": "Untuk menambahkan meja atau area berwarna ke denah lantai Anda, Anda harus terlebih dahulu membuatnya di panel inventaris sebelah kiri menggunakan tombol",
-    "or": "atau",
-    "buttons. Once created, simply": "Setelah dibuat, cukup",
-    "Drag and Drop": "Seret dan Lepas",
-    "them directly onto the grid on the right side.": "langsung ke kotak di sebelah kanan.",
-    "2. Edit Specs & Assign Guests": "2. Edit Spesifikasi & Tetapkan Tamu",
-    "Click on any placed table on the floor plan to open the": "Klik pada meja mana pun yang ditempatkan di denah lantai untuk membuka",
-    "Table Action Modal": "Modal Aksi Meja",
-    ". From here you can update the table's label (e.g., T-01), set max seating capacity, or assign incoming guests to start a dining session.": ". Dari sini Anda dapat memperbarui label meja (mis. T-01), mengatur kapasitas maksimum tempat duduk, atau menetapkan tamu yang datang untuk memulai sesi bersantap.",
-    "3. Waitlist & Analytics": "3. Daftar Tunggu & Analitik",
-    "If the restaurant is full, use the": "Jika restoran penuh, gunakan tab",
-    "tab to manage the queue. Once a table frees up, you can seat customers directly from the waitlist. Every seated session is automatically recorded into the": "untuk mengelola antrean. Setelah meja kosong, Anda dapat mendudukkan pelanggan langsung dari daftar tunggu. Setiap sesi yang duduk secara otomatis dicatat ke dalam",
-    "for performance tracking.": "untuk pelacakan performa.",
-    "Assign Outlet": "Tetapkan Outlet",
-    "None (For Super Admin)": "Tidak Ada (Untuk Super Admin)",
-    "Temporary Password": "Kata Sandi Sementara",
-    "Name": "Nama",
-    "Email": "Email",
-    "Outlet / Brand": "Outlet / Merek",
-    "Action": "Aksi",
-    "Super Admin": "Super Admin",
-    "Admin": "Admin",
-    "Select a user from the left to edit their specific permissions.": "Pilih pengguna dari kiri untuk mengedit izin spesifik mereka.",
-    "Current User": "Pengguna Saat Ini",
-    "Editing permissions for:": "Mengedit izin untuk:",
-    "This user has custom settings.": "Pengguna ini memiliki pengaturan kustom.",
-    "This user strictly follows the default template.": "Pengguna ini secara ketat mengikuti template default.",
-    "MAIN NAVIGATION": "NAVIGASI UTAMA",
-    "Dashboard - 2D Floor Canvas": "Beranda - Kanvas 2D",
-    "Guest Seating and Waitlist": "Tempat Duduk Tamu dan Daftar Tunggu",
-    "Edit Existing Tables": "Edit Meja yang Ada",
-    "Delete Tables": "Hapus Meja",
-    "Create New Table Container": "Bikin Tempat Meja Baru",
-    "DASHBOARD CONTROLS": "KONTROL BERANDA",
-    "REPORTS & DATABASE": "LAPORAN & BASIS DATA",
-    "Daily Report": "Laporan Harian",
-    "Monthly Report": "Laporan Bulanan",
-    "Waitlist Report": "Laporan Daftar Tunggu"
+    "Resizing & Moving": "Mengubah Ukuran & Memindahkan"
 }
+
+lang_path = r"C:\Users\LEGION\Herd\meja-o-app\lang\id.json"
+id_dict = {}
+if os.path.exists(lang_path):
+    with open(lang_path, "r", encoding="utf-8") as f:
+        id_dict = json.load(f)
+
+for eng, indo in translations.items():
+    id_dict[eng] = indo
+
+with open(lang_path, "w", encoding="utf-8") as f:
+    json.dump(id_dict, f, indent=4, ensure_ascii=False)
+
+files = [
+    "dashboard.blade.php",
+    "waitlist.blade.php",
+    "database.blade.php",
+    "tutorial.blade.php",
+    "calendar.blade.php",
+    "profile.blade.php",
+    "account-management.blade.php",
+    "permission.blade.php",
+    r"components\app-layout.blade.php"
+]
+
+def wrap_translation(match):
+    prefix = match.group(1)
+    text = match.group(2)
+    suffix = match.group(3)
+    if "{{ __('" in text or "{!! __('" in text:
+        return match.group(0)
+    return f"{prefix}{{{{ __('{text}') }}}}{suffix}"
+
+for file in files:
+    path = os.path.join(views_dir, file)
+    if not os.path.exists(path):
+        continue
+        
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    for eng in translations.keys():
+        escaped_eng = re.escape(eng)
+        
+        pattern_tag = r'(>[\s]*)(' + escaped_eng + r')([\s]*<)'
+        content = re.sub(pattern_tag, wrap_translation, content)
+        
+        pattern_ph = r'(placeholder="[\s]*)(' + escaped_eng + r')([\s]*")'
+        content = re.sub(pattern_ph, wrap_translation, content)
+        
+        pattern_title = r'(title="[\s]*)(' + escaped_eng + r')([\s]*")'
+        content = re.sub(pattern_title, wrap_translation, content)
+        
+        pattern_alpine = r"(')(" + escaped_eng + r")(')"
+        content = re.sub(pattern_alpine, wrap_translation, content)
+        
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+print("Batch translation complete!")

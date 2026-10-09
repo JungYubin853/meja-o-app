@@ -33,13 +33,13 @@
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Full Name</label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Full Name') }}</label>
                         <input type="text" name="name" value="{{ old('name', $user->name) }}" required
                             class="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Email Address</label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Email Address') }}</label>
                         <input type="email" value="{{ $user->email }}" disabled
                             class="w-full text-xs sm:text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl font-semibold text-slate-500 cursor-not-allowed">
                     </div>
@@ -54,7 +54,7 @@
                         </div>
                     @else
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Assigned Outlet</label>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Assigned Outlet') }}</label>
                             <input type="text" value="ALL OUTLETS" disabled
                                 class="w-full text-xs sm:text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl font-semibold text-slate-500 cursor-not-allowed">
                         </div>
