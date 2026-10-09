@@ -205,7 +205,7 @@
                                 
                                 <div x-show="permissions.nav_reports" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Overall<span x-cloak x-show="user && permissions.rep_overall !== defaultPerms.rep_overall" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Overall') }}<span x-cloak x-show="user && permissions.rep_overall !== defaultPerms.rep_overall" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_overall" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
@@ -217,7 +217,7 @@
                                         <input type="checkbox" x-model="permissions.rep_monthly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Yearly Report<span x-cloak x-show="user && permissions.rep_yearly !== defaultPerms.rep_yearly" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Yearly Report') }}<span x-cloak x-show="user && permissions.rep_yearly !== defaultPerms.rep_yearly" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_yearly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
@@ -225,7 +225,7 @@
                                         <input type="checkbox" x-model="permissions.rep_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Customer Habits<span x-cloak x-show="user && permissions.rep_habits !== defaultPerms.rep_habits" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Customer Habits') }}<span x-cloak x-show="user && permissions.rep_habits !== defaultPerms.rep_habits" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_habits" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>

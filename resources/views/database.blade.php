@@ -355,13 +355,13 @@
                                           :class="activeTab === 'table' ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-200/50 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 font-semibold'"
                                           class="px-4 py-2 text-xs rounded-lg transition-all duration-200 flex items-center gap-2 flex-1 lg:flex-none justify-center whitespace-nowrap">
                                       <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                                      Visit Logs
+                                      {{ __('Visit Logs') }}
                                   </button>
                                   <button @click="activeTab = 'gantt'" 
                                           :class="activeTab === 'gantt' ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-200/50 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 font-semibold'"
                                           class="px-4 py-2 text-xs rounded-lg transition-all duration-200 flex items-center gap-2 flex-1 lg:flex-none justify-center whitespace-nowrap">
                                       <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                      Gantt Graph
+                                      {{ __('Gantt Graph') }}
                                   </button>
                               </div>
   
@@ -393,8 +393,8 @@
                             <thead>
                                 <tr class="border-b border-slate-200 bg-white text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sticky top-0 shadow-sm z-10">
                                     <th class="px-4 py-3 bg-white">{{ __('Log ID') }} (Customer)</th>
-                                    <th class="px-4 py-3 bg-white">Start Session</th>
-                                    <th class="px-4 py-3 bg-white">Time {{ __('Elapsed') }}</th>
+                                    <th class="px-4 py-3 bg-white">{{ __('Start Session') }}</th>
+                                    <th class="px-4 py-3 bg-white">{{ __('Time Elapsed') }}</th>
                                     <th class="px-4 py-3 bg-white">{{ __('Table Number') }}</th>
                                 </tr>
                             </thead>
@@ -647,9 +647,9 @@
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
                 <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Waitlist Records Database</h3>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">{{ __('Waitlist {{ __('Records') }} Database') }}</h3>
                     <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200">
-                        {{ count($waitlists) }} Records
+                        {{ count($waitlists) }} {{ __('Records') }}
                     </span>
                 </div>
                 <div class="overflow-x-auto touch-scroll">
@@ -719,12 +719,12 @@
                 }
             }">
 
-            <!-- Table Header: Title, Records Badge, Rows Dropdown, and 1/10 Pagination Stepper -->
+            <!-- Table Header: Title, {{ __('Records') }} Badge, Rows Dropdown, and 1/10 Pagination Stepper -->
             <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <h3 class="font-bold text-slate-900 text-sm sm:text-base">Visitor Log Entries & Dining Durations</h3>
                     <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200 tabular-nums">
-                        {{ count($logs) }} Records
+                        {{ count($logs) }} {{ __('Records') }}
                     </span>
                 </div>
 

@@ -688,8 +688,7 @@
 
                             <div class="flex items-center justify-between pt-1 border-t border-slate-100">
                                 <div>
-                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">Unplaced
-                                        Inventory</h3>
+                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
                                     <p class="text-[11px] text-slate-500">{{ __('Drag to floor or click card to edit/delete') }}</p>
                                 </div>
                                 <span
@@ -760,7 +759,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M4 8h16M4 16h16" />
                                                 </svg>
-                                                <span>Drag Me</span>
+                                                <span>{{ __('Drag me') }}</span>
                                             </div>
                                         </div>
 
@@ -839,7 +838,7 @@
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
                                                 </svg>
-                                                <span>Drag Me</span>
+                                                <span>{{ __('Drag me') }}</span>
                                             </div>
                                         </div>
 
@@ -1370,9 +1369,8 @@
 
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900">Edit Inventory Table</h3>
-                            <p class="text-[11px] text-slate-500 mt-0.5">Edit table specs or delete directly from
-                                inventory.</p>
+                            <h3 class="text-sm font-bold text-slate-900">{{ __('Edit Inventory Table') }}</h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">{{ __('Edit table specs or delete directly from inventory.') }}</p>
                         </div>
                         <button @click="inventoryModalOpen = false"
                             class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs transition">✕</button>
@@ -1608,7 +1606,7 @@
 
                         <button type="submit"
                             class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl transition shadow-sm mt-2 active:scale-98">
-                            Confirm & Add to Inventory
+                            {{ __('Confirm & Add to Inventory') }}
                         </button>
                     </form>
                 </div>
