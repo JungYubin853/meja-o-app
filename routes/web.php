@@ -92,7 +92,8 @@ Route::middleware(['auth'])->group(function () {
             'email' => $user->email,
             'role' => $user->role,
             'outlet' => $user->outlet->name ?? 'ALL OUTLETS',
-            'permissions' => $user->permissions ?? [] // raw saved permissions
+            'permissions' => $user->permissions ?? [], // raw saved permissions
+            'default_permissions' => $user->getDefaultPermissions() // The dynamic base template defaults
         ]);
     });
 
