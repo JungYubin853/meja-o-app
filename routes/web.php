@@ -109,15 +109,26 @@ Route::middleware(['auth'])->group(function () {
         $role = $request->role; // 'admin' or 'staff'
         $users = App\Models\User::where('role', $role)->get();
         
+        $dummyUser = new App\Models\User(['role' => $role]);
+        $defaultPerms = $dummyUser->getDefaultPermissions();
+        
         $divergentUsers = [];
         foreach($users as $u) {
             if (!empty($u->permissions)) {
-                $divergentUsers[] = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email];
+                $savedPerms = $u->permissions;
+                $differs = false;
+                foreach ($defaultPerms as $key => $defaultVal) {
+                    $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
+                    if ((bool)$savedVal !== (bool)$defaultVal) {
+                        $differs = true;
+                        break;
+                    }
+                }
+                if ($differs) {
+                    $divergentUsers[] = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email];
+                }
             }
         }
-        
-        $dummyUser = new App\Models\User(['role' => $role]);
-        $defaultPerms = $dummyUser->getDefaultPermissions();
         
         return response()->json([
             'divergent_users' => $divergentUsers,
@@ -133,8 +144,23 @@ Route::middleware(['auth'])->group(function () {
 
         $users = App\Models\User::where('role', $role)->get();
         $updatedCount = 0;
+        
+        $dummyUser = new App\Models\User(['role' => $role]);
+        $defaultPerms = $dummyUser->getDefaultPermissions();
+        
         foreach($users as $u) {
-            $isCustom = !empty($u->permissions);
+            $isCustom = false;
+            if (!empty($u->permissions)) {
+                $savedPerms = $u->permissions;
+                foreach ($defaultPerms as $key => $defaultVal) {
+                    $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
+                    if ((bool)$savedVal !== (bool)$defaultVal) {
+                        $isCustom = true;
+                        break;
+                    }
+                }
+            }
+            
             if ($isCustom && !$overwriteCustom) {
                 continue; // Skip if they have custom permissions and we are keeping them
             }
