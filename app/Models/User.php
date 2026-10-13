@@ -19,6 +19,7 @@ class User extends Authenticatable
         'password',
         'role',
         'outlet_id', // Changed from brand
+        'permissions',
     ];
 
     public function outlet()
@@ -117,12 +118,17 @@ class User extends Authenticatable
             return true;
         }
 
-        $perms = $this->permissions ?? [];
+        $perms = $this->permissions;
+        if (is_string($perms)) {
+            $perms = json_decode($perms, true) ?: [];
+        }
+        $perms = (array) $perms;
+
         if (array_key_exists($key, $perms)) {
             return (bool) $perms[$key];
         }
 
         $defaults = $this->getDefaultPermissions();
-        return $defaults[$key] ?? false;
+        return (bool) ($defaults[$key] ?? false);
     }
 }

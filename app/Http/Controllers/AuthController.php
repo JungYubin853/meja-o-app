@@ -64,6 +64,9 @@ class AuthController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        if ($user && !$user->hasPermission('nav_profile')) {
+            abort(403);
+        }
         $outlets = \App\Models\Outlet::all();
         return view('profile', compact('user', 'outlets'));
     }

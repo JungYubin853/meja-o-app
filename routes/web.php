@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Tutorial
     Route::get('/tutorial', function () {
+        if (Auth::check() && !Auth::user()->hasPermission('nav_tutorial')) abort(403);
         return view('tutorial');
     });
 
@@ -88,10 +89,12 @@ Route::middleware(['auth'])->group(function () {
         if (!$user) return response()->json(['error' => 'User not found'], 404);
         
         // Return user with their current actual permissions resolved with defaults
-        $allKeys = array_keys($user->getDefaultPermissions());
-        $perms = [];
-        foreach ($allKeys as $k) {
-            $perms[$k] = $user->hasPermission($k); // resolve via hasPermission
+        $defaultPerms = $user->getDefaultPermissions();
+        $savedPerms = is_string($user->permissions) ? json_decode($user->permissions, true) : ((array)$user->permissions ?: []);
+        
+        $resolved = [];
+        foreach ($defaultPerms as $k => $defVal) {
+            $resolved[$k] = array_key_exists($k, $savedPerms) ? (bool)$savedPerms[$k] : (bool)$defVal;
         }
         
         return response()->json([
@@ -100,15 +103,22 @@ Route::middleware(['auth'])->group(function () {
             'email' => $user->email,
             'role' => $user->role,
             'outlet' => $user->outlet->name ?? 'ALL OUTLETS',
-            'permissions' => $user->permissions ?? [], // raw saved permissions
-            'default_permissions' => $user->getDefaultPermissions() // The dynamic base template defaults
+            'permissions' => $resolved,
+            'default_permissions' => $defaultPerms
         ]);
     });
 
     Route::post('/api/permissions/update/{id}', function (Illuminate\Http\Request $request, $id) {
         if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
         $user = App\Models\User::findOrFail($id);
-        $user->permissions = $request->permissions;
+        
+        $perms = $request->permissions;
+        if (is_array($perms)) {
+            foreach ($perms as $k => $v) {
+                $perms[$k] = filter_var($v, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+        $user->permissions = $perms;
         $user->save();
         return response()->json(['success' => true]);
     });
@@ -123,8 +133,8 @@ Route::middleware(['auth'])->group(function () {
         
         $divergentUsers = [];
         foreach($users as $u) {
-            if (!empty($u->permissions)) {
-                $savedPerms = $u->permissions;
+            $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
+            if (!empty($savedPerms)) {
                 $differs = false;
                 foreach ($defaultPerms as $key => $defaultVal) {
                     $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
@@ -149,6 +159,11 @@ Route::middleware(['auth'])->group(function () {
         if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
         $role = $request->role;
         $permissions = $request->permissions;
+        if (is_array($permissions)) {
+            foreach ($permissions as $k => $v) {
+                $permissions[$k] = filter_var($v, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
         $overwriteCustom = filter_var($request->overwrite_custom, FILTER_VALIDATE_BOOLEAN);
 
         $users = App\Models\User::where('role', $role)->get();
@@ -159,8 +174,8 @@ Route::middleware(['auth'])->group(function () {
         
         foreach($users as $u) {
             $isCustom = false;
-            if (!empty($u->permissions)) {
-                $savedPerms = $u->permissions;
+            $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
+            if (!empty($savedPerms)) {
                 foreach ($defaultPerms as $key => $defaultVal) {
                     $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
                     if ((bool)$savedVal !== (bool)$defaultVal) {
@@ -178,6 +193,21 @@ Route::middleware(['auth'])->group(function () {
             $updatedCount++;
         }
         
+        // When overwriting all users, also sync the default template
+        if ($overwriteCustom) {
+            $superAdmin = App\Models\User::where('role', 'super_admin')->first();
+            if ($superAdmin) {
+                $superPerms = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : ((array)$superAdmin->permissions ?: []);
+                if ($role === 'staff') {
+                    $superPerms['_staff_defaults'] = $permissions;
+                } else {
+                    $superPerms['_admin_defaults'] = $permissions;
+                }
+                $superAdmin->permissions = $superPerms;
+                $superAdmin->save();
+            }
+        }
+        
         return response()->json(['success' => true, 'updated_count' => $updatedCount]);
     });
 
@@ -185,10 +215,17 @@ Route::middleware(['auth'])->group(function () {
         if (!Auth::user()->hasPermission('nav_role_permission')) abort(403);
         $role = $request->role;
         $permissions = $request->permissions;
+        if (is_array($permissions)) {
+            foreach ($permissions as $k => $v) {
+                $permissions[$k] = filter_var($v, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
         
         $superAdmin = App\Models\User::where('role', 'super_admin')->first();
         if ($superAdmin) {
             $perms = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : ((array)$superAdmin->permissions ?: []);
+            $oldDefaults = ($role === 'staff') ? ($perms['_staff_defaults'] ?? null) : ($perms['_admin_defaults'] ?? null);
+            
             if ($role === 'staff') {
                 $perms['_staff_defaults'] = $permissions;
             } else {
@@ -196,6 +233,29 @@ Route::middleware(['auth'])->group(function () {
             }
             $superAdmin->permissions = $perms;
             $superAdmin->save();
+
+            // Also update non-divergent existing users of this role
+            $dummyUser = new App\Models\User(['role' => $role]);
+            $baseRef = $oldDefaults ?: $dummyUser->getHardcodedDefaults();
+            
+            $users = App\Models\User::where('role', $role)->get();
+            foreach ($users as $u) {
+                $saved = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
+                if (!empty($saved)) {
+                    $isCustom = false;
+                    foreach ($baseRef as $k => $defVal) {
+                        $savedVal = array_key_exists($k, $saved) ? $saved[$k] : $defVal;
+                        if ((bool)$savedVal !== (bool)$defVal) {
+                            $isCustom = true;
+                            break;
+                        }
+                    }
+                    if (!$isCustom) {
+                        $u->permissions = $permissions;
+                        $u->save();
+                    }
+                }
+            }
         }
         
         return response()->json(['success' => true]);

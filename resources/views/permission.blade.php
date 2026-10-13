@@ -280,9 +280,8 @@
             </div>
         </div>
     </main>
-'
-$script = @'
-        <script>
+
+    <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('permissionManager', () => ({
                 loading: false,
@@ -329,32 +328,15 @@ $script = @'
                         
                         this.user = data;
                         
-                        const defaultPerms = {
-                            nav_dashboard: data.role === 'admin' || data.role === 'staff',
-                            dash_create_table: data.role === 'admin',
-                            dash_floor_canvas: data.role === 'admin' || data.role === 'staff',
-                            dash_guest_seating: data.role === 'admin' || data.role === 'staff',
-                            dash_waitlist: data.role === 'admin' || data.role === 'staff',
-                            dash_edit_table: data.role === 'admin',
-                            nav_waitlist: data.role === 'admin' || data.role === 'staff',
-                            nav_reports: data.role === 'admin' || data.role === 'staff',
-                            rep_overall: data.role === 'admin',
-                            rep_daily: data.role === 'admin' || data.role === 'staff',
-                            rep_monthly: data.role === 'admin',
-                            rep_yearly: data.role === 'admin',
-                            rep_waitlist: data.role === 'admin' || data.role === 'staff',
-                            rep_habits: data.role === 'admin',
-                            nav_tutorial: data.role === 'admin' || data.role === 'staff',
-                            nav_calendar: data.role === 'admin' || data.role === 'staff',
-                            nav_profile: data.role === 'admin' || data.role === 'staff',
-                            nav_account_mgmt: data.role === 'admin',
-                            acc_create_account: false,
-                            acc_user_list: data.role === 'admin',
-                            nav_role_permission: false
-                        };
-                        
-                        this.defaultPerms = data.default_permissions || defaultPerms;
-                        this.permissions = { ...this.defaultPerms, ...data.permissions };
+                        this.defaultPerms = {};
+                        for (const [k, v] of Object.entries(data.default_permissions || {})) {
+                            this.defaultPerms[k] = Boolean(v);
+                        }
+
+                        this.permissions = {};
+                        for (const [k, v] of Object.entries(data.permissions || {})) {
+                            this.permissions[k] = Boolean(v);
+                        }
 
                     } catch (err) {
                         this.error = err.message;
@@ -375,14 +357,18 @@ $script = @'
                         if (!response.ok) throw new Error('Failed to fetch bulk data.');
                         const data = await response.json();
                         
-                        this.permissions = data.default_permissions;
-                        this.defaultPerms = data.default_permissions;
+                        this.permissions = {};
+                        this.defaultPerms = {};
+                        for (const [k, v] of Object.entries(data.default_permissions || {})) {
+                            this.permissions[k] = Boolean(v);
+                            this.defaultPerms[k] = Boolean(v);
+                        }
                         
                         if (isBaseDefault) {
                             this.bulkStep = 'edit';
                             this.bulkOverwrite = false;
                         } else {
-                            this.divergentUsers = data.divergent_users;
+                            this.divergentUsers = data.divergent_users || [];
                             if (this.divergentUsers.length > 0) {
                                 this.bulkStep = 'warn';
                             } else {
@@ -408,18 +394,19 @@ $script = @'
                     this.error = '';
 
                     try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
                         const response = await fetch('/api/permissions/update/' + this.user.id, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': csrfToken
                             },
                             body: JSON.stringify({ permissions: this.permissions })
                         });
                         
                         if (!response.ok) throw new Error('Failed to save permissions.');
                         
-                        this.successMsg = 'Permissions updated successfully!';
+                        this.successMsg = '{{ __('Permissions updated successfully!') }}';
                         setTimeout(() => this.successMsg = '', 3000);
                     } catch (err) {
                         this.error = err.message;
@@ -437,12 +424,13 @@ $script = @'
                         const isBaseDefault = this.bulkMode.endsWith('_default');
                         const role = isBaseDefault ? this.bulkMode.replace('_default', '') : this.bulkMode;
                         const endpoint = isBaseDefault ? '/api/permissions/save-default-template' : '/api/permissions/bulk-update';
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
                         const response = await fetch(endpoint, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': csrfToken
                             },
                             body: JSON.stringify({ 
                                 role: role,
@@ -455,8 +443,12 @@ $script = @'
                         const data = await response.json();
                         
                         if (isBaseDefault) {
+                            this.defaultPerms = { ...this.permissions };
                             this.successMsg = `Global default template for ${role}s successfully updated!`;
                         } else {
+                            if (this.bulkOverwrite) {
+                                this.defaultPerms = { ...this.permissions };
+                            }
                             this.successMsg = `Permissions successfully applied to ${data.updated_count} ${role}s!`;
                         }
                         

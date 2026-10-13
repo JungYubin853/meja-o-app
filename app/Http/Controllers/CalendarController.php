@@ -10,6 +10,9 @@ class CalendarController extends Controller
 {
     public function index()
     {
+        if (\Illuminate\Support\Facades\Auth::check() && !\Illuminate\Support\Facades\Auth::user()->hasPermission('nav_calendar')) {
+            abort(403);
+        }
         return view('calendar');
     }
 

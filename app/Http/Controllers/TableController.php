@@ -16,6 +16,15 @@ class TableController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        if ($user && !$user->hasPermission('nav_dashboard')) {
+            if ($user->hasPermission('nav_waitlist')) return redirect('/waitlist');
+            if ($user->hasPermission('nav_reports')) return redirect('/database');
+            if ($user->hasPermission('nav_tutorial')) return redirect('/tutorial');
+            if ($user->hasPermission('nav_calendar')) return redirect('/calendar');
+            if ($user->hasPermission('nav_profile')) return redirect('/profile');
+            abort(403);
+        }
+
         $outletId = $user ? $user->outlet_id : null;
         $outlets = \App\Models\Outlet::all();
 
@@ -62,6 +71,10 @@ class TableController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        if ($user && !$user->hasPermission('nav_waitlist')) {
+            abort(403);
+        }
+
         $outletId = $user ? $user->outlet_id : null;
         
         $selectedOutletId = $outletId;
