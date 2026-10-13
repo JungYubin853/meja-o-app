@@ -707,7 +707,7 @@
                                     <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
                                     <p class="text-[11px] text-slate-500">
                                         @if(isset($activeFloor))
-                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->name }}</span>
+                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->display_name }}</span>
                                         @else
                                             {{ __('Drag to floor or click card to edit/delete') }}
                                         @endif
@@ -817,7 +817,7 @@
                                     <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
                                     <p class="text-[11px] text-slate-500">
                                         @if(isset($activeFloor))
-                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->name }}</span>
+                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->display_name }}</span>
                                         @else
                                             {{ __('Drag to floor or click card to edit/delete') }}
                                         @endif
@@ -890,101 +890,120 @@
                     <div class="order-1 lg:order-2 flex-1 min-w-0 w-full space-y-3">
 
                     <!-- Map Toolbar Bar -->
-                    <div
-                        class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-
-                        <div class="flex items-center justify-between sm:justify-start gap-3">
-                            <div>
-                                <h2
-                                    class="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                                    <span>2D Floor Canvas</span>
-                                    @if(isset($activeFloor))
-                                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-soft-xs">
-                                            🏢 {{ $activeFloor->name }} (Lt. {{ $activeFloor->floor_number }})
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-soft-xs space-y-3">
+                        
+                        <!-- Top Row: Title, Active Floor Badge, Status Indicator, and Zoom Controls -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                                            {{ __('2D Floor Canvas') }}
+                                        </h2>
+                                        @if(isset($activeFloor))
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-soft-xs whitespace-nowrap">
+                                                <span>🏢 {{ $activeFloor->display_name }}</span>
+                                                <span class="text-indigo-400 font-semibold text-[11px]">({{ __('Fl.') }} {{ $activeFloor->floor_number }})</span>
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 font-medium flex items-center gap-2 mt-0.5">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span> {{ __('Available') }}
                                         </span>
-                                    @endif
-                                </h2>
-                                <p class="text-[11px] text-slate-500 font-medium flex items-center gap-2 mt-0.5">
-                                    <span class="inline-flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ __('Available') }}
-                                    </span>
-                                    <span class="text-slate-300">·</span>
-                                    <span class="inline-flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> {{ __('Occupied') }}
-                                    </span>
-                                </p>
+                                        <span class="text-slate-300">·</span>
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-rose-100"></span> {{ __('Occupied') }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Persistent Zoom Controls -->
+                            <div class="flex items-center gap-2 self-end sm:self-auto">
+                                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline">{{ __('Zoom') }}:</span>
+                                <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+                                    <button type="button" @click="setZoom(Math.max(0.5, zoom - 0.1))"
+                                        class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">-</button>
+                                    <span class="text-xs font-semibold text-slate-800 w-11 text-center tabular-nums"
+                                        x-text="Math.round(zoom * 100) + '%'"></span>
+                                    <button type="button" @click="setZoom(Math.min(1.8, zoom + 0.1))"
+                                        class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">+</button>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Persistent Zoom Controls & Action Buttons -->
-                        <div
-                            class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-
+                        <!-- Bottom Row: Navigation, Floor Switcher & Action Tools -->
+                        <div class="flex flex-wrap items-center justify-between gap-2.5">
+                            <!-- Left: Outlet Selector (Super Admin) & Floor Selector (All Roles) -->
                             <div class="flex flex-wrap items-center gap-2">
                                 @if (auth()->check() && auth()->user()->isSuperAdmin())
                                     <form method="GET" action="/" class="inline-flex m-0">
-                                        <select name="outlet_id" onchange="this.form.submit()"
-                                            class="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-soft-xs h-9 transition cursor-pointer">
-                                            @foreach ($outlets ?? [] as $outlet)
-                                                <option value="{{ $outlet->id }}"
-                                                    {{ ($selectedOutletId ?? '') == $outlet->id ? 'selected' : '' }}>
-                                                    {{ $outlet->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div class="relative inline-flex items-center">
+                                            <select name="outlet_id" onchange="this.form.submit()"
+                                                class="text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-soft-xs h-9 transition cursor-pointer appearance-none">
+                                                @foreach ($outlets ?? [] as $outlet)
+                                                    <option value="{{ $outlet->id }}"
+                                                        {{ ($selectedOutletId ?? '') == $outlet->id ? 'selected' : '' }}>
+                                                        🏬 {{ $outlet->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <svg class="w-3.5 h-3.5 text-slate-400 pointer-events-none absolute right-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
                                     </form>
                                 @endif
 
-                                <!-- Multi-Floor Selector & Management -->
-                                <div class="inline-flex items-center gap-1.5">
-                                    <form method="GET" action="/" class="inline-flex m-0">
-                                        @if(request('outlet_id'))
-                                            <input type="hidden" name="outlet_id" value="{{ request('outlet_id') }}">
-                                        @endif
+                                <!-- Floor Switcher Dropdown -->
+                                <form method="GET" action="/" class="inline-flex m-0">
+                                    @if(request('outlet_id'))
+                                        <input type="hidden" name="outlet_id" value="{{ request('outlet_id') }}">
+                                    @endif
+                                    <div class="relative inline-flex items-center">
                                         <select name="floor_id" onchange="this.form.submit()"
-                                            class="text-xs font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100/70 border border-indigo-200/80 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-soft-xs h-9 transition cursor-pointer"
+                                            class="text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/80 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-soft-xs h-9 transition cursor-pointer appearance-none"
                                             title="{{ __('Choose Floor') }}">
                                             @foreach ($floors ?? [] as $floorItem)
                                                 <option value="{{ $floorItem->id }}"
                                                     {{ ($activeFloor && $activeFloor->id == $floorItem->id) ? 'selected' : '' }}>
-                                                    🏢 {{ $floorItem->name }} (Lt. {{ $floorItem->floor_number }})
+                                                    🏢 {{ $floorItem->display_name }} ({{ __('Fl.') }} {{ $floorItem->floor_number }})
                                                 </option>
                                             @endforeach
                                         </select>
-                                    </form>
+                                        <svg class="w-3.5 h-3.5 text-indigo-500 pointer-events-none absolute right-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                </form>
+                            </div>
 
-                                    @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                        <button type="button" @click="manageFloorsModalOpen = true"
-                                            class="inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 h-9 rounded-xl transition border border-indigo-200/80 shadow-soft-xs active:scale-98"
-                                            title="{{ __('Manage Floors') }}">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                            </svg>
-                                            <span>{{ __('Kelola Lantai') }}</span>
-                                        </button>
-                                    @endif
-                                </div>
-
-                                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                    <button @click="gridSizeModalOpen = true"
-                                        class="inline-flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 h-9 rounded-xl transition border border-slate-200 shadow-soft-xs">
-                                        {{ __('Canvas Size') }}
+                            <!-- Right: Admin Action Buttons (Super Admin & Admin Only) -->
+                            @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="manageFloorsModalOpen = true"
+                                        class="inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-1.5 h-9 rounded-xl transition shadow-sm active:scale-98"
+                                        title="{{ __('Manage Floors') }}">
+                                        <svg class="w-3.5 h-3.5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        <span>{{ __('Manage Floors') }}</span>
                                     </button>
-                                @endif
-                            </div>
 
-                            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-                                <button @click="setZoom(Math.max(0.5, zoom - 0.1))"
-                                    class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">-</button>
-                                <span class="text-xs font-semibold text-slate-800 w-12 text-center tabular-nums"
-                                    x-text="Math.round(zoom * 100) + '%'"></span>
-                                <button @click="setZoom(Math.min(1.8, zoom + 0.1))"
-                                    class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">+</button>
-                            </div>
-
+                                    <button type="button" @click="gridSizeModalOpen = true"
+                                        class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 h-9 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-98"
+                                        title="{{ __('Canvas Size') }}">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                        </svg>
+                                        <span>{{ __('Canvas Size') }}</span>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
-
                     <!-- 2D Canvas Workspace -->
                     <div
                         class="bg-slate-950 -mx-3 sm:mx-0 rounded-none sm:rounded-2xl border-t border-b-0 border-x-0 sm:border border-slate-800 overflow-auto p-2 sm:p-4 relative max-h-[70vh] sm:max-h-[600px] h-auto shadow-soft-xl touch-scroll w-[calc(100%+1.5rem)] sm:w-full max-w-[100vw] sm:max-w-full">
@@ -1738,7 +1757,8 @@
                 </div>
             </div>
         </div>
-    </div>
+
+    @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
     <!-- ADMIN POP-UP: MANAGE FLOORS (CRUD) -->
     <div x-show="manageFloorsModalOpen" x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -1789,7 +1809,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-2">
-                                                <p class="text-sm font-bold text-slate-900 truncate">{{ $fl->name }}</p>
+                                                <p class="text-sm font-bold text-slate-900 truncate">{{ $fl->display_name }}</p>
                                                 @if ($activeFloor && $activeFloor->id == $fl->id)
                                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-600 text-white uppercase tracking-wider">{{ __('Active') }}</span>
                                                 @endif
@@ -1810,7 +1830,7 @@
 
                                         <!-- Edit floor button -->
                                         <button type="button"
-                                            @click="editingFloorId = (editingFloorId === {{ $fl->id }} ? null : {{ $fl->id }}); editFloorName = '{{ addslashes($fl->name) }}'; editFloorNumber = {{ $fl->floor_number }}; editFloorWidth = {{ $fl->grid_width }}; editFloorHeight = {{ $fl->grid_height }};"
+                                            @click="editingFloorId = (editingFloorId === {{ $fl->id }} ? null : {{ $fl->id }}); editFloorName = '{{ addslashes($fl->display_name) }}'; editFloorNumber = {{ $fl->floor_number }}; editFloorWidth = {{ $fl->grid_width }}; editFloorHeight = {{ $fl->grid_height }};"
                                             class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
                                             title="{{ __('Edit Floor') }}">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -1876,7 +1896,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Floor Name') }}</label>
-                                <input type="text" name="name" required placeholder="e.g. Lantai 2 / Outdoor"
+                                <input type="text" name="name" required placeholder="{{ __('e.g. Floor 2 / Outdoor') }}"
                                     class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-slate-900 shadow-sm">
                             </div>
                             <div>
@@ -1910,7 +1930,7 @@
             </div>
         </div>
     </div>
+    @endif
 
-    <!-- End Section Modal -->
     </div>
 </x-app-layout>
