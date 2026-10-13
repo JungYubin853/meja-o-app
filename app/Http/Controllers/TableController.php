@@ -41,8 +41,8 @@ class TableController extends Controller
                 'outlet_id'         => $selectedOutletId,
                 'name'              => 'Lantai 1',
                 'floor_number'      => 1,
-                'grid_width'        => 20,
-                'grid_height'       => 20,
+                'grid_width'        => 0,
+                'grid_height'       => 0,
                 'grid_sections'     => '[]',
                 'section_templates' => '[]',
             ]);
@@ -79,8 +79,8 @@ class TableController extends Controller
         $hasAvailable = $tables->contains('status', 'available');
         $waitlist = $waitlistQuery->get();
 
-        $gridWidth  = $activeFloor ? (int) $activeFloor->grid_width : 20;
-        $gridHeight = $activeFloor ? (int) $activeFloor->grid_height : 20;
+        $gridWidth  = $activeFloor ? (int) $activeFloor->grid_width : 0;
+        $gridHeight = $activeFloor ? (int) $activeFloor->grid_height : 0;
         
         $gridSectionsStr = $activeFloor ? ($activeFloor->grid_sections ?: '[]') : '[]';
         $gridSections = json_decode($gridSectionsStr, true) ?? [];
@@ -448,8 +448,8 @@ class TableController extends Controller
             'name'         => 'required|string|max:100',
             'floor_number' => 'nullable|integer',
             'outlet_id'    => 'nullable|exists:outlets,id',
-            'grid_width'   => 'nullable|integer|min:5|max:40',
-            'grid_height'  => 'nullable|integer|min:5|max:40',
+            'grid_width'   => 'nullable|integer|min:0|max:40',
+            'grid_height'  => 'nullable|integer|min:0|max:40',
         ]);
 
         $outletId = $request->input('outlet_id') ?: $user->outlet_id;
@@ -471,8 +471,8 @@ class TableController extends Controller
             'outlet_id'         => $outletId,
             'name'              => $request->input('name'),
             'floor_number'      => (int) $floorNumber,
-            'grid_width'        => $request->input('grid_width', 20),
-            'grid_height'       => $request->input('grid_height', 20),
+            'grid_width'        => $request->input('grid_width', 0) ?? 0,
+            'grid_height'       => $request->input('grid_height', 0) ?? 0,
             'grid_sections'     => '[]',
             'section_templates' => '[]',
         ]);
@@ -495,8 +495,8 @@ class TableController extends Controller
         $request->validate([
             'name'         => 'required|string|max:100',
             'floor_number' => 'required|integer',
-            'grid_width'   => 'nullable|integer|min:5|max:40',
-            'grid_height'  => 'nullable|integer|min:5|max:40',
+            'grid_width'   => 'nullable|integer|min:0|max:40',
+            'grid_height'  => 'nullable|integer|min:0|max:40',
         ]);
 
         $data = [
