@@ -907,7 +907,7 @@
                     <div
                         class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 
-                        <div class="flex items-center justify-between sm:justify-start gap-3">
+                        <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
                             <div>
                                 <h2
                                     class="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -923,17 +923,27 @@
                                     </span>
                                 </p>
                             </div>
+
+                            <!-- Zoom Controls: inline with title on Mobile, kept together on desktop -->
+                            <div class="flex sm:hidden items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0">
+                                <button @click="setZoom(Math.max(0.5, zoom - 0.1))"
+                                    class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">-</button>
+                                <span class="text-xs font-semibold text-slate-800 w-11 text-center tabular-nums"
+                                    x-text="Math.round(zoom * 100) + '%'"></span>
+                                <button @click="setZoom(Math.min(1.8, zoom + 0.1))"
+                                    class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">+</button>
+                            </div>
                         </div>
 
-                        <!-- Action Buttons & Zoom Controls -->
+                        <!-- Action Buttons & Desktop Zoom Controls -->
                         <div
-                            class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                            class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto">
 
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                 @if (auth()->check() && auth()->user()->isSuperAdmin())
-                                    <form method="GET" action="/" class="inline-flex m-0">
+                                    <form method="GET" action="/" class="inline-flex m-0 w-full sm:w-auto min-w-0">
                                         <select name="outlet_id" onchange="this.form.submit()"
-                                            class="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-soft-xs h-9 transition cursor-pointer">
+                                            class="w-full sm:w-auto max-w-full text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-soft-xs h-9 transition cursor-pointer truncate">
                                             @foreach ($outlets ?? [] as $outlet)
                                                 <option value="{{ $outlet->id }}"
                                                     {{ ($selectedOutletId ?? '') == $outlet->id ? 'selected' : '' }}>
@@ -965,7 +975,7 @@
 
                                 @if (Auth::user()->hasPermission('dash_canvas_settings'))
                                     <button type="button" @click="canvasSettingsModalOpen = true"
-                                        class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-95"
+                                        class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-95 shrink-0"
                                         title="{{ __('Canvas & Floor Settings') }}">
                                         <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -975,7 +985,8 @@
                                 @endif
                             </div>
 
-                            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                            <!-- Desktop Zoom Controls -->
+                            <div class="hidden sm:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
                                 <button @click="setZoom(Math.max(0.5, zoom - 0.1))"
                                     class="w-7 h-7 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-sm flex items-center justify-center border border-slate-200 shadow-soft-xs active:scale-90 transition">-</button>
                                 <span class="text-xs font-semibold text-slate-800 w-12 text-center tabular-nums"

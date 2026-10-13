@@ -66,11 +66,6 @@
                             {{ Auth::check() ? (Auth::user()->isSuperAdmin() ? 'ALL OUTLETS' : (Auth::user()->outlet->name ?? 'My Kopi-O Group')) : 'My Kopi-O Group' }}
                         </h3>
                     </div>
-                    @if (Auth::check())
-                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border tracking-wider {{ Auth::user()->role === 'admin' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-700 border-slate-200' }}">
-                            {{ Auth::user()->role }}
-                        </span>
-                    @endif
                 </a>
 
                 <!-- Right: Actions -->
