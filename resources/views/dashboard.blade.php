@@ -18,7 +18,7 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('floorCanvas', () => ({
             zoom: parseFloat(localStorage.getItem('meja_floor_zoom')) || 1,
-            editMode: 'table',
+            editMode: 'view',
             gridSections: [],
             isResizingSection: false,
             justResizedSection: false,
@@ -682,15 +682,7 @@
                 @if (Auth::user()->hasPermission('dash_create_table'))
                     <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
-                        <!-- EDIT MODE TRAY -->
-                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                        <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
-                            <div class="flex bg-slate-100 p-1 rounded-xl">
-                                <button type="button" @click="editMode = 'table'" :class="editMode === 'table' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">{{ __('Table Edit') }}</button>
-                                <button type="button" @click="editMode = 'section'" :class="editMode === 'section' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition">{{ __('Section Edit') }}</button>
-                            </div>
-                        </div>
-                        @endif
+
 
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5">
 
@@ -917,6 +909,21 @@
                             class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
 
                             <div class="flex flex-wrap items-center gap-2">
+                                <!-- Mode Switcher: View | Table Edit | Section Edit -->
+                                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                                    <button type="button" @click="editMode = 'view'"
+                                        :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                        class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('View') }}</button>
+                                    @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                        <button type="button" @click="editMode = 'table'"
+                                            :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                            class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('Table Edit') }}</button>
+                                        <button type="button" @click="editMode = 'section'"
+                                            :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                            class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('Section Edit') }}</button>
+                                    @endif
+                                </div>
+
                                 @if (auth()->check() && auth()->user()->isSuperAdmin())
                                     <form method="GET" action="/" class="inline-flex m-0">
                                         <select name="outlet_id" onchange="this.form.submit()"
@@ -950,13 +957,12 @@
 
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <button type="button" @click="canvasSettingsModalOpen = true"
-                                        class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 h-9 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-95"
+                                        class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-95"
                                         title="{{ __('Canvas & Floor Settings') }}">
                                         <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         </svg>
-                                        <span>{{ __('Settings') }}</span>
                                     </button>
                                 @endif
                             </div>
@@ -1060,8 +1066,8 @@
                                             max(1, $height - (int) $table->grid_y + 1),
                                         );
                                     @endphp
-                                    <div id="table-{{ $table->id }}" draggable="{{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
-                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif
+                                    <div id="table-{{ $table->id }}" :draggable="editMode === 'table' && {{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
+                                        @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="if (editMode !== 'table') { $event.preventDefault(); return; } let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif
                                         @click="
                                         if (justResizedTable) return;
                                         selectedTableId = {{ $table->id }};
@@ -1104,10 +1110,12 @@
                                                 : ((liveTables[{{ $table->id }}]?.capacity || {{ $table->capacity ?? 0 }}) + 'p')">
                                             </p>
                                         </div>
+                                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                         <template x-if="editMode === 'table'">
                                             <div class="absolute -bottom-[2px] -right-[2px] w-[14px] h-[14px] bg-white border-2 border-slate-900 rounded-full cursor-se-resize shadow pointer-events-auto z-30"
                                                  @mousedown.stop.prevent="startTableResize($event, {{ $table->id }}, {{ $table->grid_x }}, {{ $table->grid_y }}, {{ $tableSpanW }}, {{ $tableSpanH }})" @click.stop=""></div>
                                         </template>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
@@ -1229,12 +1237,12 @@
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 w-full">
-                                    <button type="button" @click="append{{ __('Pax') }}(1)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">1</button>
-                                    <button type="button" @click="append{{ __('Pax') }}(2)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">2</button>
-                                    <button type="button" @click="append{{ __('Pax') }}(3)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">3</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(7)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">7</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(8)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">8</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(9)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">9</button>
 
                                     <button type="button" @click="append{{ __('Pax') }}(4)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">4</button>
@@ -1243,12 +1251,12 @@
                                     <button type="button" @click="append{{ __('Pax') }}(6)"
                                         class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">6</button>
 
-                                    <button type="button" @click="append{{ __('Pax') }}(7)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">7</button>
-                                    <button type="button" @click="append{{ __('Pax') }}(8)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">8</button>
-                                    <button type="button" @click="append{{ __('Pax') }}(9)"
-                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">9</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(1)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">1</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(2)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">2</button>
+                                    <button type="button" @click="append{{ __('Pax') }}(3)"
+                                        class="h-12 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-base rounded-xl transition border border-slate-200/80 active:scale-95">3</button>
 
                                     <button type="button" @click="clear{{ __('Pax') }}()"
                                         class="h-12 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200/80 active:scale-95">{{ __('CLEAR') }}</button>
