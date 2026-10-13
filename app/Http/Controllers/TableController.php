@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Table;
 use App\Models\Waitlist;
 use App\Models\VisitorLog;
+use App\Models\Floor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // <-- Add this import
@@ -33,38 +34,73 @@ class TableController extends Controller
             $selectedOutletId = request('outlet_id') ?: ($outlets->first()->id ?? null);
         }
 
+        // Retrieve floors for this outlet (auto-create default Lantai 1 if none exists)
+        $floors = Floor::where('outlet_id', $selectedOutletId)->orderBy('floor_number')->get();
+        if ($floors->isEmpty() && $selectedOutletId) {
+            $defaultFloor = Floor::create([
+                'outlet_id'         => $selectedOutletId,
+                'name'              => 'Lantai 1',
+                'floor_number'      => 1,
+                'grid_width'        => 20,
+                'grid_height'       => 20,
+                'grid_sections'     => '[]',
+                'section_templates' => '[]',
+            ]);
+            $floors = collect([$defaultFloor]);
+            Table::where('outlet_id', $selectedOutletId)->whereNull('floor_id')->update(['floor_id' => $defaultFloor->id]);
+        }
+
+        // Active floor selection (URL param -> Session -> First floor)
+        $requestedFloorId = request('floor_id') ?: session('selected_floor_id_' . $selectedOutletId);
+        $activeFloor = $floors->firstWhere('id', $requestedFloorId) ?: $floors->first();
+        if ($activeFloor) {
+            session(['selected_floor_id_' . $selectedOutletId => $activeFloor->id]);
+        }
+
         $tablesQuery = Table::query();
         $waitlistQuery = Waitlist::where('status', 'waiting');
-        
-        $gridWidthQuery = DB::table('settings')->where('key', 'grid_width');
-        $gridHeightQuery = DB::table('settings')->where('key', 'grid_height');
-        $gridSectionsQuery = DB::table('settings')->where('key', 'grid_sections');
 
         if ($selectedOutletId) {
             $tablesQuery->where('outlet_id', $selectedOutletId);
             $waitlistQuery->where('outlet_id', $selectedOutletId);
-            $gridWidthQuery->where('outlet_id', $selectedOutletId);
-            $gridHeightQuery->where('outlet_id', $selectedOutletId);
-            $gridSectionsQuery->where('outlet_id', $selectedOutletId);
         }
 
-        $tables = $tablesQuery->get();
+        // Fetch tables: placed tables on active floor + all unplaced tables in this outlet
+        $tables = $tablesQuery->where(function ($q) use ($activeFloor) {
+            $q->where(function ($sub) use ($activeFloor) {
+                if ($activeFloor) {
+                    $sub->where('floor_id', $activeFloor->id)->where('grid_x', '>', 0);
+                }
+            })->orWhere(function ($sub) {
+                $sub->where('grid_x', '<=', 0)->orWhereNull('grid_x');
+            });
+        })->get();
+
         $hasAvailable = $tables->contains('status', 'available');
         $waitlist = $waitlistQuery->get();
 
-        $gridWidth  = $gridWidthQuery->value('value') ?? 0;
-        $gridHeight = $gridHeightQuery->value('value') ?? 0;
+        $gridWidth  = $activeFloor ? (int) $activeFloor->grid_width : 20;
+        $gridHeight = $activeFloor ? (int) $activeFloor->grid_height : 20;
         
-        $gridSectionsStr = $gridSectionsQuery->value('value') ?? '[]';
+        $gridSectionsStr = $activeFloor ? ($activeFloor->grid_sections ?: '[]') : '[]';
         $gridSections = json_decode($gridSectionsStr, true) ?? [];
         
-        $sectionTemplatesQuery = DB::table('settings')->where('key', 'section_templates');
-        if ($selectedOutletId) {
-            $sectionTemplatesQuery->where('outlet_id', $selectedOutletId);
-        }
-        $sectionTemplatesStr = $sectionTemplatesQuery->value('value') ?? '[]';
+        $sectionTemplatesStr = $activeFloor ? ($activeFloor->section_templates ?: '[]') : '[]';
 
-        return view('dashboard', compact('tables', 'hasAvailable', 'waitlist', 'gridWidth', 'gridHeight', 'gridSections', 'gridSectionsStr', 'sectionTemplatesStr', 'outlets', 'selectedOutletId'));
+        return view('dashboard', compact(
+            'tables',
+            'hasAvailable',
+            'waitlist',
+            'gridWidth',
+            'gridHeight',
+            'gridSections',
+            'gridSectionsStr',
+            'sectionTemplatesStr',
+            'outlets',
+            'selectedOutletId',
+            'floors',
+            'activeFloor'
+        ));
     }
 
     public function showWaitlist()
@@ -97,6 +133,9 @@ class TableController extends Controller
         $query = Table::query();
         if ($request->has('outlet_id') && $request->outlet_id !== '') {
             $query->where('outlet_id', $request->outlet_id);
+        }
+        if ($request->has('floor_id') && $request->floor_id !== '') {
+            $query->where('floor_id', $request->floor_id);
         }
         return response()->json($query->get(['id', 'status', 'pax', 'table_number', 'capacity']));
     }
@@ -258,6 +297,7 @@ class TableController extends Controller
             'width'        => 'required|integer|min:1|max:4',
             'height'       => 'required|integer|min:1|max:4',
             'outlet_id'    => 'nullable|exists:outlets,id',
+            'floor_id'     => 'nullable|exists:floors,id',
         ]);
 
         $tableNum = $request->input('table_number');
@@ -274,6 +314,7 @@ class TableController extends Controller
 
         Table::create([
             'outlet_id'    => $targetOutletId,
+            'floor_id'     => $request->input('floor_id', null),
             'table_number' => $tableNum, // Stores NULL when empty
             'capacity'     => $request->input('capacity') ? (int)$request->input('capacity') : 0,
             'shape'        => $request->input('shape'),
@@ -294,6 +335,7 @@ class TableController extends Controller
 
         Table::create([
             'outlet_id'    => $original->outlet_id,
+            'floor_id'     => $request->input('floor_id', $original->floor_id),
             'table_number' => null, // Stays null so it can be named later
             'capacity'     => $original->capacity ?? 0,
             'shape'        => $original->shape,
@@ -312,7 +354,7 @@ class TableController extends Controller
     {
         $table = Table::findOrFail($id);
 
-        $table->update([
+        $updateData = [
             'table_number' => $request->input('table_number', $table->table_number),
             'capacity'     => $request->input('capacity', $table->capacity),
             'shape'        => $request->input('shape', $table->shape),
@@ -320,7 +362,13 @@ class TableController extends Controller
             'grid_y'       => $request->input('grid_y', $table->grid_y),
             'width'        => $request->input('width', $table->width),
             'height'       => $request->input('height', $table->height),
-        ]);
+        ];
+
+        if ($request->has('floor_id')) {
+            $updateData['floor_id'] = $request->input('floor_id');
+        }
+
+        $table->update($updateData);
 
         return response()->json(['success' => true]);
     }
@@ -328,13 +376,33 @@ class TableController extends Controller
     public function updateGridSize(Request $request)
     {
         $request->validate([
-            'grid_width'  => 'required|integer|min:0|max:40',
-            'grid_height' => 'required|integer|min:0|max:40',
-            'grid_sections' => 'nullable|string',
-            'outlet_id'   => 'nullable|exists:outlets,id',
+            'grid_width'        => 'required|integer|min:0|max:40',
+            'grid_height'       => 'required|integer|min:0|max:40',
+            'grid_sections'     => 'nullable|string',
+            'section_templates' => 'nullable|string',
+            'outlet_id'         => 'nullable|exists:outlets,id',
+            'floor_id'          => 'nullable|exists:floors,id',
         ]);
 
-        $outletId = $request->input('outlet_id') ?: Auth::user()->outlet_id;
+        $outletId = $request->input('outlet_id') ?: (Auth::check() ? Auth::user()->outlet_id : null);
+        $floorId  = $request->input('floor_id');
+
+        if ($floorId) {
+            $floor = Floor::find($floorId);
+            if ($floor) {
+                $floorUpdate = [
+                    'grid_width'  => $request->input('grid_width'),
+                    'grid_height' => $request->input('grid_height'),
+                ];
+                if ($request->has('grid_sections')) {
+                    $floorUpdate['grid_sections'] = $request->input('grid_sections');
+                }
+                if ($request->has('section_templates')) {
+                    $floorUpdate['section_templates'] = $request->input('section_templates');
+                }
+                $floor->update($floorUpdate);
+            }
+        }
 
         if ($outletId) {
             DB::table('settings')->updateOrInsert(
@@ -361,7 +429,126 @@ class TableController extends Controller
             }
         }
 
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->back()->with('success', 'Grid canvas dimensions updated successfully.');
+    }
+
+    public function storeFloor(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin())) {
+            abort(403);
+        }
+
+        $request->validate([
+            'name'         => 'required|string|max:100',
+            'floor_number' => 'nullable|integer',
+            'outlet_id'    => 'nullable|exists:outlets,id',
+            'grid_width'   => 'nullable|integer|min:5|max:40',
+            'grid_height'  => 'nullable|integer|min:5|max:40',
+        ]);
+
+        $outletId = $request->input('outlet_id') ?: $user->outlet_id;
+        if (!$outletId && $user->isSuperAdmin()) {
+            $outletId = \App\Models\Outlet::first()->id ?? null;
+        }
+
+        if (!$outletId) {
+            return redirect()->back()->withErrors(['error' => 'Outlet is required to create a floor.']);
+        }
+
+        $floorNumber = $request->input('floor_number');
+        if ($floorNumber === null || $floorNumber === '') {
+            $maxFloor = Floor::where('outlet_id', $outletId)->max('floor_number') ?? 0;
+            $floorNumber = $maxFloor + 1;
+        }
+
+        $floor = Floor::create([
+            'outlet_id'         => $outletId,
+            'name'              => $request->input('name'),
+            'floor_number'      => (int) $floorNumber,
+            'grid_width'        => $request->input('grid_width', 20),
+            'grid_height'       => $request->input('grid_height', 20),
+            'grid_sections'     => '[]',
+            'section_templates' => '[]',
+        ]);
+
+        session(['selected_floor_id_' . $outletId => $floor->id]);
+
+        return redirect()->back()->with('success', __('Floor created successfully.'));
+    }
+
+    public function updateFloor(Request $request, $id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin())) {
+            abort(403);
+        }
+
+        $floor = Floor::findOrFail($id);
+
+        $request->validate([
+            'name'         => 'required|string|max:100',
+            'floor_number' => 'required|integer',
+            'grid_width'   => 'nullable|integer|min:5|max:40',
+            'grid_height'  => 'nullable|integer|min:5|max:40',
+        ]);
+
+        $data = [
+            'name'         => $request->input('name'),
+            'floor_number' => (int) $request->input('floor_number'),
+        ];
+        if ($request->filled('grid_width')) {
+            $data['grid_width'] = (int) $request->input('grid_width');
+        }
+        if ($request->filled('grid_height')) {
+            $data['grid_height'] = (int) $request->input('grid_height');
+        }
+
+        $floor->update($data);
+
+        return redirect()->back()->with('success', __('Floor updated successfully.'));
+    }
+
+    public function destroyFloor($id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin())) {
+            abort(403);
+        }
+
+        $floor = Floor::findOrFail($id);
+        $outletId = $floor->outlet_id;
+
+        $totalFloors = Floor::where('outlet_id', $outletId)->count();
+        if ($totalFloors <= 1) {
+            return redirect()->back()->withErrors([
+                'floor_error' => __('Cannot delete the only floor in this outlet.')
+            ]);
+        }
+
+        // Safely move placed tables on this floor back to unplaced inventory
+        Table::where('floor_id', $floor->id)->update([
+            'grid_x'   => 0,
+            'grid_y'   => 0,
+            'floor_id' => null,
+        ]);
+
+        // Switch active floor in session if this was selected
+        $remainingFloor = Floor::where('outlet_id', $outletId)->where('id', '!=', $floor->id)->orderBy('floor_number')->first();
+        if ($remainingFloor) {
+            session(['selected_floor_id_' . $outletId => $remainingFloor->id]);
+        }
+
+        $floor->delete();
+
+        return redirect()->back()->with('success', __('Floor deleted successfully. Placed tables moved to unplaced inventory.'));
     }
 
     public function destroy($id)

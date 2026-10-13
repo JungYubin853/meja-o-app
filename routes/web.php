@@ -44,6 +44,11 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/tables/{id}', [TableController::class, 'destroy']);
     Route::post('/tables/{id}/clone', [TableController::class, 'cloneTable']);
 
+    // Multi-Floor Management Routes
+    Route::post('/floors', [TableController::class, 'storeFloor']);
+    Route::post('/floors/{id}', [TableController::class, 'updateFloor']);
+    Route::delete('/floors/{id}', [TableController::class, 'destroyFloor']);
+
     // Waitlist Routes (Separated view and actions)
     Route::get('/waitlist', [TableController::class, 'showWaitlist']);
     Route::post('/waitlist', [TableController::class, 'storeWaitlist']);

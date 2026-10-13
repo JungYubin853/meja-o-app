@@ -8,6 +8,7 @@ class Table extends Model
 {
     protected $fillable = [
         'outlet_id',
+        'floor_id',
         'table_number',
         'status',
         'capacity',
@@ -27,5 +28,10 @@ class Table extends Model
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class);
     }
 }

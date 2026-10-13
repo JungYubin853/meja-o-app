@@ -18,6 +18,11 @@ class Outlet extends Model
         return $this->hasMany(Table::class);
     }
 
+    public function floors()
+    {
+        return $this->hasMany(Floor::class)->orderBy('floor_number');
+    }
+
     public function waitlists()
     {
         return $this->hasMany(Waitlist::class);

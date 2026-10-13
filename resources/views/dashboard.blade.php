@@ -94,6 +94,13 @@
             startH: 0,
             settingsModalOpen: {{ $errors->has('table_number') ? 'true' : 'false' }},
             gridSizeModalOpen: false,
+            manageFloorsModalOpen: {{ $errors->has('floor_error') ? 'true' : 'false' }},
+            editingFloorId: null,
+            editFloorName: '',
+            editFloorNumber: 1,
+            editFloorWidth: 20,
+            editFloorHeight: 20,
+            activeFloorId: {{ $activeFloor->id ?? 'null' }},
             modalOpen: false,
             inventoryModalOpen: false,
             activeModalTab: 'seating',
@@ -209,9 +216,12 @@
             },
 
             fetchLiveStatus() {
-                let outletParam = new URLSearchParams(window.location.search).get('outlet_id') ||
-                '';
-                let url = '/api/tables/status' + (outletParam ? '?outlet_id=' + outletParam : '');
+                let outletParam = new URLSearchParams(window.location.search).get('outlet_id') || '';
+                let floorParam = '{{ $activeFloor->id ?? "" }}';
+                let queryParts = [];
+                if (outletParam) queryParts.push('outlet_id=' + encodeURIComponent(outletParam));
+                if (floorParam) queryParts.push('floor_id=' + encodeURIComponent(floorParam));
+                let url = '/api/tables/status' + (queryParts.length ? '?' + queryParts.join('&') : '');
 
                 fetch(url)
                     .then(res => res.json())
@@ -311,7 +321,11 @@
                     fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        body: JSON.stringify({ grid_x: targetCol, grid_y: targetRow })
+                        body: JSON.stringify({
+                            grid_x: targetCol,
+                            grid_y: targetRow,
+                            floor_id: {{ $activeFloor->id ?? 'null' }}
+                        })
                     }).then(res => { if(res.ok) window.location.reload(); });
                 }
             },
@@ -492,6 +506,7 @@
                     grid_sections: JSON.stringify(this.gridSections)
                 };
                 @if(isset($selectedOutletId)) payload.outlet_id = '{{ $selectedOutletId }}'; @endif
+                @if(isset($activeFloor)) payload.floor_id = '{{ $activeFloor->id }}'; @endif
                 
                 fetch('/settings/grid-size', {
                     method: 'POST',
@@ -507,6 +522,7 @@
                     section_templates: JSON.stringify(this.sectionTemplates)
                 };
                 @if(isset($selectedOutletId)) payload.outlet_id = '{{ $selectedOutletId }}'; @endif
+                @if(isset($activeFloor)) payload.floor_id = '{{ $activeFloor->id }}'; @endif
                 
                 fetch('/settings/grid-size', {
                     method: 'POST',
@@ -689,7 +705,13 @@
                             <div class="flex items-center justify-between pt-1 border-t border-slate-100">
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
-                                    <p class="text-[11px] text-slate-500">{{ __('Drag to floor or click card to edit/delete') }}</p>
+                                    <p class="text-[11px] text-slate-500">
+                                        @if(isset($activeFloor))
+                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->name }}</span>
+                                        @else
+                                            {{ __('Drag to floor or click card to edit/delete') }}
+                                        @endif
+                                    </p>
                                 </div>
                                 <span
                                     class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">
@@ -705,7 +727,7 @@
                                 fetch('/tables/' + tableId + '/coordinates', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                                    body: JSON.stringify({ grid_x: 0, grid_y: 0 })
+                                    body: JSON.stringify({ grid_x: 0, grid_y: 0, floor_id: null })
                                 }).then(res => { if(res.ok) window.location.reload(); });
                              ">
                                 @forelse($tables->where('grid_x', 0) as $table)
@@ -793,7 +815,13 @@
                             <div class="flex items-center justify-between pt-1 border-t border-slate-100">
                                 <div>
                                     <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
-                                    <p class="text-[11px] text-slate-500">{{ __('Drag to floor or click card to edit/delete') }}</p>
+                                    <p class="text-[11px] text-slate-500">
+                                        @if(isset($activeFloor))
+                                            {{ __('Drag to') }} <span class="font-bold text-indigo-600">{{ $activeFloor->name }}</span>
+                                        @else
+                                            {{ __('Drag to floor or click card to edit/delete') }}
+                                        @endif
+                                    </p>
                                 </div>
                                 <span class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200" x-text="sectionTemplates.length">
                                 </span>
@@ -870,6 +898,11 @@
                                 <h2
                                     class="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                                     <span>2D Floor Canvas</span>
+                                    @if(isset($activeFloor))
+                                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-soft-xs">
+                                            🏢 {{ $activeFloor->name }} (Lt. {{ $activeFloor->floor_number }})
+                                        </span>
+                                    @endif
                                 </h2>
                                 <p class="text-[11px] text-slate-500 font-medium flex items-center gap-2 mt-0.5">
                                     <span class="inline-flex items-center gap-1">
@@ -887,7 +920,7 @@
                         <div
                             class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 @if (auth()->check() && auth()->user()->isSuperAdmin())
                                     <form method="GET" action="/" class="inline-flex m-0">
                                         <select name="outlet_id" onchange="this.form.submit()"
@@ -901,6 +934,36 @@
                                         </select>
                                     </form>
                                 @endif
+
+                                <!-- Multi-Floor Selector & Management -->
+                                <div class="inline-flex items-center gap-1.5">
+                                    <form method="GET" action="/" class="inline-flex m-0">
+                                        @if(request('outlet_id'))
+                                            <input type="hidden" name="outlet_id" value="{{ request('outlet_id') }}">
+                                        @endif
+                                        <select name="floor_id" onchange="this.form.submit()"
+                                            class="text-xs font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100/70 border border-indigo-200/80 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-soft-xs h-9 transition cursor-pointer"
+                                            title="{{ __('Choose Floor') }}">
+                                            @foreach ($floors ?? [] as $floorItem)
+                                                <option value="{{ $floorItem->id }}"
+                                                    {{ ($activeFloor && $activeFloor->id == $floorItem->id) ? 'selected' : '' }}>
+                                                    🏢 {{ $floorItem->name }} (Lt. {{ $floorItem->floor_number }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </form>
+
+                                    @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                        <button type="button" @click="manageFloorsModalOpen = true"
+                                            class="inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 h-9 rounded-xl transition border border-indigo-200/80 shadow-soft-xs active:scale-98"
+                                            title="{{ __('Manage Floors') }}">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                            </svg>
+                                            <span>{{ __('Kelola Lantai') }}</span>
+                                        </button>
+                                    @endif
+                                </div>
 
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <button @click="gridSizeModalOpen = true"
@@ -1474,6 +1537,7 @@
                             <input type="hidden" name="grid_sections" :value="JSON.stringify(gridSections)">
                             <input type="hidden" name="section_templates" :value="JSON.stringify(sectionTemplates)">
                             @if(isset($selectedOutletId)) <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}"> @endif
+                            @if(isset($activeFloor)) <input type="hidden" name="floor_id" value="{{ $activeFloor->id }}"> @endif
                             
                             <template x-if="gridSizeError">
                                 <div class="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-semibold flex items-start gap-2 mb-4">
@@ -1544,6 +1608,9 @@
                         @csrf
                         @if (isset($selectedOutletId))
                             <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}">
+                        @endif
+                        @if (isset($activeFloor))
+                            <input type="hidden" name="floor_id" value="{{ $activeFloor->id }}">
                         @endif
                         <input type="hidden" name="grid_x" value="0">
                         <input type="hidden" name="grid_y" value="0">
@@ -1672,6 +1739,178 @@
             </div>
         </div>
     </div>
+    <!-- ADMIN POP-UP: MANAGE FLOORS (CRUD) -->
+    <div x-show="manageFloorsModalOpen" x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 sm:px-4"
+        x-cloak>
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] shadow-soft-xl border border-slate-100 safe-pb flex flex-col overflow-hidden"
+            @click.away="manageFloorsModalOpen = false">
+
+            <!-- Header -->
+            <div class="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>🏢</span>
+                        <span>{{ __('Manage Floors') }}</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        {{ __('Add, edit, or switch between 2D floor maps for this outlet.') }}
+                    </p>
+                </div>
+                <button type="button" @click="manageFloorsModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">✕</button>
+            </div>
+
+            @if ($errors->has('floor_error'))
+                <div class="mx-5 sm:mx-6 mt-4 bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-semibold flex items-start gap-2">
+                    <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>{{ $errors->first('floor_error') }}</span>
+                </div>
+            @endif
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-5 sm:p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+
+                <!-- List of Existing Floors -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                        <span>{{ __('Existing Floors') }} ({{ count($floors ?? []) }})</span>
+                    </h4>
+
+                    <div class="space-y-2.5">
+                        @foreach ($floors ?? [] as $fl)
+                            <div class="p-3.5 rounded-xl border {{ ($activeFloor && $activeFloor->id == $fl->id) ? 'border-indigo-300 bg-indigo-50/40 ring-1 ring-indigo-200' : 'border-slate-200 bg-white hover:border-slate-300' }} transition">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-lg {{ ($activeFloor && $activeFloor->id == $fl->id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700' }} flex items-center justify-center font-bold text-xs shrink-0">
+                                            {{ $fl->floor_number }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <p class="text-sm font-bold text-slate-900 truncate">{{ $fl->name }}</p>
+                                                @if ($activeFloor && $activeFloor->id == $fl->id)
+                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-600 text-white uppercase tracking-wider">{{ __('Active') }}</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 font-medium">
+                                                Grid: {{ $fl->grid_width }}×{{ $fl->grid_height }} · {{ $fl->tables()->where('grid_x', '>', 0)->count() }} {{ __('placed tables') }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        @if (!($activeFloor && $activeFloor->id == $fl->id))
+                                            <a href="{{ request()->fullUrlWithQuery(['floor_id' => $fl->id]) }}"
+                                                class="px-2.5 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition border border-indigo-200">
+                                                {{ __('Switch') }}
+                                            </a>
+                                        @endif
+
+                                        <!-- Edit floor button -->
+                                        <button type="button"
+                                            @click="editingFloorId = (editingFloorId === {{ $fl->id }} ? null : {{ $fl->id }}); editFloorName = '{{ addslashes($fl->name) }}'; editFloorNumber = {{ $fl->floor_number }}; editFloorWidth = {{ $fl->grid_width }}; editFloorHeight = {{ $fl->grid_height }};"
+                                            class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                                            title="{{ __('Edit Floor') }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </button>
+
+                                        <!-- Delete floor button -->
+                                        @if (count($floors ?? []) > 1)
+                                            <form method="POST" action="/floors/{{ $fl->id }}"
+                                                onsubmit="return confirm('{{ __('Are you sure you want to delete this floor? All placed tables on this floor will safely return to unplaced inventory.') }}');"
+                                                class="inline m-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                                                    title="{{ __('Delete Floor') }}">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Inline Edit Form -->
+                                <div x-show="editingFloorId === {{ $fl->id }}" x-cloak class="mt-3 pt-3 border-t border-slate-200">
+                                    <form method="POST" action="/floors/{{ $fl->id }}" class="space-y-3">
+                                        @csrf
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Floor Name') }}</label>
+                                                <input type="text" name="name" x-model="editFloorName" required
+                                                    class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">{{ __('Floor Number') }}</label>
+                                                <input type="number" name="floor_number" x-model="editFloorNumber" required
+                                                    class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-end gap-2 pt-1">
+                                            <button type="button" @click="editingFloorId = null" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">{{ __('Cancel') }}</button>
+                                            <button type="submit" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm">{{ __('Save Changes') }}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Divider & Add New Floor Section -->
+                <div class="border-t border-slate-200 pt-5">
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span>{{ __('Add New Floor') }}</span>
+                    </h4>
+
+                    <form method="POST" action="/floors" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        @csrf
+                        @if (isset($selectedOutletId))
+                            <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}">
+                        @endif
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Floor Name') }}</label>
+                                <input type="text" name="name" required placeholder="e.g. Lantai 2 / Outdoor"
+                                    class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-slate-900 shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Floor Number') }}</label>
+                                <input type="number" name="floor_number" value="{{ (count($floors ?? []) + 1) }}" required
+                                    class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-slate-900 shadow-sm">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Width (Columns)') }}</label>
+                                <input type="number" name="grid_width" value="20" min="5" max="40" required
+                                    class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-center">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Height (Rows)') }}</label>
+                                <input type="number" name="grid_height" value="20" min="5" max="40" required
+                                    class="w-full text-xs p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-center">
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl shadow-md transition active:scale-98 flex items-center justify-center gap-2 mt-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            <span>{{ __('Create Floor') }}</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- End Section Modal -->
     </div>
 </x-app-layout>
