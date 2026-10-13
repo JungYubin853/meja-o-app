@@ -682,7 +682,22 @@
                 @if (Auth::user()->hasPermission('dash_create_table'))
                     <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
-
+                        <!-- EDIT MODE TRAY -->
+                        <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
+                            <div class="flex bg-slate-100 p-1 rounded-xl">
+                                <button type="button" @click="editMode = 'view'"
+                                    :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                    class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('View') }}</button>
+                                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                    <button type="button" @click="editMode = 'table'"
+                                        :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                        class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Table Edit') }}</button>
+                                    <button type="button" @click="editMode = 'section'"
+                                        :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
+                                        class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Section Edit') }}</button>
+                                @endif
+                            </div>
+                        </div>
 
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5">
 
@@ -909,21 +924,6 @@
                             class="flex flex-wrap items-center justify-start sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
 
                             <div class="flex flex-wrap items-center gap-2">
-                                <!-- Mode Switcher: View | Table Edit | Section Edit -->
-                                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-                                    <button type="button" @click="editMode = 'view'"
-                                        :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
-                                        class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('View') }}</button>
-                                    @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                        <button type="button" @click="editMode = 'table'"
-                                            :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
-                                            class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('Table Edit') }}</button>
-                                        <button type="button" @click="editMode = 'section'"
-                                            :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
-                                            class="px-2.5 py-1 text-xs rounded-lg transition">{{ __('Section Edit') }}</button>
-                                    @endif
-                                </div>
-
                                 @if (auth()->check() && auth()->user()->isSuperAdmin())
                                     <form method="GET" action="/" class="inline-flex m-0">
                                         <select name="outlet_id" onchange="this.form.submit()"
