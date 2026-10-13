@@ -683,21 +683,27 @@
                     <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
                         <!-- EDIT MODE TRAY -->
+                        @if (Auth::user()->hasPermission('dash_view_mode') || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
                         <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
                             <div class="flex bg-slate-100 p-1 rounded-xl">
+                                @if (Auth::user()->hasPermission('dash_view_mode'))
                                 <button type="button" @click="editMode = 'view'"
                                     :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                     class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('View') }}</button>
+                                @endif
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                     <button type="button" @click="editMode = 'table'"
                                         :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Table Edit') }}</button>
+                                    @if (Auth::user()->hasPermission('dash_section_edit'))
                                     <button type="button" @click="editMode = 'section'"
                                         :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Section Edit') }}</button>
+                                    @endif
                                 @endif
                             </div>
                         </div>
+                        @endif
 
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5">
 
@@ -807,7 +813,7 @@
                         </div>
 
                         <!-- SECTION INVENTORY TRAY -->
-                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) && Auth::user()->hasPermission('dash_section_edit'))
                         
                         <!-- SECTION INVENTORY TRAY CONTAINER -->
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5 mb-4">
@@ -939,6 +945,7 @@
                                 @endif
 
                                 <!-- Floor Switcher Dropdown -->
+                                @if (Auth::user()->hasPermission('dash_floor_dropdown'))
                                 <form method="GET" action="/" class="inline-flex m-0">
                                     @if(request('outlet_id'))
                                         <input type="hidden" name="outlet_id" value="{{ request('outlet_id') }}">
@@ -954,8 +961,9 @@
                                         @endforeach
                                     </select>
                                 </form>
+                                @endif
 
-                                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                @if (Auth::user()->hasPermission('dash_canvas_settings'))
                                     <button type="button" @click="canvasSettingsModalOpen = true"
                                         class="inline-flex items-center justify-center w-9 h-9 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition border border-slate-200 shadow-soft-xs active:scale-95"
                                         title="{{ __('Canvas & Floor Settings') }}">

@@ -176,6 +176,22 @@
                                         <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('View Mode') }}<span x-cloak x-show="user && permissions.dash_view_mode !== defaultPerms.dash_view_mode" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_view_mode" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Floor Dropdown') }}<span x-cloak x-show="user && permissions.dash_floor_dropdown !== defaultPerms.dash_floor_dropdown" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_floor_dropdown" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Canvas & Floor Settings') }}<span x-cloak x-show="user && permissions.dash_canvas_settings !== defaultPerms.dash_canvas_settings" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_canvas_settings" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Section Edit') }}<span x-cloak x-show="user && permissions.dash_section_edit !== defaultPerms.dash_section_edit" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_section_edit" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Guest Seating') }}<span x-cloak x-show="user && permissions.dash_guest_seating !== defaultPerms.dash_guest_seating" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_guest_seating" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
@@ -184,7 +200,7 @@
                                         <input type="checkbox" x-model="permissions.dash_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">Edit Table Specs<span x-cloak x-show="user && permissions.dash_edit_table !== defaultPerms.dash_edit_table" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Edit Table Specs') }}<span x-cloak x-show="user && permissions.dash_edit_table !== defaultPerms.dash_edit_table" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from default template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_edit_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                 </div>

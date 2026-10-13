@@ -268,5 +268,8 @@
     "Settings": "Pengaturan",
     "Canvas & Floor Settings": "Pengaturan Lantai & Kanvas",
     "Apply Dimensions": "Terapkan Dimensi",
-    "Configure floors and adjust canvas grid dimensions in one screen.": "Konfigurasi lantai dan sesuaikan dimensi kisi kanvas dalam satu layar."
+    "Configure floors and adjust canvas grid dimensions in one screen.": "Konfigurasi lantai dan sesuaikan dimensi kisi kanvas dalam satu layar.",
+    "View Mode": "Mode Lihat",
+    "Floor Dropdown": "Pilihan Lantai",
+    "Edit Table Specs": "Edit Spesifikasi Meja"
 }
