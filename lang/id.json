@@ -276,5 +276,12 @@
     "Cancel Session (Void Table)": "Batalkan Sesi (Kosongkan Meja)",
     "Complete Session (Free Table)": "Selesaikan Sesi (Kosongkan Meja)",
     "Table is Occupied": "Meja Sedang Terisi",
-    "Guests are currently seated.": "Tamu saat ini sedang duduk."
+    "Guests are currently seated.": "Tamu saat ini sedang duduk.",
+    "Pax Seated": "Orang Terisi",
+    "Pax updated successfully!": "Pax berhasil diperbarui!",
+    "Adjust Seated Guests": "Atur Tamu Terisi",
+    "+1 Person": "+1 Orang",
+    "Person": "Orang",
+    "Update Pax": "Perbarui Pax",
+    "Please enter valid number of guests": "Silakan masukkan jumlah tamu yang valid"
 }

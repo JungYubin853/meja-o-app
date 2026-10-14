@@ -145,9 +145,7 @@ class TableController extends Controller
         $table = Table::findOrFail($id);
 
         $request->validate([
-            'pax' => 'required|integer|min:1|max:' . $table->capacity,
-        ], [
-            'pax.max' => 'The number of guests exceeds this table maximum capacity (' . $table->capacity . ' persons).'
+            'pax' => 'required|integer|min:1',
         ]);
 
         $paxCount = (int) $request->input('pax');
@@ -288,6 +286,51 @@ class TableController extends Controller
             'pax'          => null,
             'updated_by'   => Auth::check() ? Auth::user()->name : 'System',
         ]);
+
+        return redirect()->back();
+    }
+
+    public function updatePax(Request $request, $id)
+    {
+        $table = Table::findOrFail($id);
+
+        $request->validate([
+            'pax' => 'required|integer|min:1',
+        ]);
+
+        $newPax = (int) $request->input('pax');
+
+        $table->update([
+            'pax'        => $newPax,
+            'updated_by' => Auth::check() ? Auth::user()->name : 'System',
+        ]);
+
+        // Also update the active visitor log for this table so reporting stays accurate
+        $activeLog = VisitorLog::where('table_id', $table->id)
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first();
+
+        if (!$activeLog) {
+            $activeLog = VisitorLog::where('outlet_id', $table->outlet_id)
+                ->whereNull('ended_at')
+                ->latest('started_at')
+                ->first();
+        }
+
+        if ($activeLog) {
+            $activeLog->update([
+                'pax' => $newPax,
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'pax'     => $newPax,
+                'table'   => $table,
+            ]);
+        }
 
         return redirect()->back();
     }

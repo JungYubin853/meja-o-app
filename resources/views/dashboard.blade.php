@@ -118,6 +118,8 @@
             tableStatus: 'available',
             paxCount: '',
             paxError: '',
+            occupiedPax: 1,
+            paxUpdatedSuccess: false,
             bookmarkedTables: [],
             liveTables: {!! json_encode(
                 $tables->keyBy('id')->map(
@@ -672,11 +674,32 @@
                 this.validate{{ __('Pax') }}();
             },
             validate{{ __('Pax') }}() {
-                if (this.paxCount && parseInt(this.paxCount) > parseInt(this.tableCapacity)) {
-                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
-                } else {
-                    this.paxError = '';
+                this.paxError = '';
+            },
+
+            updateOccupiedPax(newVal) {
+                if (newVal !== undefined) {
+                    this.occupiedPax = newVal;
                 }
+                let p = parseInt(this.occupiedPax);
+                if (!p || p < 1) p = 1;
+                this.occupiedPax = p;
+
+                if (this.liveTables[this.selectedTableId]) {
+                    this.liveTables[this.selectedTableId].pax = p;
+                }
+                this.paxUpdatedSuccess = true;
+                setTimeout(() => { this.paxUpdatedSuccess = false; }, 2500);
+
+                fetch('/tables/' + this.selectedTableId + '/update-pax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: 'pax=' + encodeURIComponent(p)
+                }).then(() => this.fetchLiveStatus());
             }
         }));
     });
@@ -1087,6 +1110,8 @@
                                         tableStatus = liveTables[{{ $table->id }}]?.status ?? '{{ $table->status }}';
                                         paxCount = '';
                                         paxError = '';
+                                        occupiedPax = parseInt(liveTables[{{ $table->id }}]?.pax || {{ $table->pax ?? 1 }}) || 1;
+                                        paxUpdatedSuccess = false;
                                         activeModalTab = '{{ Auth::user()->hasPermission('dash_guest_seating') ? 'seating' : (Auth::user()->hasPermission('dash_waitlist') ? 'waitlist' : 'settings') }}';
                                         modalOpen = true;
                                      "
@@ -1195,8 +1220,8 @@
                     <template x-if="tableStatus === 'available'">
                         <form :action="'/tables/' + selectedTableId + '/seat'" method="POST"
                             @submit.prevent="
-                            if (parseInt(paxCount) > parseInt(tableCapacity)) {
-                                paxError = 'Warning: ' + paxCount + ' {{ __('Pax') }} exceeds capacity (' + tableCapacity + ' {{ __('Pax') }})';
+                            if (!paxCount || parseInt(paxCount) < 1) {
+                                paxError = '{{ __('Please enter valid number of guests') }}';
                                 return;
                             }
                             // Instantly update local state so there is zero lag
@@ -1283,10 +1308,57 @@
                     </template>
 
                     <template x-if="tableStatus === 'occupied'">
-                        <div class="w-full max-w-[270px] mx-auto space-y-3 py-3">
-                            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
-                                <p class="text-xs font-bold text-rose-900">{{ __('Table is Occupied') }}</p>
-                                <p class="text-[11px] text-rose-600 mt-0.5">{{ __('Guests are currently seated.') }}</p>
+                        <div class="w-full max-w-[270px] mx-auto space-y-3 py-1">
+                            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                    <p class="text-xs font-bold text-rose-900">{{ __('Table is Occupied') }}</p>
+                                </div>
+                                <p class="text-xs font-extrabold text-rose-800 mt-1">
+                                    <span x-text="occupiedPax"></span> {{ __('Pax Seated') }}
+                                </p>
+                            </div>
+
+                            <div x-show="paxUpdatedSuccess" x-transition.duration.200ms
+                                class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>{{ __('Pax updated successfully!') }}</span>
+                            </div>
+
+                            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-2.5 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Adjust Seated Guests') }}</span>
+                                    <span class="text-[11px] font-bold text-slate-700 tabular-nums"><span x-text="occupiedPax"></span> {{ __('Pax') }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-1 shadow-soft-xs">
+                                    <button type="button" @click="if(occupiedPax > 1) occupiedPax--"
+                                        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">-</button>
+
+                                    <div class="text-center flex-1 px-2">
+                                        <input type="number" min="1" x-model.number="occupiedPax"
+                                            class="w-full text-lg font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center tabular-nums leading-tight">
+                                    </div>
+
+                                    <button type="button" @click="occupiedPax++"
+                                        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">+</button>
+                                </div>
+
+                                <div class="flex gap-2">
+                                    <button type="button" @click="updateOccupiedPax(occupiedPax + 1)"
+                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-2 px-1.5 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        <span>+1 {{ __('Person') }}</span>
+                                    </button>
+                                    <button type="button" @click="updateOccupiedPax()"
+                                        class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold py-2 px-1.5 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center">
+                                        {{ __('Update Pax') }}
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Cancellation Button (Switch Table / Cancelled without eating) -->
