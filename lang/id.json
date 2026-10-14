@@ -271,5 +271,10 @@
     "Configure floors and adjust canvas grid dimensions in one screen.": "Konfigurasi lantai dan sesuaikan dimensi kisi kanvas dalam satu layar.",
     "View Mode": "Mode Lihat",
     "Floor Dropdown": "Pilihan Lantai",
-    "Edit Table Specs": "Edit Spesifikasi Meja"
+    "Edit Table Specs": "Edit Spesifikasi Meja",
+    "Confirm": "Konfirmasi",
+    "Cancel Session (Void Table)": "Batalkan Sesi (Kosongkan Meja)",
+    "Complete Session (Free Table)": "Selesaikan Sesi (Kosongkan Meja)",
+    "Table is Occupied": "Meja Sedang Terisi",
+    "Guests are currently seated.": "Tamu saat ini sedang duduk."
 }

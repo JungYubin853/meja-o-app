@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/tables/status', [TableController::class, 'getLiveStatus']);
     Route::post('/tables/{id}/seat', [TableController::class, 'seatCustomer']);
     Route::post('/tables/{id}/finish', [TableController::class, 'finishMeal']);
+    Route::post('/tables/{id}/cancel', [TableController::class, 'cancelSession']);
     Route::post('/tables/{id}/coordinates', [TableController::class, 'updateTableCoordinates']); // Added missing coordinate update route
     Route::post('/tables/capacities', [TableController::class, 'updateCapacities']);
     Route::post('/tables/generate', [TableController::class, 'generateTables']);

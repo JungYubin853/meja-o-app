@@ -161,6 +161,7 @@ class TableController extends Controller
 
         VisitorLog::create([
             'outlet_id'     => $table->outlet_id,
+            'table_id'      => $table->id,
             'customer_name' => 'Walk-in Guest',
             'phone'         => '-',
             'pax'           => $paxCount,
@@ -204,9 +205,17 @@ class TableController extends Controller
     {
         $table = Table::findOrFail($id);
 
-        $activeLog = VisitorLog::whereNull('ended_at')
+        $activeLog = VisitorLog::where('table_id', $table->id)
+            ->whereNull('ended_at')
             ->latest('started_at')
             ->first();
+
+        if (!$activeLog) {
+            $activeLog = VisitorLog::where('outlet_id', $table->outlet_id)
+                ->whereNull('ended_at')
+                ->latest('started_at')
+                ->first();
+        }
 
         if ($activeLog) {
             $end   = now();
@@ -230,6 +239,48 @@ class TableController extends Controller
         }
 
         // Updated to immediately reset back to available (Green)
+        $table->update([
+            'status'       => 'available',
+            'seated_time'  => null,
+            'cleared_time' => null,
+            'pax'          => null,
+            'updated_by'   => Auth::check() ? Auth::user()->name : 'System',
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function cancelSession($id)
+    {
+        $table = Table::findOrFail($id);
+
+        // Find the active/unended visitor log for this table or latest in this outlet
+        $activeLog = VisitorLog::where('table_id', $table->id)
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first();
+
+        if (!$activeLog) {
+            $activeLog = VisitorLog::where('outlet_id', $table->outlet_id)
+                ->whereNull('ended_at')
+                ->latest('started_at')
+                ->first();
+        }
+
+        // If it was associated with a waitlist customer, revert their status back to 'waiting'
+        if ($activeLog && $activeLog->customer_name && $activeLog->customer_name !== 'Walk-in Guest') {
+            Waitlist::where('customer_name', $activeLog->customer_name)
+                ->where('status', 'seated')
+                ->latest()
+                ->first()?->update(['status' => 'waiting']);
+        }
+
+        // Erase/delete the visitor log so it does not skew analytics or visitor count
+        if ($activeLog) {
+            $activeLog->delete();
+        }
+
+        // Reset the table status back to green available
         $table->update([
             'status'       => 'available',
             'seated_time'  => null,
@@ -271,6 +322,8 @@ class TableController extends Controller
         $waitlist->update(['status' => 'seated']);
 
         VisitorLog::create([
+            'outlet_id'     => $table->outlet_id,
+            'table_id'      => $table->id,
             'customer_name' => $waitlist->customer_name,
             'phone'         => $waitlist->phone,
             'pax'           => $paxCount,

@@ -1288,18 +1288,47 @@
 
                                 <button type="submit"
                                     class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-sm active:scale-98">
-                                    {{ __('Seat Guests & Start Session') }}
+                                    {{ __('Confirm') }}
                                 </button>
                             </div>
                         </form>
                     </template>
 
                     <template x-if="tableStatus === 'occupied'">
-                        <div class="w-full max-w-[270px] mx-auto space-y-4 py-3">
+                        <div class="w-full max-w-[270px] mx-auto space-y-3 py-3">
                             <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
-                                <p class="text-xs font-bold text-rose-900">Table is Occupied</p>
-                                <p class="text-[11px] text-rose-600 mt-0.5">Guests are currently seated.</p>
+                                <p class="text-xs font-bold text-rose-900">{{ __('Table is Occupied') }}</p>
+                                <p class="text-[11px] text-rose-600 mt-0.5">{{ __('Guests are currently seated.') }}</p>
                             </div>
+
+                            <!-- Cancellation Button (Switch Table / Cancelled without eating) -->
+                            <form :action="'/tables/' + selectedTableId + '/cancel'" method="POST"
+                                @submit.prevent="
+                                // Instantly switch local state back to green available
+                                liveTables[selectedTableId].status = 'available';
+                                liveTables[selectedTableId].pax = null;
+                                tableStatus = 'available';
+                                modalOpen = false;
+
+                                // Submit cancellation in background
+                                fetch('/tables/' + selectedTableId + '/cancel', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    }
+                                }).then(() => fetchLiveStatus());
+                            ">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 text-xs font-bold py-3 px-4 rounded-xl transition border border-rose-200 shadow-soft-xs active:scale-98 flex items-center justify-center gap-1.5">
+                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>{{ __('Cancel Session (Void Table)') }}</span>
+                                </button>
+                            </form>
+
                             <form :action="'/tables/' + selectedTableId + '/finish'" method="POST"
                                 @submit.prevent="
                                 // Instantly switch local state
@@ -1320,7 +1349,7 @@
                                 @csrf
                                 <button type="submit"
                                     class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-sm active:scale-98">
-                                    Complete Session (Free Table)
+                                    {{ __('Complete Session (Free Table)') }}
                                 </button>
                             </form>
                         </div>
