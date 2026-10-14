@@ -145,7 +145,9 @@ class TableController extends Controller
         $table = Table::findOrFail($id);
 
         $request->validate([
-            'pax' => 'required|integer|min:1',
+            'pax' => 'required|integer|min:1|max:' . $table->capacity,
+        ], [
+            'pax.max' => 'The number of guests exceeds this table maximum capacity (' . $table->capacity . ' persons).'
         ]);
 
         $paxCount = (int) $request->input('pax');

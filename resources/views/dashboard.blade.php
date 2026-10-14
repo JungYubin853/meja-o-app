@@ -655,6 +655,10 @@
                 let val = (this.paxCount || '').toString() + num;
                 let parsed = parseInt(val);
                 if (!isNaN(parsed)) {
+                    if (this.tableCapacity && parsed > parseInt(this.tableCapacity)) {
+                        this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
+                        return;
+                    }
                     this.paxCount = parsed;
                     this.validate{{ __('Pax') }}();
                 }
@@ -670,11 +674,19 @@
             },
             increment{{ __('Pax') }}() {
                 let current = parseInt(this.paxCount) || 0;
+                if (this.tableCapacity && current + 1 > parseInt(this.tableCapacity)) {
+                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
+                    return;
+                }
                 this.paxCount = current + 1;
                 this.validate{{ __('Pax') }}();
             },
             validate{{ __('Pax') }}() {
-                this.paxError = '';
+                if (this.paxCount && parseInt(this.paxCount) > parseInt(this.tableCapacity)) {
+                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
+                } else {
+                    this.paxError = '';
+                }
             },
 
             updateOccupiedPax(newVal) {
@@ -1224,6 +1236,10 @@
                                 paxError = '{{ __('Please enter valid number of guests') }}';
                                 return;
                             }
+                            if (parseInt(paxCount) > parseInt(tableCapacity)) {
+                                paxError = 'Warning: ' + paxCount + ' {{ __('Pax') }} exceeds capacity (' + tableCapacity + ' {{ __('Pax') }})';
+                                return;
+                            }
                             // Instantly update local state so there is zero lag
                             liveTables[selectedTableId].status = 'occupied';
                             liveTables[selectedTableId].pax = paxCount;
@@ -1259,7 +1275,8 @@
                                     <div class="text-center flex-1 px-2">
                                         <span
                                             class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">{{ __('Total Guests') }}</span>
-                                        <input type="number" name="pax" min="1"
+                                        <input type="number" name="pax" min="1" :max="tableCapacity"
+                                            @input="if (parseInt(paxCount) > parseInt(tableCapacity)) { paxCount = parseInt(tableCapacity); } validate{{ __('Pax') }}();"
                                             x-model.number="paxCount" placeholder="0" required
                                             class="w-full text-2xl font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center placeholder-slate-300 tabular-nums leading-tight">
                                     </div>
