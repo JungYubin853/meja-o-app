@@ -118,6 +118,7 @@
             tableStatus: 'available',
             paxCount: '',
             paxError: '',
+            initialPax: 0,
             occupiedPax: 1,
             additionalPax: 0,
             paxUpdatedSuccess: false,
@@ -128,6 +129,8 @@
                     fn($t) => [
                         'status' => $t->status,
                         'pax' => $t->pax,
+                        'initial_pax' => $t->initial_pax ?? $t->pax,
+                        'additional_pax' => $t->additional_pax ?? 0,
                         'table_number' => $t->table_number ?? '',
                         'capacity' => $t->capacity ?? 0,
                     ],
@@ -247,6 +250,8 @@
                             if (this.liveTables[item.id]) {
                                 this.liveTables[item.id].status = item.status;
                                 this.liveTables[item.id].pax = item.pax;
+                                if (item.initial_pax !== undefined) this.liveTables[item.id].initial_pax = item.initial_pax;
+                                if (item.additional_pax !== undefined) this.liveTables[item.id].additional_pax = item.additional_pax;
                                 if (item.table_number !== undefined) {
                                     this.liveTables[item.id].table_number = item
                                         .table_number;
@@ -255,6 +260,8 @@
                                 this.liveTables[item.id] = {
                                     status: item.status,
                                     pax: item.pax,
+                                    initial_pax: item.initial_pax ?? item.pax,
+                                    additional_pax: item.additional_pax ?? 0,
                                     table_number: item.table_number || '',
                                     capacity: item.capacity || 0
                                 };
@@ -679,20 +686,26 @@
                 this.paxError = '';
             },
 
-            addAdditionalPax(amount) {
-                let add = (amount !== undefined) ? parseInt(amount) : parseInt(this.additionalPax);
-                if (isNaN(add) || add <= 0) return;
+            saveAdditionalPax() {
+                let add = parseInt(this.additionalPax);
+                if (isNaN(add) || add < 0) add = 0;
+                this.additionalPax = add;
 
-                let current = parseInt(this.liveTables[this.selectedTableId]?.pax || this.occupiedPax || 0);
-                let newTotal = current + add;
+                let initial = parseInt(this.liveTables[this.selectedTableId]?.initial_pax || this.initialPax || 1);
+                let newTotal = initial + add;
 
                 this.occupiedPax = newTotal;
                 if (this.liveTables[this.selectedTableId]) {
                     this.liveTables[this.selectedTableId].pax = newTotal;
+                    this.liveTables[this.selectedTableId].initial_pax = initial;
+                    this.liveTables[this.selectedTableId].additional_pax = add;
                 }
 
-                this.additionalPax = 0;
-                this.paxSuccessMsg = `+${add} {{ __('Pax added! Total:') }} ${newTotal} {{ __('Pax') }}`;
+                if (add > 0) {
+                    this.paxSuccessMsg = `+${add} {{ __('Pax added! Total:') }} ${newTotal} {{ __('Pax') }}`;
+                } else {
+                    this.paxSuccessMsg = `{{ __('Total:') }} ${newTotal} {{ __('Pax') }}`;
+                }
                 this.paxUpdatedSuccess = true;
                 setTimeout(() => { this.paxUpdatedSuccess = false; }, 3000);
 
@@ -703,7 +716,7 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     },
-                    body: 'pax=' + encodeURIComponent(newTotal)
+                    body: 'additional_pax=' + encodeURIComponent(add)
                 }).then(() => this.fetchLiveStatus());
             }
         }));
@@ -1116,7 +1129,8 @@
                                         paxCount = '';
                                         paxError = '';
                                         occupiedPax = parseInt(liveTables[{{ $table->id }}]?.pax || {{ $table->pax ?? 1 }}) || 1;
-                                        additionalPax = 0;
+                                        initialPax = parseInt(liveTables[{{ $table->id }}]?.initial_pax || {{ $table->initial_pax ?? ($table->pax ?? 1) }}) || 1;
+                                        additionalPax = parseInt(liveTables[{{ $table->id }}]?.additional_pax || {{ $table->additional_pax ?? 0 }}) || 0;
                                         paxUpdatedSuccess = false;
                                         paxSuccessMsg = '';
                                         activeModalTab = '{{ Auth::user()->hasPermission('dash_guest_seating') ? 'seating' : (Auth::user()->hasPermission('dash_waitlist') ? 'waitlist' : 'settings') }}';
@@ -1327,8 +1341,13 @@
                                     <p class="text-xs font-bold text-rose-900">{{ __('Table is Occupied') }}</p>
                                 </div>
                                 <p class="text-xs font-extrabold text-rose-800 mt-1">
-                                    <span x-text="occupiedPax"></span> {{ __('Pax Seated') }}
+                                    <span x-text="initialPax + additionalPax"></span> {{ __('Pax Seated') }}
                                 </p>
+                                <template x-if="additionalPax > 0">
+                                    <p class="text-[10px] text-rose-600 font-semibold mt-0.5">
+                                        (<span x-text="initialPax"></span> + <span x-text="additionalPax"></span> {{ __('Additional') }})
+                                    </p>
+                                </template>
                             </div>
 
                             <div x-show="paxUpdatedSuccess" x-transition.duration.200ms
@@ -1342,41 +1361,33 @@
                             <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-2.5 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Add More Person') }}</span>
-                                    <template x-if="additionalPax > 0">
-                                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
-                                            <span x-text="occupiedPax"></span> + <span x-text="additionalPax"></span> = <strong x-text="occupiedPax + additionalPax"></strong> {{ __('Pax') }}
-                                        </span>
-                                    </template>
+                                    <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
+                                        <span x-text="initialPax"></span> + <span x-text="additionalPax"></span> = <strong x-text="initialPax + additionalPax"></strong> {{ __('Pax') }}
+                                    </span>
                                 </div>
 
                                 <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-1 shadow-soft-xs">
                                     <button type="button" @click="if(additionalPax > 0) additionalPax--"
-                                        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">-</button>
+                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">-</button>
 
                                     <div class="text-center flex-1 px-2">
                                         <input type="number" min="0" x-model.number="additionalPax"
-                                            class="w-full text-lg font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center tabular-nums leading-tight">
+                                            class="w-full text-xl font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center tabular-nums leading-tight">
                                     </div>
 
                                     <button type="button" @click="additionalPax++"
-                                        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">+</button>
+                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">+</button>
                                 </div>
 
-                                <div class="flex gap-2">
-                                    <button type="button" @click="addAdditionalPax(1)"
-                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-2 px-1.5 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center gap-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        <span>+1 {{ __('Person') }}</span>
-                                    </button>
-                                    <button type="button" @click="addAdditionalPax()"
-                                        :disabled="!additionalPax || additionalPax <= 0"
-                                        :class="additionalPax > 0 ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs active:scale-95 cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
-                                        class="flex-1 text-[11px] font-bold py-2 px-1.5 rounded-xl transition flex items-center justify-center">
-                                        <span x-text="additionalPax > 0 ? '+{{ __('Add') }} ' + additionalPax + ' {{ __('Pax') }}' : '{{ __('Add More') }}'"></span>
-                                    </button>
-                                </div>
+                                <button type="button" @click="saveAdditionalPax()"
+                                    class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center">
+                                    <template x-if="additionalPax > 0">
+                                        <span>+{{ __('Add') }} <strong x-text="additionalPax"></strong> {{ __('Pax') }} (<span x-text="initialPax + additionalPax"></span> {{ __('Pax Total') }})</span>
+                                    </template>
+                                    <template x-if="!additionalPax || additionalPax <= 0">
+                                        <span>{{ __('Update Pax') }} (<span x-text="initialPax"></span> {{ __('Pax Total') }})</span>
+                                    </template>
+                                </button>
                             </div>
 
                             <!-- Cancellation Button (Switch Table / Cancelled without eating) -->

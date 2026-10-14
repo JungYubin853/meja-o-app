@@ -137,7 +137,7 @@ class TableController extends Controller
         if ($request->has('floor_id') && $request->floor_id !== '') {
             $query->where('floor_id', $request->floor_id);
         }
-        return response()->json($query->get(['id', 'status', 'pax', 'table_number', 'capacity']));
+        return response()->json($query->get(['id', 'status', 'pax', 'initial_pax', 'additional_pax', 'table_number', 'capacity']));
     }
 
     public function seatCustomer(Request $request, $id)
@@ -153,10 +153,12 @@ class TableController extends Controller
         $paxCount = (int) $request->input('pax');
 
         $table->update([
-            'status'      => 'occupied',
-            'pax'         => $paxCount,
-            'seated_time' => now(),
-            'updated_by'  => Auth::check() ? Auth::user()->name : 'System',
+            'status'         => 'occupied',
+            'pax'            => $paxCount,
+            'initial_pax'    => $paxCount,
+            'additional_pax' => 0,
+            'seated_time'    => now(),
+            'updated_by'     => Auth::check() ? Auth::user()->name : 'System',
         ]);
 
         VisitorLog::create([
@@ -240,11 +242,13 @@ class TableController extends Controller
 
         // Updated to immediately reset back to available (Green)
         $table->update([
-            'status'       => 'available',
-            'seated_time'  => null,
-            'cleared_time' => null,
-            'pax'          => null,
-            'updated_by'   => Auth::check() ? Auth::user()->name : 'System',
+            'status'         => 'available',
+            'seated_time'    => null,
+            'cleared_time'   => null,
+            'pax'            => null,
+            'initial_pax'    => null,
+            'additional_pax' => 0,
+            'updated_by'     => Auth::check() ? Auth::user()->name : 'System',
         ]);
 
         return redirect()->back();
@@ -282,11 +286,13 @@ class TableController extends Controller
 
         // Reset the table status back to green available
         $table->update([
-            'status'       => 'available',
-            'seated_time'  => null,
-            'cleared_time' => null,
-            'pax'          => null,
-            'updated_by'   => Auth::check() ? Auth::user()->name : 'System',
+            'status'         => 'available',
+            'seated_time'    => null,
+            'cleared_time'   => null,
+            'pax'            => null,
+            'initial_pax'    => null,
+            'additional_pax' => 0,
+            'updated_by'     => Auth::check() ? Auth::user()->name : 'System',
         ]);
 
         return redirect()->back();
@@ -297,14 +303,25 @@ class TableController extends Controller
         $table = Table::findOrFail($id);
 
         $request->validate([
-            'pax' => 'required|integer|min:1',
+            'additional_pax' => 'nullable|integer|min:0',
+            'pax'            => 'nullable|integer|min:1',
         ]);
 
-        $newPax = (int) $request->input('pax');
+        $initialPax = (int) ($table->initial_pax ?: $table->pax ?: 1);
+
+        if ($request->has('additional_pax')) {
+            $additionalPax = max(0, (int) $request->input('additional_pax'));
+            $newPax = $initialPax + $additionalPax;
+        } else {
+            $newPax = max(1, (int) $request->input('pax'));
+            $additionalPax = max(0, $newPax - $initialPax);
+        }
 
         $table->update([
-            'pax'        => $newPax,
-            'updated_by' => Auth::check() ? Auth::user()->name : 'System',
+            'pax'            => $newPax,
+            'initial_pax'    => $initialPax,
+            'additional_pax' => $additionalPax,
+            'updated_by'     => Auth::check() ? Auth::user()->name : 'System',
         ]);
 
         // Also update the active visitor log for this table so reporting stays accurate
@@ -328,9 +345,11 @@ class TableController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
-                'pax'     => $newPax,
-                'table'   => $table,
+                'success'        => true,
+                'pax'            => $newPax,
+                'initial_pax'    => $initialPax,
+                'additional_pax' => $additionalPax,
+                'table'          => $table,
             ]);
         }
 

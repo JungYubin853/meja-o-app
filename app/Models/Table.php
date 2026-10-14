@@ -12,6 +12,8 @@ class Table extends Model
         'table_number',
         'status',
         'capacity',
+        'initial_pax',
+        'additional_pax',
         'pax',
         'seated_time',
         'cleared_time',
