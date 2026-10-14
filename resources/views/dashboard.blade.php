@@ -119,7 +119,9 @@
             paxCount: '',
             paxError: '',
             occupiedPax: 1,
+            additionalPax: 0,
             paxUpdatedSuccess: false,
+            paxSuccessMsg: '',
             bookmarkedTables: [],
             liveTables: {!! json_encode(
                 $tables->keyBy('id')->map(
@@ -655,12 +657,8 @@
                 let val = (this.paxCount || '').toString() + num;
                 let parsed = parseInt(val);
                 if (!isNaN(parsed)) {
-                    if (this.tableCapacity && parsed > parseInt(this.tableCapacity)) {
-                        this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
-                        return;
-                    }
                     this.paxCount = parsed;
-                    this.validate{{ __('Pax') }}();
+                    this.paxError = '';
                 }
             },
             clear{{ __('Pax') }}() {
@@ -670,38 +668,33 @@
             decrement{{ __('Pax') }}() {
                 let current = parseInt(this.paxCount) || 0;
                 this.paxCount = Math.max(1, current - 1);
-                this.validate{{ __('Pax') }}();
+                this.paxError = '';
             },
             increment{{ __('Pax') }}() {
                 let current = parseInt(this.paxCount) || 0;
-                if (this.tableCapacity && current + 1 > parseInt(this.tableCapacity)) {
-                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
-                    return;
-                }
                 this.paxCount = current + 1;
-                this.validate{{ __('Pax') }}();
+                this.paxError = '';
             },
             validate{{ __('Pax') }}() {
-                if (this.paxCount && parseInt(this.paxCount) > parseInt(this.tableCapacity)) {
-                    this.paxError = `Exceeds max capacity (${this.tableCapacity} {{ __('Pax') }})`;
-                } else {
-                    this.paxError = '';
-                }
+                this.paxError = '';
             },
 
-            updateOccupiedPax(newVal) {
-                if (newVal !== undefined) {
-                    this.occupiedPax = newVal;
-                }
-                let p = parseInt(this.occupiedPax);
-                if (!p || p < 1) p = 1;
-                this.occupiedPax = p;
+            addAdditionalPax(amount) {
+                let add = (amount !== undefined) ? parseInt(amount) : parseInt(this.additionalPax);
+                if (isNaN(add) || add <= 0) return;
 
+                let current = parseInt(this.liveTables[this.selectedTableId]?.pax || this.occupiedPax || 0);
+                let newTotal = current + add;
+
+                this.occupiedPax = newTotal;
                 if (this.liveTables[this.selectedTableId]) {
-                    this.liveTables[this.selectedTableId].pax = p;
+                    this.liveTables[this.selectedTableId].pax = newTotal;
                 }
+
+                this.additionalPax = 0;
+                this.paxSuccessMsg = `+${add} {{ __('Pax added! Total:') }} ${newTotal} {{ __('Pax') }}`;
                 this.paxUpdatedSuccess = true;
-                setTimeout(() => { this.paxUpdatedSuccess = false; }, 2500);
+                setTimeout(() => { this.paxUpdatedSuccess = false; }, 3000);
 
                 fetch('/tables/' + this.selectedTableId + '/update-pax', {
                     method: 'POST',
@@ -710,7 +703,7 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     },
-                    body: 'pax=' + encodeURIComponent(p)
+                    body: 'pax=' + encodeURIComponent(newTotal)
                 }).then(() => this.fetchLiveStatus());
             }
         }));
@@ -1123,7 +1116,9 @@
                                         paxCount = '';
                                         paxError = '';
                                         occupiedPax = parseInt(liveTables[{{ $table->id }}]?.pax || {{ $table->pax ?? 1 }}) || 1;
+                                        additionalPax = 0;
                                         paxUpdatedSuccess = false;
+                                        paxSuccessMsg = '';
                                         activeModalTab = '{{ Auth::user()->hasPermission('dash_guest_seating') ? 'seating' : (Auth::user()->hasPermission('dash_waitlist') ? 'waitlist' : 'settings') }}';
                                         modalOpen = true;
                                      "
@@ -1237,7 +1232,7 @@
                                 return;
                             }
                             if (parseInt(paxCount) > parseInt(tableCapacity)) {
-                                paxError = 'Warning: ' + paxCount + ' {{ __('Pax') }} exceeds capacity (' + tableCapacity + ' {{ __('Pax') }})';
+                                paxError = '{{ __('Exceeds max capacity') }} (' + tableCapacity + ' {{ __('Pax') }})';
                                 return;
                             }
                             // Instantly update local state so there is zero lag
@@ -1275,8 +1270,8 @@
                                     <div class="text-center flex-1 px-2">
                                         <span
                                             class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">{{ __('Total Guests') }}</span>
-                                        <input type="number" name="pax" min="1" :max="tableCapacity"
-                                            @input="if (parseInt(paxCount) > parseInt(tableCapacity)) { paxCount = parseInt(tableCapacity); } validate{{ __('Pax') }}();"
+                                        <input type="number" name="pax" min="1"
+                                            @input="paxError = ''"
                                             x-model.number="paxCount" placeholder="0" required
                                             class="w-full text-2xl font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center placeholder-slate-300 tabular-nums leading-tight">
                                     </div>
@@ -1341,39 +1336,45 @@
                                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                                 </svg>
-                                <span>{{ __('Pax updated successfully!') }}</span>
+                                <span x-text="paxSuccessMsg || '{{ __('Pax updated successfully!') }}'"></span>
                             </div>
 
                             <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-2.5 space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Adjust Seated Guests') }}</span>
-                                    <span class="text-[11px] font-bold text-slate-700 tabular-nums"><span x-text="occupiedPax"></span> {{ __('Pax') }}</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Add More Person') }}</span>
+                                    <template x-if="additionalPax > 0">
+                                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
+                                            <span x-text="occupiedPax"></span> + <span x-text="additionalPax"></span> = <strong x-text="occupiedPax + additionalPax"></strong> {{ __('Pax') }}
+                                        </span>
+                                    </template>
                                 </div>
 
                                 <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-1 shadow-soft-xs">
-                                    <button type="button" @click="if(occupiedPax > 1) occupiedPax--"
+                                    <button type="button" @click="if(additionalPax > 0) additionalPax--"
                                         class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">-</button>
 
                                     <div class="text-center flex-1 px-2">
-                                        <input type="number" min="1" x-model.number="occupiedPax"
+                                        <input type="number" min="0" x-model.number="additionalPax"
                                             class="w-full text-lg font-black border-none focus:ring-0 p-0 text-slate-900 bg-transparent text-center tabular-nums leading-tight">
                                     </div>
 
-                                    <button type="button" @click="occupiedPax++"
+                                    <button type="button" @click="additionalPax++"
                                         class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">+</button>
                                 </div>
 
                                 <div class="flex gap-2">
-                                    <button type="button" @click="updateOccupiedPax(occupiedPax + 1)"
+                                    <button type="button" @click="addAdditionalPax(1)"
                                         class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-2 px-1.5 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center gap-1">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                         </svg>
                                         <span>+1 {{ __('Person') }}</span>
                                     </button>
-                                    <button type="button" @click="updateOccupiedPax()"
-                                        class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold py-2 px-1.5 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center">
-                                        {{ __('Update Pax') }}
+                                    <button type="button" @click="addAdditionalPax()"
+                                        :disabled="!additionalPax || additionalPax <= 0"
+                                        :class="additionalPax > 0 ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs active:scale-95 cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
+                                        class="flex-1 text-[11px] font-bold py-2 px-1.5 rounded-xl transition flex items-center justify-center">
+                                        <span x-text="additionalPax > 0 ? '+{{ __('Add') }} ' + additionalPax + ' {{ __('Pax') }}' : '{{ __('Add More') }}'"></span>
                                     </button>
                                 </div>
                             </div>

@@ -283,5 +283,10 @@
     "+1 Person": "+1 Orang",
     "Person": "Orang",
     "Update Pax": "Perbarui Pax",
-    "Please enter valid number of guests": "Silakan masukkan jumlah tamu yang valid"
+    "Please enter valid number of guests": "Silakan masukkan jumlah tamu yang valid",
+    "Exceeds max capacity": "Melebihi kapasitas maksimal",
+    "Add More Person": "Tambah Orang Lagi",
+    "Add More": "Tambah Orang",
+    "Add": "Tambah",
+    "Pax added! Total:": "Orang ditambahkan! Total:"
 }
