@@ -18,7 +18,9 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('floorCanvas', () => ({
             zoom: parseFloat(localStorage.getItem('meja_floor_zoom')) || 1,
-            editMode: 'view',
+            editMode: ({{ (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())) ? 'true' : 'false' }})
+                ? (localStorage.getItem('meja_floor_edit_mode') || 'view')
+                : 'view',
             gridSections: [],
             isResizingSection: false,
             justResizedSection: false,
@@ -201,6 +203,16 @@
                 this.$watch('zoom', (val) => {
                     localStorage.setItem('meja_floor_zoom', val);
                 });
+
+                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                let savedMode = localStorage.getItem('meja_floor_edit_mode');
+                if (savedMode && ['view', 'table', 'section'].includes(savedMode)) {
+                    this.editMode = savedMode;
+                }
+                this.$watch('editMode', (val) => {
+                    localStorage.setItem('meja_floor_edit_mode', val);
+                });
+                @endif
 
                 // Bookmarks cleanup
                 let stored = JSON.parse(localStorage.getItem('meja_bookmarked_tables') || '[]').map(
@@ -687,16 +699,16 @@
                         <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
                             <div class="flex bg-slate-100 p-1 rounded-xl">
                                 @if (Auth::user()->hasPermission('dash_view_mode'))
-                                <button type="button" @click="editMode = 'view'"
+                                <button type="button" @click="editMode = 'view'; localStorage.setItem('meja_floor_edit_mode', 'view')"
                                     :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                     class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('View') }}</button>
                                 @endif
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                    <button type="button" @click="editMode = 'table'"
+                                    <button type="button" @click="editMode = 'table'; localStorage.setItem('meja_floor_edit_mode', 'table')"
                                         :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Table Edit') }}</button>
                                     @if (Auth::user()->hasPermission('dash_section_edit'))
-                                    <button type="button" @click="editMode = 'section'"
+                                    <button type="button" @click="editMode = 'section'; localStorage.setItem('meja_floor_edit_mode', 'section')"
                                         :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Section Edit') }}</button>
                                     @endif
@@ -716,21 +728,8 @@
                                 <span>{{{ __('Create New Table') }}}</span>
                             </button>
 
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                                <div>
-                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
-                                    <p class="text-[11px] text-slate-500">
-                                        @if(isset($activeFloor))
-                                            {{ __('Drag to') }} <span class="font-bold text-slate-800">{{ $activeFloor->display_name }}</span>
-                                        @else
-                                            {{ __('Drag to floor or click card to edit/delete') }}
-                                        @endif
-                                    </p>
-                                </div>
-                                <span
-                                    class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">
-                                    {{ $tables->where('grid_x', 0)->count() }}
-                                </span>
+                            <div class="pt-1 border-t border-slate-100">
+                                <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
                             </div>
 
                             <!-- {{ __('Unplaced Inventory') }} Tray -->
@@ -826,19 +825,8 @@
                                 <span>{{ __('Create New Section') }}</span>
                             </button>
 
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                                <div>
-                                    <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
-                                    <p class="text-[11px] text-slate-500">
-                                        @if(isset($activeFloor))
-                                            {{ __('Drag to') }} <span class="font-bold text-slate-800">{{ $activeFloor->display_name }}</span>
-                                        @else
-                                            {{ __('Drag to floor or click card to edit/delete') }}
-                                        @endif
-                                    </p>
-                                </div>
-                                <span class="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200" x-text="sectionTemplates.length">
-                                </span>
+                            <div class="pt-1 border-t border-slate-100">
+                                <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
                             </div>
 
                             <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto pr-1 border border-dashed border-slate-200 p-2.5 rounded-xl bg-slate-50/70"
@@ -1676,7 +1664,7 @@
                             <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="editSecTemplateIdx >= 0 ? 'Edit Section Template' : (editPlacedSecIdx >= 0 ? 'Edit Placed Section' : '{{ __('Create New Section') }}')"></h3>
                             <p class="text-[11px] text-slate-500">Configure layout section properties.</p>
                         </div>
-                        <button type="button" @click="sectionModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">?</button>
+                        <button type="button" @click="sectionModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">✕</button>
                     </div>
                     
                     <div class="space-y-3.5 pt-1">
