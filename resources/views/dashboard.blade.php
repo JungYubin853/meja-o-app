@@ -1334,17 +1334,18 @@
                     </template>
 
                     <template x-if="tableStatus === 'occupied'">
-                        <div class="w-full max-w-[270px] mx-auto space-y-3 py-1">
-                            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                    <p class="text-xs font-bold text-rose-900">{{ __('Table is Occupied') }}</p>
+                        <div class="w-full max-w-[280px] mx-auto space-y-3 py-1">
+                            <div class="bg-rose-50/80 border border-rose-200/90 rounded-2xl p-3 text-center">
+                                <div class="inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100/80 text-rose-700 text-[11px] font-bold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                                    <span>{{ __('Table is Occupied') }}</span>
                                 </div>
-                                <p class="text-xs font-extrabold text-rose-800 mt-1">
-                                    <span x-text="initialPax + additionalPax"></span> {{ __('Pax Seated') }}
-                                </p>
+                                <div class="mt-1 flex items-baseline justify-center gap-1.5">
+                                    <span class="text-2xl font-black text-rose-950 tabular-nums" x-text="initialPax + additionalPax"></span>
+                                    <span class="text-xs font-bold text-rose-700">{{ __('Pax Seated') }}</span>
+                                </div>
                                 <template x-if="additionalPax > 0">
-                                    <p class="text-[10px] text-rose-600 font-semibold mt-0.5">
+                                    <p class="text-[10px] text-rose-600 font-medium mt-0.5">
                                         (<span x-text="initialPax"></span> + <span x-text="additionalPax"></span> {{ __('Additional') }})
                                     </p>
                                 </template>
@@ -1358,7 +1359,7 @@
                                 <span x-text="paxSuccessMsg || '{{ __('Pax updated successfully!') }}'"></span>
                             </div>
 
-                            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-2.5 space-y-2">
+                            <div class="bg-slate-50 border-2 border-slate-200/80 rounded-2xl p-2.5 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Add More Person') }}</span>
                                     <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
@@ -1368,7 +1369,7 @@
 
                                 <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-1 shadow-soft-xs">
                                     <button type="button" @click="if(additionalPax > 0) additionalPax--"
-                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">-</button>
+                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0 cursor-pointer">-</button>
 
                                     <div class="text-center flex-1 px-2">
                                         <input type="number" min="0" x-model.number="additionalPax"
@@ -1376,11 +1377,11 @@
                                     </div>
 
                                     <button type="button" @click="additionalPax++"
-                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0">+</button>
+                                        class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base flex items-center justify-center active:scale-90 transition shrink-0 cursor-pointer">+</button>
                                 </div>
 
                                 <button type="button" @click="saveAdditionalPax()"
-                                    class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center">
+                                    class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center cursor-pointer">
                                     <template x-if="additionalPax > 0">
                                         <span>+{{ __('Add') }} <strong x-text="additionalPax"></strong> {{ __('Pax') }} (<span x-text="initialPax + additionalPax"></span> {{ __('Pax Total') }})</span>
                                     </template>
@@ -1390,57 +1391,64 @@
                                 </button>
                             </div>
 
-                            <!-- Cancellation Button (Switch Table / Cancelled without eating) -->
-                            <form :action="'/tables/' + selectedTableId + '/cancel'" method="POST"
-                                @submit.prevent="
-                                // Instantly switch local state back to green available
-                                liveTables[selectedTableId].status = 'available';
-                                liveTables[selectedTableId].pax = null;
-                                tableStatus = 'available';
-                                modalOpen = false;
+                            <!-- Action Buttons side-by-side to prevent misclicks -->
+                            <div class="grid grid-cols-2 gap-2 pt-0.5">
+                                <!-- Cancellation Button (Void Table without record) -->
+                                <form :action="'/tables/' + selectedTableId + '/cancel'" method="POST" class="m-0 p-0"
+                                    @submit.prevent="
+                                    // Instantly switch local state back to green available
+                                    liveTables[selectedTableId].status = 'available';
+                                    liveTables[selectedTableId].pax = null;
+                                    tableStatus = 'available';
+                                    modalOpen = false;
 
-                                // Submit cancellation in background
-                                fetch('/tables/' + selectedTableId + '/cancel', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                    }
-                                }).then(() => fetchLiveStatus());
-                            ">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 text-xs font-bold py-3 px-4 rounded-xl transition border border-rose-200 shadow-soft-xs active:scale-98 flex items-center justify-center gap-1.5">
-                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    <span>{{ __('Cancel Session (Void Table)') }}</span>
-                                </button>
-                            </form>
+                                    // Submit cancellation in background
+                                    fetch('/tables/' + selectedTableId + '/cancel', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        }
+                                    }).then(() => fetchLiveStatus());
+                                ">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full h-11 bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-800 text-xs font-bold px-2 rounded-xl transition border border-rose-200 shadow-soft-2xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span class="truncate">{{ __('Cancellation') }}</span>
+                                    </button>
+                                </form>
 
-                            <form :action="'/tables/' + selectedTableId + '/finish'" method="POST"
-                                @submit.prevent="
-                                // Instantly switch local state
-                                liveTables[selectedTableId].status = 'available';
-                                liveTables[selectedTableId].pax = null;
-                                tableStatus = 'available';
-                                modalOpen = false;
+                                <!-- Complete Session Button -->
+                                <form :action="'/tables/' + selectedTableId + '/finish'" method="POST" class="m-0 p-0"
+                                    @submit.prevent="
+                                    // Instantly switch local state
+                                    liveTables[selectedTableId].status = 'available';
+                                    liveTables[selectedTableId].pax = null;
+                                    tableStatus = 'available';
+                                    modalOpen = false;
 
-                                // Submit in background
-                                fetch('/tables/' + selectedTableId + '/finish', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                    }
-                                }).then(() => fetchLiveStatus());
-                            ">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-sm active:scale-98">
-                                    {{ __('Complete Session (Free Table)') }}
-                                </button>
-                            </form>
+                                    // Submit in background
+                                    fetch('/tables/' + selectedTableId + '/finish', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        }
+                                    }).then(() => fetchLiveStatus());
+                                ">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2 rounded-xl transition shadow-soft-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span class="truncate">{{ __('Complete') }}</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </template>
                 </div>
