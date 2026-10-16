@@ -146,8 +146,7 @@ Route::middleware(['auth'])->group(function () {
             if ($users->isNotEmpty()) {
                 $trueCount = 0;
                 foreach ($users as $u) {
-                    $saved = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
-                    if (!empty($saved[$key])) {
+                    if ($u->hasPermission($key)) {
                         $trueCount++;
                     }
                 }
@@ -162,7 +161,7 @@ Route::middleware(['auth'])->group(function () {
             $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
             $differs = false;
             foreach ($defaultPerms as $key => $defaultVal) {
-                $savedVal = array_key_exists($key, (array)$savedPerms) ? $savedPerms[$key] : false;
+                $savedVal = array_key_exists($key, (array)$savedPerms) ? $savedPerms[$key] : $defaultVal;
                 if ((bool)$savedVal !== (bool)$defaultVal) {
                     $differs = true;
                     break;

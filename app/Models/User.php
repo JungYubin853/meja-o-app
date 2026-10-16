@@ -65,6 +65,7 @@ class User extends Authenticatable
         return [
             'nav_dashboard' => true,
             'dash_create_table' => $this->isAdmin(),
+            'dash_create_section' => $this->isAdmin(),
             'dash_floor_canvas' => true,
             'dash_view_mode' => true,
             'dash_floor_dropdown' => true,

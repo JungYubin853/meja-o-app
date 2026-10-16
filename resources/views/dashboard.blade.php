@@ -732,7 +732,7 @@
             <div class="flex flex-col lg:flex-row gap-6 items-start w-full max-w-full">
 
                 <!-- ADMIN INVENTORY: Order-2 on Mobile, Fixed Width on Desktop -->
-                @if (Auth::user()->hasPermission('dash_create_table'))
+                @if (Auth::user()->hasPermission('dash_create_table') || Auth::user()->hasPermission('dash_create_section') || Auth::user()->hasPermission('dash_view_mode'))
                     <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
                         <!-- EDIT MODE TRAY -->
@@ -758,6 +758,7 @@
                         </div>
                         @endif
 
+                        @if (Auth::user()->hasPermission('dash_create_table'))
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5">
 
                             <button @click="settingsModalOpen = true"
@@ -851,9 +852,10 @@
                             </div>
 
                         </div>
+                        @endif
 
                         <!-- SECTION INVENTORY TRAY -->
-                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) && Auth::user()->hasPermission('dash_section_edit'))
+                        @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) && Auth::user()->hasPermission('dash_create_section'))
                         
                         <!-- SECTION INVENTORY TRAY CONTAINER -->
                         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5 mb-4">

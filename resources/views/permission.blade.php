@@ -198,6 +198,10 @@
                                         <input type="checkbox" x-model="permissions.dash_create_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Create New Section Container') }}<span x-cloak x-show="differsFromDefault('dash_create_section')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_create_section" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">2D Floor Canvas<span x-cloak x-show="differsFromDefault('dash_floor_canvas')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
