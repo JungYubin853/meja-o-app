@@ -1119,6 +1119,9 @@
                                     <div id="table-{{ $table->id }}" :draggable="editMode === 'table' && {{ Auth::user()->hasPermission('dash_create_table') ? 'true' : 'false' }}"
                                         @if (Auth::user()->hasPermission('dash_create_table')) @dragstart="if (editMode !== 'table') { $event.preventDefault(); return; } let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $tableSpanW }}'); $event.dataTransfer.setData('h', '{{ $tableSpanH }}');" @endif
                                         @click="
+                                        if (editMode === 'view' && !{{ Auth::user()->hasPermission('dash_view_mode') ? 'true' : 'false' }}) return;
+                                        if (editMode === 'table' && !{{ (Auth::user()->hasPermission('dash_edit_table') || Auth::user()->hasPermission('dash_table_edit')) ? 'true' : 'false' }}) return;
+                                        if (editMode === 'section') return;
                                         if (justResizedTable) return;
                                         selectedTableId = {{ $table->id }};
                                         tableNumber = liveTables[{{ $table->id }}]?.table_number ?? '{{ $table->table_number ?? '' }}';
@@ -1142,7 +1145,11 @@
                                             (liveTables[{{ $table->id }}]?.status || '{{ $table->status }}') === 'available'
                                                 ? 'bg-emerald-950/85 border-emerald-500 text-emerald-300 ' + (editMode === 'table' ? 'hover:bg-emerald-900' : '')
                                                 : 'bg-rose-950/85 border-rose-500 text-rose-200 ' + (editMode === 'table' ? 'hover:bg-rose-900' : ''),
-                                            editMode === 'section' ? 'pointer-events-none opacity-30 grayscale blur-[0.5px] z-0' : 'cursor-pointer hover:z-30 hover:shadow-lg z-20 active:scale-95'
+                                            editMode === 'section' 
+                                                ? 'pointer-events-none opacity-30 grayscale blur-[0.5px] z-0' 
+                                                : (((editMode === 'view' && {{ Auth::user()->hasPermission('dash_view_mode') ? 'true' : 'false' }}) || (editMode === 'table' && {{ (Auth::user()->hasPermission('dash_edit_table') || Auth::user()->hasPermission('dash_table_edit')) ? 'true' : 'false' }}))
+                                                    ? 'cursor-pointer hover:z-30 hover:shadow-lg z-20 active:scale-95' 
+                                                    : 'cursor-default z-10')
                                         ]"
                                         class="absolute border select-none transition-all duration-300 flex flex-col items-center justify-center {{ $table->shape === 'circle' ? 'rounded-full' : ($table->shape === 'triangle' ? '' : 'rounded-xl') }}"
                                         style="
