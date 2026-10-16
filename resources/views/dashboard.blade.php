@@ -1357,9 +1357,6 @@
                             <div class="bg-slate-50 border-2 border-slate-200/80 rounded-2xl p-2.5 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{{ __('Add More Person') }}</span>
-                                    <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
-                                        <span x-text="initialPax"></span> + <span x-text="additionalPax"></span> = <strong x-text="initialPax + additionalPax"></strong> {{ __('Pax') }}
-                                    </span>
                                 </div>
 
                                 <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-1 shadow-soft-xs">
