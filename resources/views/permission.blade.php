@@ -193,42 +193,67 @@
                                 </label>
                                 
                                 <div x-show="permissions.nav_dashboard" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
+                                    <!-- 1. View Only -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('Create New Table Container') }}<span x-cloak x-show="differsFromDefault('dash_create_table')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                        <input type="checkbox" x-model="permissions.dash_create_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                                    </label>
-                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('Create New Section Container') }}<span x-cloak x-show="differsFromDefault('dash_create_section')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                        <input type="checkbox" x-model="permissions.dash_create_section" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                                    </label>
-                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">2D Floor Canvas<span x-cloak x-show="differsFromDefault('dash_floor_canvas')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                        <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                                    </label>
-                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('View Mode') }}<span x-cloak x-show="differsFromDefault('dash_view_mode')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('View Only') }}<span x-cloak x-show="differsFromDefault('dash_view_mode')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_view_mode" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- 2. Table Edit -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('Floor Dropdown') }}<span x-cloak x-show="differsFromDefault('dash_floor_dropdown')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                        <input type="checkbox" x-model="permissions.dash_floor_dropdown" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Table Edit') }}<span x-cloak x-show="differsFromDefault('dash_table_edit')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_table_edit" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
-                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('Canvas & Floor Settings') }}<span x-cloak x-show="differsFromDefault('dash_canvas_settings')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                        <input type="checkbox" x-model="permissions.dash_canvas_settings" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                                    </label>
+
+                                    <!-- 3. Section Edit -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Section Edit') }}<span x-cloak x-show="differsFromDefault('dash_section_edit')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_section_edit" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- 4. Create New Table Container -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Create New Table Container') }}<span x-cloak x-show="differsFromDefault('dash_create_table')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_create_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- 5. Create New Section Container -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Create New Section Container') }}<span x-cloak x-show="differsFromDefault('dash_create_section')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_create_section" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- 6. Canvas & Floor Settings -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Canvas & Floor Settings') }}<span x-cloak x-show="differsFromDefault('dash_canvas_settings')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_canvas_settings" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- 7. Floor Dropdown -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Floor Dropdown') }}<span x-cloak x-show="differsFromDefault('dash_floor_dropdown')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_floor_dropdown" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- 8. 2D Floor Canvas -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">2D Floor Canvas<span x-cloak x-show="differsFromDefault('dash_floor_canvas')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.dash_floor_canvas" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- 9. Guest Seating -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Guest Seating') }}<span x-cloak x-show="differsFromDefault('dash_guest_seating')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_guest_seating" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- 10. Waitlist -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Waitlist') }}<span x-cloak x-show="differsFromDefault('dash_waitlist')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_waitlist" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- 11. Edit Table Specs -->
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Edit Table Specs') }}<span x-cloak x-show="differsFromDefault('dash_edit_table')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.dash_edit_table" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">

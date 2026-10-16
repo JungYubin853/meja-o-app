@@ -732,11 +732,11 @@
             <div class="flex flex-col lg:flex-row gap-6 items-start w-full max-w-full">
 
                 <!-- ADMIN INVENTORY: Order-2 on Mobile, Fixed Width on Desktop -->
-                @if (Auth::user()->hasPermission('dash_create_table') || Auth::user()->hasPermission('dash_create_section') || Auth::user()->hasPermission('dash_view_mode'))
+                @if (Auth::user()->hasPermission('dash_create_table') || Auth::user()->hasPermission('dash_create_section') || Auth::user()->hasPermission('dash_view_mode') || Auth::user()->hasPermission('dash_table_edit') || Auth::user()->hasPermission('dash_section_edit'))
                     <div class="order-2 lg:order-1 w-full lg:w-[320px] shrink-0 space-y-4">
 
                         <!-- EDIT MODE TRAY -->
-                        @if (Auth::user()->hasPermission('dash_view_mode') || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
+                        @if (Auth::user()->hasPermission('dash_view_mode') || Auth::user()->hasPermission('dash_table_edit') || Auth::user()->hasPermission('dash_section_edit'))
                         <div class="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-soft-xs flex flex-col">
                             <div class="flex bg-slate-100 p-1 rounded-xl">
                                 @if (Auth::user()->hasPermission('dash_view_mode'))
@@ -744,15 +744,15 @@
                                     :class="editMode === 'view' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                     class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('View') }}</button>
                                 @endif
-                                @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
+                                @if (Auth::user()->hasPermission('dash_table_edit'))
                                     <button type="button" @click="editMode = 'table'; localStorage.setItem('meja_floor_edit_mode', 'table')"
                                         :class="editMode === 'table' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Table Edit') }}</button>
-                                    @if (Auth::user()->hasPermission('dash_section_edit'))
+                                @endif
+                                @if (Auth::user()->hasPermission('dash_section_edit'))
                                     <button type="button" @click="editMode = 'section'; localStorage.setItem('meja_floor_edit_mode', 'section')"
                                         :class="editMode === 'section' ? 'bg-white shadow text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-700 font-semibold'"
                                         class="flex-1 py-1.5 text-[11px] rounded-lg transition">{{ __('Section Edit') }}</button>
-                                    @endif
                                 @endif
                             </div>
                         </div>
