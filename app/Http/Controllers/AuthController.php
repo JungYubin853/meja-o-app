@@ -149,12 +149,16 @@ class AuthController extends Controller
             'outlet_id' => $user->isSuperAdmin() ? 'nullable|exists:outlets,id' : 'required|exists:outlets,id',
         ]);
 
+        $dummyUser = new User(['role' => $validated['role']]);
+        $defaultPermissions = $dummyUser->getDefaultPermissions();
+
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'outlet_id' => $validated['role'] === 'super_admin' ? null : $validated['outlet_id'],
+            'permissions' => $validated['role'] === 'super_admin' ? null : $defaultPermissions,
         ]);
 
         return back()->with('success', 'User account created successfully.');

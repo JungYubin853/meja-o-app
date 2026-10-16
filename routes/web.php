@@ -141,24 +141,23 @@ Route::middleware(['auth'])->group(function () {
         $divergentUsers = [];
         foreach($users as $u) {
             $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
-            if (!empty($savedPerms)) {
-                $differs = false;
-                foreach ($defaultPerms as $key => $defaultVal) {
-                    $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
-                    if ((bool)$savedVal !== (bool)$defaultVal) {
-                        $differs = true;
-                        break;
-                    }
+            $differs = false;
+            foreach ($defaultPerms as $key => $defaultVal) {
+                $savedVal = array_key_exists($key, (array)$savedPerms) ? $savedPerms[$key] : false;
+                if ((bool)$savedVal !== (bool)$defaultVal) {
+                    $differs = true;
+                    break;
                 }
-                if ($differs) {
-                    $divergentUsers[] = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email];
-                }
+            }
+            if ($differs) {
+                $divergentUsers[] = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email];
             }
         }
         
         return response()->json([
             'divergent_users' => $divergentUsers,
             'default_permissions' => $defaultPerms,
+            'total_users' => count($users),
         ]);
     });
 
@@ -171,50 +170,17 @@ Route::middleware(['auth'])->group(function () {
                 $permissions[$k] = filter_var($v, FILTER_VALIDATE_BOOLEAN);
             }
         }
-        $overwriteCustom = filter_var($request->overwrite_custom, FILTER_VALIDATE_BOOLEAN);
 
         $users = App\Models\User::where('role', $role)->get();
         $updatedCount = 0;
         
-        $dummyUser = new App\Models\User(['role' => $role]);
-        $defaultPerms = $dummyUser->getDefaultPermissions();
-        
         foreach($users as $u) {
-            $isCustom = false;
-            $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
-            if (!empty($savedPerms)) {
-                foreach ($defaultPerms as $key => $defaultVal) {
-                    $savedVal = array_key_exists($key, $savedPerms) ? $savedPerms[$key] : $defaultVal;
-                    if ((bool)$savedVal !== (bool)$defaultVal) {
-                        $isCustom = true;
-                        break;
-                    }
-                }
-            }
-            
-            if ($isCustom && !$overwriteCustom) {
-                continue; // Skip if they have custom permissions and we are keeping them
-            }
             $u->permissions = $permissions;
             $u->save();
             $updatedCount++;
         }
         
-        // When overwriting all users, also sync the default template
-        if ($overwriteCustom) {
-            $superAdmin = App\Models\User::where('role', 'super_admin')->first();
-            if ($superAdmin) {
-                $superPerms = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : ((array)$superAdmin->permissions ?: []);
-                if ($role === 'staff') {
-                    $superPerms['_staff_defaults'] = $permissions;
-                } else {
-                    $superPerms['_admin_defaults'] = $permissions;
-                }
-                $superAdmin->permissions = $superPerms;
-                $superAdmin->save();
-            }
-        }
-        
+        // Bulk Overwrite NEVER touches Base Default Templates!
         return response()->json(['success' => true, 'updated_count' => $updatedCount]);
     });
 
@@ -231,7 +197,6 @@ Route::middleware(['auth'])->group(function () {
         $superAdmin = App\Models\User::where('role', 'super_admin')->first();
         if ($superAdmin) {
             $perms = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : ((array)$superAdmin->permissions ?: []);
-            $oldDefaults = ($role === 'staff') ? ($perms['_staff_defaults'] ?? null) : ($perms['_admin_defaults'] ?? null);
             
             if ($role === 'staff') {
                 $perms['_staff_defaults'] = $permissions;
@@ -240,31 +205,10 @@ Route::middleware(['auth'])->group(function () {
             }
             $superAdmin->permissions = $perms;
             $superAdmin->save();
-
-            // Also update non-divergent existing users of this role
-            $dummyUser = new App\Models\User(['role' => $role]);
-            $baseRef = $oldDefaults ?: $dummyUser->getHardcodedDefaults();
-            
-            $users = App\Models\User::where('role', $role)->get();
-            foreach ($users as $u) {
-                $saved = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
-                if (!empty($saved)) {
-                    $isCustom = false;
-                    foreach ($baseRef as $k => $defVal) {
-                        $savedVal = array_key_exists($k, $saved) ? $saved[$k] : $defVal;
-                        if ((bool)$savedVal !== (bool)$defVal) {
-                            $isCustom = true;
-                            break;
-                        }
-                    }
-                    if (!$isCustom) {
-                        $u->permissions = $permissions;
-                        $u->save();
-                    }
-                }
-            }
         }
-        
+
+        // Base Default Template updates NEVER touch existing accounts!
+        // They only set the baseline for newly created accounts.
         return response()->json(['success' => true]);
     });
 });
