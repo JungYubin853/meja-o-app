@@ -149,7 +149,7 @@
                 { id: 'fuchsia', name: 'Pink', hex: '#d946ef' },
                 { id: 'rose', name: 'Red', hex: '#f43f5e' },
                 { id: 'orange', name: 'Orange', hex: '#f97316' },
-                { id: 'amber', name: 'Yellow', hex: '#f59e0b' },
+                { id: 'yellow', name: 'Yellow', hex: '#facc15' },
                 { id: 'lime', name: 'Lime', hex: '#84cc16' },
                 { id: 'emerald', name: 'Emerald', hex: '#10b981' },
                 { id: 'teal', name: 'Teal', hex: '#14b8a6' },
@@ -302,6 +302,7 @@
                 return `left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background-color: ${hex}26; border-color: ${hex}cc;`;
             },
             getSectionHex(color) {
+                if (color === 'amber' || color === 'yellow') return '#facc15';
                 let found = this.sectionColors.find(c => c.id === color);
                 return found ? found.hex : '#3b82f6';
             },
@@ -312,7 +313,7 @@
                 if (color === 'fuchsia') return 'bg-fuchsia-900/40 border-fuchsia-800/80';
                 if (color === 'rose') return 'bg-rose-900/40 border-rose-800/80';
                 if (color === 'orange') return 'bg-orange-900/40 border-orange-800/80';
-                if (color === 'amber') return 'bg-amber-900/40 border-amber-800/80';
+                if (color === 'yellow' || color === 'amber') return 'bg-yellow-900/40 border-yellow-800/80';
                 if (color === 'lime') return 'bg-lime-900/40 border-lime-800/80';
                 if (color === 'emerald') return 'bg-emerald-900/40 border-emerald-800/80';
                 if (color === 'teal') return 'bg-teal-900/40 border-teal-800/80';
@@ -1830,7 +1831,7 @@
                                         class="h-8 rounded-lg transition-all transform active:scale-90 flex items-center justify-center relative shadow-xs"
                                         :style="{ backgroundColor: c.hex }"
                                         :class="newSecColor === c.id ? 'ring-2 ring-offset-2 ring-slate-900 scale-105 z-10' : 'hover:scale-105 opacity-80 hover:opacity-100'">
-                                        <svg x-show="newSecColor === c.id" class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg x-show="newSecColor === c.id" class="w-4 h-4" :class="['yellow', 'amber', 'lime'].includes(c.id) ? 'text-slate-900' : 'text-white drop-shadow-md'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                     </button>
