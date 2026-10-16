@@ -142,6 +142,20 @@
             newSecName: '', newSecColor: 'blue', newSecW: 5, newSecH: 5,
             editSecTemplateIdx: -1,
             editPlacedSecIdx: -1,
+            sectionColors: [
+                { id: 'blue', name: 'Blue', hex: '#3b82f6' },
+                { id: 'indigo', name: 'Indigo', hex: '#6366f1' },
+                { id: 'purple', name: 'Purple', hex: '#a855f7' },
+                { id: 'fuchsia', name: 'Pink', hex: '#d946ef' },
+                { id: 'rose', name: 'Red', hex: '#f43f5e' },
+                { id: 'orange', name: 'Orange', hex: '#f97316' },
+                { id: 'amber', name: 'Yellow', hex: '#f59e0b' },
+                { id: 'lime', name: 'Lime', hex: '#84cc16' },
+                { id: 'emerald', name: 'Emerald', hex: '#10b981' },
+                { id: 'teal', name: 'Teal', hex: '#14b8a6' },
+                { id: 'cyan', name: 'Cyan', hex: '#06b6d4' },
+                { id: 'slate', name: 'Slate', hex: '#64748b' }
+            ],
             
             
             getMaxTableWidth() {
@@ -284,14 +298,25 @@
                 let top = (sec.y - 1) * 40;
                 let width = sec.w * 40 - 2;
                 let height = sec.h * 40 - 2;
-                return `left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px;`;
+                let hex = this.getSectionHex(sec.color);
+                return `left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background-color: ${hex}26; border-color: ${hex}cc;`;
+            },
+            getSectionHex(color) {
+                let found = this.sectionColors.find(c => c.id === color);
+                return found ? found.hex : '#3b82f6';
             },
             getSectionColorClass(color) {
                 if (color === 'blue') return 'bg-blue-900/40 border-blue-800/80';
-                if (color === 'emerald') return 'bg-emerald-900/40 border-emerald-800/80';
-                if (color === 'rose') return 'bg-rose-900/40 border-rose-800/80';
-                if (color === 'amber') return 'bg-amber-900/40 border-amber-800/80';
+                if (color === 'indigo') return 'bg-indigo-900/40 border-indigo-800/80';
                 if (color === 'purple') return 'bg-purple-900/40 border-purple-800/80';
+                if (color === 'fuchsia') return 'bg-fuchsia-900/40 border-fuchsia-800/80';
+                if (color === 'rose') return 'bg-rose-900/40 border-rose-800/80';
+                if (color === 'orange') return 'bg-orange-900/40 border-orange-800/80';
+                if (color === 'amber') return 'bg-amber-900/40 border-amber-800/80';
+                if (color === 'lime') return 'bg-lime-900/40 border-lime-800/80';
+                if (color === 'emerald') return 'bg-emerald-900/40 border-emerald-800/80';
+                if (color === 'teal') return 'bg-teal-900/40 border-teal-800/80';
+                if (color === 'cyan') return 'bg-cyan-900/40 border-cyan-800/80';
                 return 'bg-slate-900/40 border-slate-800/80';
             },
             
@@ -559,8 +584,8 @@
                 this.editSecTemplateIdx = idx;
                 this.editPlacedSecIdx = -1;
                 let sec = this.sectionTemplates[idx];
-                this.newSecName = sec.name;
-                this.newSecColor = sec.color;
+                this.newSecName = sec.name || '';
+                this.newSecColor = sec.color || 'blue';
                 this.newSecW = sec.w;
                 this.newSecH = sec.h;
                 this.sectionModalOpen = true;
@@ -570,21 +595,19 @@
                 this.editPlacedSecIdx = idx;
                 this.editSecTemplateIdx = -1;
                 let sec = this.gridSections[idx];
-                this.newSecName = sec.name;
-                this.newSecColor = sec.color;
+                this.newSecName = sec.name || '';
+                this.newSecColor = sec.color || 'blue';
                 this.newSecW = sec.w;
                 this.newSecH = sec.h;
                 this.sectionModalOpen = true;
             },
             
             saveSection() {
-                if(!this.newSecName) {
-                    alert('Please enter a section name.');
-                    return;
-                }
                 let sec = {
-                    name: this.newSecName, color: this.newSecColor, 
-                    w: parseInt(this.newSecW), h: parseInt(this.newSecH),
+                    name: (this.newSecName || '').trim(),
+                    color: this.newSecColor || 'blue', 
+                    w: parseInt(this.newSecW) || 1,
+                    h: parseInt(this.newSecH) || 1,
                     bookmarked: false
                 };
                 
@@ -886,9 +909,9 @@
                                         <!-- Left Side: Color, Name, Size -->
                                         <div class="flex items-center gap-3 cursor-pointer flex-1 mr-2"
                                             @click="openSectionTemplateModal(idx)">
-                                            <div class="w-4 h-4 rounded-sm flex-shrink-0" :class="'bg-' + sec.color + '-500'"></div>
+                                            <div class="w-4 h-4 rounded-sm flex-shrink-0 shadow-xs" :style="{ backgroundColor: getSectionHex(sec.color) }"></div>
                                             <div>
-                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800" x-text="sec.name"></p>
+                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800" x-text="sec.name || '—'"></p>
                                                 <p class="text-[10px] text-slate-500 font-medium" x-text="sec.w + 'x' + sec.h"></p>
                                             </div>
                                         </div>
@@ -1091,6 +1114,7 @@
                                          :draggable="editMode === 'section'"
                                          @dragstart="if(editMode === 'section') { let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); }"
                                          >
+                                         <span x-show="sec.name" class="absolute top-1.5 left-2 text-[10px] font-bold tracking-wider uppercase opacity-80 select-none pointer-events-none truncate max-w-[85%]" :style="{ color: getSectionHex(sec.color) }" x-text="sec.name"></span>
                                          <div x-show="editMode === 'section'" @click.stop="if(justResizedSection) return; openPlacedSectionModal(idx)" class="w-full h-full relative group cursor-pointer">
                                              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 bg-black/10 rounded-xl">
                                                  <span class="bg-white/90 text-slate-900 p-2 rounded-lg shadow-sm font-bold flex items-center justify-center">
@@ -1777,38 +1801,77 @@
                         <button type="button" @click="sectionModalOpen = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">✕</button>
                     </div>
                     
-                    <div class="space-y-3.5 pt-1">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Section Name</label>
-                                <input type="text" x-model="newSecName" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900" placeholder="e.g. VIP">
+                    <div class="space-y-4 pt-1">
+                        <!-- Section Name (Optional) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold text-slate-800">{{ __('Section Name') }}</label>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ __('Optional') }}</span>
                             </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Section Color</label>
-                                <select x-model="newSecColor" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-700">
-                                    <option value="blue">Blue</option>
-                                    <option value="emerald">Emerald</option>
-                                    <option value="amber">Yellow</option>
-                                    <option value="rose">Red</option>
-                                    <option value="purple">Purple</option>
-                                </select>
-                            </div>
+                            <input type="text" x-model="newSecName" class="w-full text-xs p-2.5 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-300 focus:border-slate-800 rounded-xl font-bold text-slate-900 outline-none transition" placeholder="e.g. VIP, Outdoor, Bar Area... (Optional)">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Width:') }}</span>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" @click="newSecW = Math.max(1, parseInt(newSecW) - 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
-                                    <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums" x-text="newSecW"></span>
-                                    <button type="button" @click="newSecW = Math.min(getMaxSectionWidth(), parseInt(newSecW) + 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">+</button>
+
+                        <!-- Section Color Visual Picker -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-slate-800">{{ __('Section Color') }}</label>
+                                <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" :style="{ backgroundColor: getSectionHex(newSecColor) }"></span>
+                                    <span class="text-[11px] font-bold text-slate-800" x-text="sectionColors.find(c => c.id === newSecColor)?.name || newSecColor"></span>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-300">
-                                <span class="text-[11px] font-semibold text-slate-600">{{ __('Height:') }}</span>
+                            
+                            <!-- Color Swatches Grid (6 cols x 2 rows) -->
+                            <div class="grid grid-cols-6 gap-2 p-2.5 bg-slate-50/80 rounded-xl border border-slate-200">
+                                <template x-for="c in sectionColors" :key="c.id">
+                                    <button type="button"
+                                        @click="newSecColor = c.id"
+                                        :title="c.name"
+                                        class="h-8 rounded-lg transition-all transform active:scale-90 flex items-center justify-center relative shadow-xs"
+                                        :style="{ backgroundColor: c.hex }"
+                                        :class="newSecColor === c.id ? 'ring-2 ring-offset-2 ring-slate-900 scale-105 z-10' : 'hover:scale-105 opacity-80 hover:opacity-100'">
+                                        <svg x-show="newSecColor === c.id" class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Live Visual Preview -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ __('Live Preview') }}</span>
+                                <span class="text-[10px] font-bold text-slate-500" x-text="newSecW + ' × ' + newSecH + ' Grid Units'"></span>
+                            </div>
+                            <div class="h-16 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all p-2 relative overflow-hidden"
+                                 :style="{
+                                     backgroundColor: getSectionHex(newSecColor) + '26',
+                                     borderColor: getSectionHex(newSecColor) + 'cc'
+                                 }">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: getSectionHex(newSecColor) }"></span>
+                                    <span class="text-xs font-bold text-slate-800 tracking-wide" x-text="newSecName ? newSecName : '— (Untitled Section)'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Width & Height Adjusters -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-300">
+                                <span class="text-[11px] font-bold text-slate-700">{{ __('Width:') }}</span>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" @click="newSecH = Math.max(1, parseInt(newSecH) - 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
-                                    <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums" x-text="newSecH"></span>
-                                    <button type="button" @click="newSecH = Math.min(getMaxSectionHeight(), parseInt(newSecH) + 1)" class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">+</button>
+                                    <button type="button" @click="newSecW = Math.max(1, parseInt(newSecW) - 1)" class="w-7 h-7 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg flex items-center justify-center transition border border-slate-200 active:scale-95 shadow-xs">-</button>
+                                    <span class="text-xs font-extrabold text-slate-900 w-5 text-center tabular-nums" x-text="newSecW"></span>
+                                    <button type="button" @click="newSecW = Math.min(getMaxSectionWidth(), parseInt(newSecW) + 1)" class="w-7 h-7 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg flex items-center justify-center transition border border-slate-200 active:scale-95 shadow-xs">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-300">
+                                <span class="text-[11px] font-bold text-slate-700">{{ __('Height:') }}</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="newSecH = Math.max(1, parseInt(newSecH) - 1)" class="w-7 h-7 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg flex items-center justify-center transition border border-slate-200 active:scale-95 shadow-xs">-</button>
+                                    <span class="text-xs font-extrabold text-slate-900 w-5 text-center tabular-nums" x-text="newSecH"></span>
+                                    <button type="button" @click="newSecH = Math.min(getMaxSectionHeight(), parseInt(newSecH) + 1)" class="w-7 h-7 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-lg flex items-center justify-center transition border border-slate-200 active:scale-95 shadow-xs">+</button>
                                 </div>
                             </div>
                         </div>
