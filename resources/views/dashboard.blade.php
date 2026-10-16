@@ -1344,11 +1344,6 @@
                                     <span class="text-2xl font-black text-rose-950 tabular-nums" x-text="initialPax + additionalPax"></span>
                                     <span class="text-xs font-bold text-rose-700">{{ __('Pax Seated') }}</span>
                                 </div>
-                                <template x-if="additionalPax > 0">
-                                    <p class="text-[10px] text-rose-600 font-medium mt-0.5">
-                                        (<span x-text="initialPax"></span> + <span x-text="additionalPax"></span> {{ __('Additional') }})
-                                    </p>
-                                </template>
                             </div>
 
                             <div x-show="paxUpdatedSuccess" x-transition.duration.200ms
