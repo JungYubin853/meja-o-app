@@ -67,16 +67,24 @@
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                                     <option value="staff">{{ __('Staff') }}</option>
                                     <option value="admin">{{ __('Admin') }}</option>
-                                    <option value="super_admin">{{ __('Super Admin') }}</option>
+                                    @if (Auth::user()->isSuperAdmin())
+                                        <option value="super_admin">{{ __('Super Admin') }}</option>
+                                    @endif
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Assign Outlet') }}</label>
-                                <select name="outlet_id"
+                                <select name="outlet_id" {{ !Auth::user()->isSuperAdmin() ? 'required' : '' }}
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
-                                    <option value="">{{ __('None (For Super Admin)') }}</option>
+                                    @if (Auth::user()->isSuperAdmin())
+                                        <option value="">{{ __('None (For Super Admin)') }}</option>
+                                    @else
+                                        <option value="" disabled {{ !Auth::user()->outlet_id ? 'selected' : '' }}>{{ __('Select Outlet') }}</option>
+                                    @endif
                                     @foreach ($outlets as $outlet)
-                                        <option value="{{ $outlet->id }}">{{ $outlet->name }}</option>
+                                        <option value="{{ $outlet->id }}" {{ (!Auth::user()->isSuperAdmin() && Auth::user()->outlet_id == $outlet->id) ? 'selected' : '' }}>
+                                            {{ $outlet->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -126,7 +134,9 @@
                             </select>
                             <select name="role" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
                                 <option value="">{{ __('All Roles') }}</option>
-                                <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>{{ __('Super Admin') }}</option>
+                                @if (Auth::user()->isSuperAdmin())
+                                    <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>{{ __('Super Admin') }}</option>
+                                @endif
                                 <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
                                 <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
                             </select>
@@ -182,7 +192,7 @@
                                         </span>
                                     </td>
                                     <td class="p-3 text-right">
-                                        @if ($u->id !== $user->id)
+                                        @if ($u->id !== $user->id && (!$u->isSuperAdmin() || $user->isSuperAdmin()))
                                             <div class="flex items-center justify-end gap-2">
                                                 <a href="/role-permission?email={{ urlencode($u->email) }}" title="Manage Permissions"
                                                    class="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 transition">

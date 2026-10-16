@@ -139,12 +139,14 @@ class AuthController extends Controller
             abort(403);
         }
 
+        $allowedRoles = $user->isSuperAdmin() ? 'admin,staff,super_admin' : 'admin,staff';
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:admin,staff,super_admin',
-            'outlet_id' => 'nullable|exists:outlets,id',
+            'role' => 'required|in:' . $allowedRoles,
+            'outlet_id' => $user->isSuperAdmin() ? 'nullable|exists:outlets,id' : 'required|exists:outlets,id',
         ]);
 
         User::create([
@@ -170,7 +172,12 @@ class AuthController extends Controller
             return back()->withErrors(['error' => 'You cannot delete your own account.']);
         }
 
-        User::findOrFail($id)->delete();
+        $targetUser = User::findOrFail($id);
+        if (!$user->isSuperAdmin() && $targetUser->isSuperAdmin()) {
+            abort(403, 'You are not allowed to delete a Super Admin account.');
+        }
+
+        $targetUser->delete();
 
         return back()->with('success', 'User account deleted successfully.');
     }
