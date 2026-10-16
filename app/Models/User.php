@@ -103,10 +103,10 @@ class User extends Authenticatable
                 $saved = is_string($superAdmin->permissions) ? json_decode($superAdmin->permissions, true) : (array)$superAdmin->permissions;
                 
                 if ($this->role === 'staff' && isset($saved['_staff_defaults'])) {
-                    return $saved['_staff_defaults'];
+                    return array_merge($this->getHardcodedDefaults(), (array)$saved['_staff_defaults']);
                 }
                 if ($this->role === 'admin' && isset($saved['_admin_defaults'])) {
-                    return $saved['_admin_defaults'];
+                    return array_merge($this->getHardcodedDefaults(), (array)$saved['_admin_defaults']);
                 }
             }
         } catch (\Exception $e) {

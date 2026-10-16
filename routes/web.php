@@ -139,6 +139,25 @@ Route::middleware(['auth'])->group(function () {
         $defaultPerms = $dummyUser->getDefaultPermissions();
         
         $divergentUsers = [];
+        $currentPerms = [];
+
+        // Determine current permissions active across existing users of this role
+        foreach ($defaultPerms as $key => $defaultVal) {
+            if ($users->isNotEmpty()) {
+                $trueCount = 0;
+                foreach ($users as $u) {
+                    $saved = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
+                    if (!empty($saved[$key])) {
+                        $trueCount++;
+                    }
+                }
+                // If more than half have it enabled, reflect it as true in Bulk Overwrite
+                $currentPerms[$key] = ($trueCount > ($users->count() / 2));
+            } else {
+                $currentPerms[$key] = (bool)$defaultVal;
+            }
+        }
+
         foreach($users as $u) {
             $savedPerms = is_string($u->permissions) ? json_decode($u->permissions, true) : (array)$u->permissions;
             $differs = false;
@@ -157,6 +176,7 @@ Route::middleware(['auth'])->group(function () {
         return response()->json([
             'divergent_users' => $divergentUsers,
             'default_permissions' => $defaultPerms,
+            'current_permissions' => $currentPerms,
             'total_users' => count($users),
         ]);
     });

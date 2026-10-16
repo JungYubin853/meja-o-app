@@ -413,11 +413,20 @@
                         this.permissions = {};
                         this.defaultPerms = {};
                         for (const [k, v] of Object.entries(data.default_permissions || {})) {
-                            this.permissions[k] = Boolean(v);
                             this.defaultPerms[k] = Boolean(v);
                         }
                         
-                        if (!isBaseDefault) {
+                        if (isBaseDefault) {
+                            // Base Default Template: display and edit the baseline template
+                            for (const [k, v] of Object.entries(data.default_permissions || {})) {
+                                this.permissions[k] = Boolean(v);
+                            }
+                        } else {
+                            // Bulk Overwrite Users: display the actual permissions of existing accounts
+                            const source = data.current_permissions || data.default_permissions || {};
+                            for (const [k, v] of Object.entries(source)) {
+                                this.permissions[k] = Boolean(v);
+                            }
                             this.divergentUsers = data.divergent_users || [];
                         }
                     } catch (err) {
