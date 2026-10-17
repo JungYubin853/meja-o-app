@@ -321,6 +321,166 @@
                 return 'bg-slate-900/40 border-slate-800/80';
             },
             
+            getMergedSectionComponents() {
+                if (!this.gridSections || this.gridSections.length === 0) return [];
+                let n = this.gridSections.length;
+                let parent = Array.from({length: n}, (_, i) => i);
+                function find(i) { return parent[i] === i ? i : (parent[i] = find(parent[i])); }
+                function union(i, j) { let ri = find(i), rj = find(j); if(ri !== rj) parent[ri] = rj; }
+
+                for (let i = 0; i < n; i++) {
+                    let a = this.gridSections[i];
+                    for (let j = i + 1; j < n; j++) {
+                        let b = this.gridSections[j];
+                        if (a.color !== b.color) continue;
+                        let touchH = (a.x + a.w === b.x || b.x + b.w === a.x) &&
+                                     (Math.max(a.y, b.y) < Math.min(a.y + a.h, b.y + b.h));
+                        let touchV = (a.y + a.h === b.y || b.y + b.h === a.y) &&
+                                     (Math.max(a.x, b.x) < Math.min(a.x + a.w, b.x + b.w));
+                        if (touchH || touchV) union(i, j);
+                    }
+                }
+
+                let groups = {};
+                for (let i = 0; i < n; i++) {
+                    let r = find(i);
+                    if (!groups[r]) groups[r] = [];
+                    groups[r].push(this.gridSections[i]);
+                }
+
+                let components = [];
+                for (let root in groups) {
+                    let secList = groups[root];
+                    let color = secList[0].color;
+                    let hex = this.getSectionHex(color);
+
+                    let cellSet = new Set();
+                    secList.forEach(s => {
+                        for (let c = s.x; c < s.x + s.w; c++) {
+                            for (let r = s.y; r < s.y + s.h; r++) {
+                                cellSet.add(c + ',' + r);
+                            }
+                        }
+                    });
+
+                    let edges = [];
+                    cellSet.forEach(k => {
+                        let [c, r] = k.split(',').map(Number);
+                        let c0 = c - 1, c1 = c;
+                        let r0 = r - 1, r1 = r;
+                        if (!cellSet.has(c + ',' + (r - 1))) edges.push({ x1: c0, y1: r0, x2: c1, y2: r0 });
+                        if (!cellSet.has((c + 1) + ',' + r)) edges.push({ x1: c1, y1: r0, x2: c1, y2: r1 });
+                        if (!cellSet.has(c + ',' + (r + 1))) edges.push({ x1: c1, y1: r1, x2: c0, y2: r1 });
+                        if (!cellSet.has((c - 1) + ',' + r)) edges.push({ x1: c0, y1: r1, x2: c0, y2: r0 });
+                    });
+
+                    let startMap = new Map();
+                    edges.forEach(e => {
+                        let key = e.x1 + ',' + e.y1;
+                        if (!startMap.has(key)) startMap.set(key, []);
+                        startMap.get(key).push(e);
+                    });
+
+                    let visited = new Set();
+                    let loops = [];
+                    edges.forEach(firstEdge => {
+                        if (visited.has(firstEdge)) return;
+                        let loop = [];
+                        let curr = firstEdge;
+                        while (curr && !visited.has(curr)) {
+                            visited.add(curr);
+                            loop.push({ x: curr.x1, y: curr.y1 });
+                            let nextKey = curr.x2 + ',' + curr.y2;
+                            let candidates = startMap.get(nextKey) || [];
+                            curr = candidates.find(c => !visited.has(c));
+                        }
+                        if (loop.length >= 3) loops.push(loop);
+                    });
+
+                    let simplifiedLoops = loops.map(loop => {
+                        let m = loop.length, res = [];
+                        for (let i = 0; i < m; i++) {
+                            let prev = loop[(i - 1 + m) % m], curr = loop[i], next = loop[(i + 1) % m];
+                            let dx1 = curr.x - prev.x, dy1 = curr.y - prev.y;
+                            let dx2 = next.x - curr.x, dy2 = next.y - curr.y;
+                            if ((dx1 === 0 && dx2 === 0 && Math.sign(dy1) === Math.sign(dy2)) ||
+                                (dy1 === 0 && dy2 === 0 && Math.sign(dx1) === Math.sign(dx2))) continue;
+                            res.push(curr);
+                        }
+                        return res;
+                    });
+
+                    let fullPathD = '';
+                    simplifiedLoops.forEach(verts => {
+                        let m = verts.length;
+                        if (m < 3) return;
+
+                        let pixelVerts = [];
+                        for (let i = 0; i < m; i++) {
+                            let prev = verts[(i - 1 + m) % m];
+                            let curr = verts[i];
+                            let next = verts[(i + 1) % m];
+
+                            let inDx = curr.x - prev.x, inDy = curr.y - prev.y;
+                            let outDx = next.x - curr.x, outDy = next.y - curr.y;
+
+                            let hSeg = inDy === 0 ? { dx: inDx, y: curr.y } : { dx: outDx, y: curr.y };
+                            let vSeg = inDx === 0 ? { dy: inDy, x: curr.x } : { dy: outDy, x: curr.x };
+
+                            let py = hSeg.dx > 0 ? hSeg.y * 40 : hSeg.y * 40 - 2;
+                            let px = vSeg.dy > 0 ? vSeg.x * 40 - 2 : vSeg.x * 40;
+
+                            pixelVerts.push({ x: px, y: py });
+                        }
+
+                        let corners = [];
+                        for (let i = 0; i < m; i++) {
+                            let prev = pixelVerts[(i - 1 + m) % m], curr = pixelVerts[i], next = pixelVerts[(i + 1) % m];
+                            let inDx = curr.x - prev.x, inDy = curr.y - prev.y;
+                            let inLen = Math.hypot(inDx, inDy);
+                            let outDx = next.x - curr.x, outDy = next.y - curr.y;
+                            let outLen = Math.hypot(outDx, outDy);
+                            let r = Math.min(12, inLen / 2, outLen / 2);
+                            let p1 = { x: curr.x - (inDx / inLen) * r, y: curr.y - (inDy / inLen) * r };
+                            let p2 = { x: curr.x + (outDx / outLen) * r, y: curr.y + (outDy / outLen) * r };
+                            corners.push({ curr, p1, p2 });
+                        }
+                        let d = 'M ' + corners[0].p2.x + ' ' + corners[0].p2.y;
+                        for (let i = 1; i < m; i++) {
+                            d += ' L ' + corners[i].p1.x + ' ' + corners[i].p1.y;
+                            d += ' Q ' + corners[i].curr.x + ' ' + corners[i].curr.y + ' ' + corners[i].p2.x + ' ' + corners[i].p2.y;
+                        }
+                        d += ' L ' + corners[0].p1.x + ' ' + corners[0].p1.y;
+                        d += ' Q ' + corners[0].curr.x + ' ' + corners[0].curr.y + ' ' + corners[0].p2.x + ' ' + corners[0].p2.y;
+                        d += ' Z ';
+                        fullPathD += d;
+                    });
+
+                    let labels = [];
+                    let seenNames = new Set();
+                    let sortedSecs = [...secList].sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y));
+                    sortedSecs.forEach(s => {
+                        let name = (s.name || '').trim();
+                        if (name && !seenNames.has(name)) {
+                            seenNames.add(name);
+                            labels.push({
+                                name: name,
+                                left: (s.x - 1) * 40 + 8,
+                                top: (s.y - 1) * 40 + 6
+                            });
+                        }
+                    });
+
+                    components.push({
+                        color: color,
+                        hex: hex,
+                        path: fullPathD.trim(),
+                        labels: labels
+                    });
+                }
+                return components;
+            },
+            
             
             handleGridDrop(e) {
                 let rect = e.currentTarget.getBoundingClientRect();
@@ -1105,28 +1265,48 @@
                                 @endfor
                                 
                                 <!-- Render interactive sections overlay -->
-                                <template x-for="(sec, idx) in gridSections" :key="idx">
-                                    <div class="absolute border-2 rounded-xl transition-all flex flex-col justify-center items-center"
-                                         :style="getSectionStyle(sec)"
-                                         :class="[
-                                            getSectionColorClass(sec.color),
-                                            editMode === 'section' ? 'pointer-events-auto cursor-grab active:cursor-grabbing hover:ring-2 ring-white/50 shadow-lg z-10' : 'pointer-events-none z-0'
-                                         ]"
-                                         :draggable="editMode === 'section'"
-                                         @dragstart="if(editMode === 'section') { let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); }"
-                                         >
-                                         <span x-show="sec.name" class="absolute top-1.5 left-2 text-[10px] font-bold tracking-wider uppercase opacity-80 select-none pointer-events-none truncate max-w-[85%]" :style="{ color: getSectionHex(sec.color) }" x-text="sec.name"></span>
-                                         <div x-show="editMode === 'section'" @click.stop="if(justResizedSection) return; openPlacedSectionModal(idx)" class="w-full h-full relative group cursor-pointer">
-                                             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 bg-black/10 rounded-xl">
-                                                 <span class="bg-white/90 text-slate-900 p-2 rounded-lg shadow-sm font-bold flex items-center justify-center">
-                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                                 </span>
-                                             </div>
-                                             
-                                             <!-- Resize Handle (bottom-right) -->
-                                             <div class="absolute -bottom-[2px] -right-[2px] w-[14px] h-[14px] bg-white border-2 border-slate-900 rounded-full cursor-se-resize shadow pointer-events-auto z-20"
-                                                  @mousedown.stop.prevent="startSectionResize($event, idx)" @click.stop=""></div>
-                                         </div>
+                                <!-- VIEW MODE / NON-SECTION MODE: Render unified merged sections -->
+                                <template x-if="editMode !== 'section'">
+                                    <div class="contents">
+                                        <template x-for="(comp, cIdx) in getMergedSectionComponents()" :key="'comp-' + cIdx">
+                                            <div class="contents">
+                                                <svg class="absolute inset-0 pointer-events-none z-0 overflow-visible" style="width: 100%; height: 100%;">
+                                                    <path :d="comp.path" :fill="comp.hex + '26'" :stroke="comp.hex + 'cc'" stroke-width="2" fill-rule="evenodd" />
+                                                </svg>
+                                                <template x-for="(lbl, lIdx) in comp.labels" :key="'lbl-' + lIdx">
+                                                    <span class="absolute text-[10px] font-bold tracking-wider uppercase opacity-80 select-none pointer-events-none truncate max-w-[85%] z-0"
+                                                          :style="{ left: lbl.left + 'px', top: lbl.top + 'px', color: comp.hex }"
+                                                          x-text="lbl.name"></span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <!-- SECTION EDIT MODE: Render individual unmerged interactive section boxes -->
+                                <template x-if="editMode === 'section'">
+                                    <div class="contents">
+                                        <template x-for="(sec, idx) in gridSections" :key="idx">
+                                            <div class="absolute border-2 rounded-xl transition-all flex flex-col justify-center items-center pointer-events-auto cursor-grab active:cursor-grabbing hover:ring-2 ring-white/50 shadow-lg z-10"
+                                                 :style="getSectionStyle(sec)"
+                                                 :class="getSectionColorClass(sec.color)"
+                                                 :draggable="true"
+                                                 @dragstart="let r = $event.currentTarget.getBoundingClientRect(); let z = typeof zoom !== 'undefined' ? zoom : 1; let c = 40 * z; $event.dataTransfer.setData('ox', Math.floor(($event.clientX - r.left)/c)); $event.dataTransfer.setData('oy', Math.floor(($event.clientY - r.top)/c)); $event.dataTransfer.setData('sectionIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h);"
+                                                 >
+                                                 <span x-show="sec.name" class="absolute top-1.5 left-2 text-[10px] font-bold tracking-wider uppercase opacity-80 select-none pointer-events-none truncate max-w-[85%]" :style="{ color: getSectionHex(sec.color) }" x-text="sec.name"></span>
+                                                 <div @click.stop="if(justResizedSection) return; openPlacedSectionModal(idx)" class="w-full h-full relative group cursor-pointer">
+                                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 bg-black/10 rounded-xl">
+                                                         <span class="bg-white/90 text-slate-900 p-2 rounded-lg shadow-sm font-bold flex items-center justify-center">
+                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                         </span>
+                                                     </div>
+                                                     
+                                                     <!-- Resize Handle (bottom-right) -->
+                                                     <div class="absolute -bottom-[2px] -right-[2px] w-[14px] h-[14px] bg-white border-2 border-slate-900 rounded-full cursor-se-resize shadow pointer-events-auto z-20"
+                                                          @mousedown.stop.prevent="startSectionResize($event, idx)" @click.stop=""></div>
+                                                 </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
 
