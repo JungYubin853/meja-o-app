@@ -29,6 +29,11 @@
                 <a href="/database?view=hourly&date={{ $dateFilter }}"
                     class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'hourly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __('Daily Report') }}</a>
             @endif
+
+            @if (Auth::user()->hasPermission('rep_weekly'))
+                <a href="/database?view=weekly&date={{ $dateFilter }}"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'weekly' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __('Weekly Report') }}</a>
+            @endif
             
             @if (Auth::user()->hasPermission('rep_monthly'))
                 <a href="/database?view=daily&month={{ $monthFilter }}"
@@ -64,7 +69,7 @@
                 @if (auth()->check() && auth()->user()->isSuperAdmin() && $viewMode !== 'overall')
                     <form method="GET" action="/database" class="flex items-center m-0 p-0 w-full sm:w-auto">
                         <input type="hidden" name="view" value="{{ $viewMode }}">
-                        @if ($viewMode === 'hourly' || $viewMode === 'habits') <input type="hidden" name="date" value="{{ $dateFilter }}"> @endif
+                        @if ($viewMode === 'hourly' || $viewMode === 'habits' || $viewMode === 'weekly') <input type="hidden" name="date" value="{{ $dateFilter }}"> @endif
                         @if ($viewMode === 'daily') <input type="hidden" name="month" value="{{ $monthFilter }}"> @endif
                         @if ($viewMode === 'monthly') <input type="hidden" name="year" value="{{ $yearFilter }}"> @endif
                         
@@ -98,6 +103,16 @@
                         @elseif ($viewMode === 'daily')
                             <input type="month" name="month" value="{{ $monthFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
                             
+                        @elseif ($viewMode === 'weekly')
+                            <div class="flex items-center gap-2 flex-1 sm:w-auto">
+                                <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
+                                @if (isset($startOfWeek) && isset($endOfWeek))
+                                    <span class="text-xs font-semibold text-slate-500 whitespace-nowrap hidden md:inline">
+                                        ({{ $startOfWeek->format('d M') }} &ndash; {{ $endOfWeek->format('d M Y') }})
+                                    </span>
+                                @endif
+                            </div>
+
                         @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
                             <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
                             
@@ -567,6 +582,50 @@
                 </div>
             </div>
 
+        <!-- WEEKLY REPORT VIEW (Monday to Sunday) -->
+        @elseif (Auth::user()->hasPermission('rep_weekly') && $viewMode === 'weekly')
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">{{ __('Weekly Visitor Breakdown') }}</h3>
+                        <p class="text-xs text-slate-500 font-medium">
+                            @if(isset($startOfWeek) && isset($endOfWeek))
+                                {{ $startOfWeek->format('l, d M Y') }} &ndash; {{ $endOfWeek->format('l, d M Y') }}
+                            @endif
+                        </p>
+                    </div>
+                    @if(isset($weeklyTotal))
+                        <div class="text-right">
+                            <span class="text-xs text-slate-500 font-semibold">{{ __('Total Weekly Pax:') }}</span>
+                            <span class="text-base font-extrabold text-slate-900 ml-1.5 tabular-nums">{{ $weeklyTotal }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="h-56 flex items-end gap-2 sm:gap-4 pt-8 pb-3 border-b border-slate-200 overflow-x-auto touch-scroll relative">
+                    @php
+                        $weeklyPaxes = array_map(fn($d) => $d['pax'], $weeklyReportData ?? []);
+                        $maxWeekCount = max(array_merge($weeklyPaxes, [1]));
+                    @endphp
+                    @foreach ($weeklyReportData ?? [] as $dayInfo)
+                        @php
+                            $heightPercent = ($dayInfo['pax'] / max($maxWeekCount, 1)) * 100;
+                        @endphp
+                        <div class="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[36px]"
+                            title="{{ $dayInfo['day_full'] }} ({{ $dayInfo['date'] }}): {{ $dayInfo['pax'] }} pax">
+                            <div class="absolute -top-7 bg-slate-900 text-white text-[10px] font-bold py-1 px-2 rounded-md opacity-0 group-hover:opacity-100 transition shadow-md pointer-events-none whitespace-nowrap z-10">
+                                {{ $dayInfo['pax'] }} pax
+                            </div>
+                            <div class="w-full max-w-[48px] mx-auto bg-gradient-to-t from-slate-800 to-slate-700 group-hover:from-slate-900 group-hover:to-slate-800 rounded-t-md transition-all cursor-pointer shadow-sm"
+                                style="height: {{ max($heightPercent, 4) }}%;"></div>
+                            <span class="text-[11px] font-bold text-slate-700 mt-2">{{ __($dayInfo['day_name']) }}</span>
+                            <span class="text-[9px] font-medium text-slate-400">{{ $dayInfo['date'] }}</span>
+                            <span class="text-[10px] font-extrabold text-slate-800 mt-0.5 tabular-nums">{{ $dayInfo['pax'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
         <!-- MONTHLY REPORT VIEW -->
         @elseif(Auth::user()->hasPermission('rep_monthly') && $viewMode === 'daily')
             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-soft-xs space-y-4">
@@ -634,44 +693,44 @@
         <!-- WAITLIST DATABASE RECORDS -->
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
-                <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">{{ __('Waitlist Records Database') }}</h3>
-                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200">
+                <div class="p-3 sm:p-4 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 text-sm">{{ __('Waitlist Records Database') }}</h3>
+                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
                         {{ count($waitlists) }} {{ __('Records') }}
                     </span>
                 </div>
                 <div class="overflow-x-auto touch-scroll">
-                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                                <th class="p-3.5 sm:p-4">ID</th>
-                                <th class="p-3.5 sm:p-4">{{ __('Customer Name') }}</th>
-                                <th class="p-3.5 sm:p-4">{{ __('Phone') }}</th>
-                                <th class="p-3.5 sm:p-4">{{ __('Guests') }}</th>
-                                <th class="p-3.5 sm:p-4">{{ __('Status') }}</th>
-                                <th class="p-3.5 sm:p-4">Created At</th>
+                            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-2.5 px-3 sm:px-4">ID</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Customer Name') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Phone') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Guests') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Status') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">Created At</th>
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                    <th class="p-3.5 sm:p-4">{{ __('Staff') }}</th>
+                                    <th class="py-2.5 px-3 sm:px-4">{{ __('Staff') }}</th>
                                 @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($waitlists as $w)
                                 <tr class="hover:bg-slate-50/60 transition">
-                                    <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $w->id }}</td>
-                                    <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
+                                    <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-900">#{{ $w->id }}</td>
+                                    <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-900">
                                         {{ $w->customer_name ?? __('Walk-in Guest') }}</td>
-                                    <td class="p-3.5 sm:p-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
-                                    <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $w->pax }} Pax</td>
-                                    <td class="p-3.5 sm:p-4">
+                                    <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
+                                    <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-800">{{ $w->pax }} Pax</td>
+                                    <td class="py-2.5 px-3 sm:px-4">
                                         <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase {{ $w->status == 'waiting' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
                                             {{ ucfirst($w->status) }}
                                         </span>
                                     </td>
-                                    <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
+                                    <td class="py-2.5 px-3 sm:px-4 text-slate-500 tabular-nums">
                                         {{ $w->created_at ? $w->created_at->format('d M Y, H:i') : '-' }}</td>
                                     @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                        <td class="p-3.5 sm:p-4 text-slate-600">{{ $w->created_by ?? 'System' }}</td>
+                                        <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $w->created_by ?? 'System' }}</td>
                                     @endif
                                 </tr>
                             @empty
@@ -690,7 +749,7 @@
 
 
         @if ($viewMode !== 'overall' && $viewMode !== 'waitlist' && $viewMode !== 'habits')
-        <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Page Navigator) -->
+        <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Numbered Pagination) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
             x-data="{
                 perPage: 10,
@@ -704,23 +763,41 @@
                 },
                 prevPage() {
                     if (this.currentPage > 1) this.currentPage--;
+                },
+                goToPage(p) {
+                    if (p >= 1 && p <= this.totalPages) this.currentPage = p;
+                },
+                get pageRange() {
+                    const total = this.totalPages;
+                    const current = this.currentPage;
+                    const delta = 3;
+                    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+                    const range = [];
+                    const left = Math.max(2, current - delta);
+                    const right = Math.min(total - 1, current + delta);
+                    range.push(1);
+                    if (left > 2) range.push('...');
+                    for (let i = left; i <= right; i++) range.push(i);
+                    if (right < total - 1) range.push('...');
+                    range.push(total);
+                    return range;
                 }
             }">
 
-            <!-- Table Header: Title, {{ __('Records') }} Badge, Rows Dropdown, and 1/10 Pagination Stepper -->
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <!-- Table Header Controls Bar (Universal Top Bar) -->
+            <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Visitor Log Entries & Dining Durations</h3>
-                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border border-slate-200 tabular-nums">
+                    <h3 class="font-bold text-slate-800 text-sm">{{ __('Visitor Log Entries & Dining Durations') }}</h3>
+                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
                         {{ count($logs) }} {{ __('Records') }}
                     </span>
                 </div>
 
-                <!-- Right Controls: Rows Dropdown (10, 25, 50, 100) & Page Navigator -->
-                <div class="flex items-center gap-2 self-end sm:self-auto">
+                <!-- Right Controls: Rows Dropdown (10, 25, 50, 100) & Top Numbered Pagination -->
+                <div class="flex items-center gap-3 self-end sm:self-auto flex-wrap">
                     <!-- Dropdown: 10, 25, 50, 100 -->
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[11px] text-slate-500 font-semibold">{{ __('Show:') }}</span>
+                        <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                         <select x-model.number="perPage" @change="currentPage = 1"
                             class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
                             <option :value="10">10</option>
@@ -730,43 +807,54 @@
                         </select>
                     </div>
 
-                    <!-- Page Stepper: ‹ 1 / 10 › -->
-                    <div class="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200">
-                        <button type="button" @click="prevPage()" :disabled="currentPage === 1"
-                            :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed text-slate-400' :
-                                'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
-                            class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="{{ __('Previous Page') }}">
-                            ‹
-                        </button>
-                        <span class="text-xs font-extrabold text-slate-800 px-2 tabular-nums select-none">
-                            <span x-text="currentPage"></span> / <span x-text="totalPages"></span>
-                        </span>
-                        <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
-                            :class="currentPage >= totalPages ? 'opacity-40 cursor-not-allowed text-slate-400' :
-                                'hover:bg-white text-slate-800 active:scale-90 shadow-2xs'"
-                            class="w-7 h-7 flex items-center justify-center font-black text-sm rounded-md transition"
-                            title="{{ __('Next Page') }}">
-                            ›
-                        </button>
-                    </div>
+                    <!-- Top Numbered Pagination Stepper -->
+                    <template x-if="totalPages > 1">
+                        <div class="flex items-center gap-1 overflow-x-auto py-1">
+                            <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+
+                            <template x-for="(page, idx) in pageRange" :key="idx">
+                                <span>
+                                    <template x-if="page === '...'">
+                                        <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                    </template>
+                                    <template x-if="page !== '...'">
+                                        <button type="button" @click="goToPage(page)"
+                                            :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                            x-text="page">
+                                        </button>
+                                    </template>
+                                </span>
+                            </template>
+
+                            <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
             </div>
 
             <!-- Table Rows Filtered Dynamically by Current Page & Rows Per Page -->
             <div class="overflow-x-auto touch-scroll">
-                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                            <th class="p-3.5 sm:p-4">{{ __('Log ID') }}</th>
-                            <th class="p-3.5 sm:p-4">{{ __('Customer Name') }}</th>
-                            <th class="p-3.5 sm:p-4">{{ __('Phone') }}</th>
-                            <th class="p-3.5 sm:p-4">{{ __('Guests') }}</th>
-                            <th class="p-3.5 sm:p-4">{{ __('Started') }}</th>
-                            <th class="p-3.5 sm:p-4">{{ __('Ended') }}</th>
+                        <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Log ID') }}</th>
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Customer Name') }}</th>
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Phone') }}</th>
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Guests') }}</th>
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Started') }}</th>
+                            <th class="py-2.5 px-3 sm:px-4">{{ __('Ended') }}</th>
                             @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                <th class="p-3.5 sm:p-4">{{ __('Elapsed') }}</th>
-                                <th class="p-3.5 sm:p-4">{{ __('Staff') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Elapsed') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Staff') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -775,21 +863,21 @@
                             <tr class="hover:bg-slate-50/60 transition"
                                 x-show="({{ $loop->iteration }} > (currentPage - 1) * perPage) && ({{ $loop->iteration }} <= currentPage * perPage)"
                                 x-cloak>
-                                <td class="p-3.5 sm:p-4 font-bold text-slate-900">#{{ $log->id }}</td>
-                                <td class="p-3.5 sm:p-4 font-semibold text-slate-900">
+                                <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-900">#{{ $log->id }}</td>
+                                <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-900">
                                     {{ $log->customer_name ?? __('Walk-in Guest') }}</td>
-                                <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
-                                <td class="p-3.5 sm:p-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
-                                <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
+                                <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
+                                <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
+                                <td class="py-2.5 px-3 sm:px-4 text-slate-500 tabular-nums">
                                     {{ $log->started_at ? \Carbon\Carbon::parse($log->started_at)->format('d M, H:i') : '-' }}
                                 </td>
-                                <td class="p-3.5 sm:p-4 text-slate-500 tabular-nums">
+                                <td class="py-2.5 px-3 sm:px-4 text-slate-500 tabular-nums">
                                     {{ $log->ended_at ? \Carbon\Carbon::parse($log->ended_at)->format('d M, H:i') : __('In Progress') }}
                                 </td>
                                 @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
-                                    <td class="p-3.5 sm:p-4 font-medium text-slate-700">
+                                    <td class="py-2.5 px-3 sm:px-4 font-medium text-slate-700">
                                         {{ $log->time_elapsed ?? '-' }}</td>
-                                    <td class="p-3.5 sm:p-4 text-slate-600">{{ $log->created_by ?? '-' }}</td>
+                                    <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $log->created_by ?? '-' }}</td>
                                 @endif
                             </tr>
                         @empty
@@ -804,9 +892,9 @@
                 </table>
             </div>
 
-            <!-- Table Footer: "{{ __('Showing') }} X {{ __('to') }} Y {{ __('of') }} Z {{ __('records') }}" with Secondary Stepper -->
+            <!-- Table Footer Bar (Universal Bottom Bar) -->
             @if (count($logs) > 0)
-                <div class="p-3.5 sm:p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                <div class="p-3 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
                     <span>
                         {{ __('Showing') }} <strong class="text-slate-800"
                             x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
@@ -814,16 +902,37 @@
                             x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
                         {{ __('of') }} <strong class="text-slate-800" x-text="totalRecords"></strong> {{ __('records') }}
                     </span>
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" @click="prevPage()" :disabled="currentPage === 1"
-                            class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            {{ __('Previous') }}
-                        </button>
-                        <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
-                            class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                            {{ __('Next') }}
-                        </button>
-                    </div>
+
+                    <template x-if="totalPages > 1">
+                        <div class="flex items-center gap-1 overflow-x-auto py-1">
+                            <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+
+                            <template x-for="(page, idx) in pageRange" :key="idx">
+                                <span>
+                                    <template x-if="page === '...'">
+                                        <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                    </template>
+                                    <template x-if="page !== '...'">
+                                        <button type="button" @click="goToPage(page)"
+                                            :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                            x-text="page">
+                                        </button>
+                                    </template>
+                                </span>
+                            </template>
+
+                            <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
             @endif
         </div>

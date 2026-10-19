@@ -27,6 +27,12 @@ class ReportController extends Controller
                 $viewMode = 'overall';
             } elseif ($user->hasPermission('rep_daily')) {
                 $viewMode = 'hourly';
+            } elseif ($user->hasPermission('rep_weekly')) {
+                $viewMode = 'weekly';
+            } elseif ($user->hasPermission('rep_monthly')) {
+                $viewMode = 'daily';
+            } elseif ($user->hasPermission('rep_yearly')) {
+                $viewMode = 'monthly';
             } elseif ($user->hasPermission('rep_habits')) {
                 $viewMode = 'habits';
             } elseif ($user->hasPermission('rep_waitlist')) {
@@ -40,6 +46,7 @@ class ReportController extends Controller
         $permissionMap = [
             'overall'  => 'rep_overall',
             'hourly'   => 'rep_daily',
+            'weekly'   => 'rep_weekly',
             'daily'    => 'rep_monthly',
             'monthly'  => 'rep_yearly',
             'habits'   => 'rep_habits',
@@ -50,6 +57,10 @@ class ReportController extends Controller
             // Redirect to a safe allowed view if they typed a URL they lack permission for
             if ($user->hasPermission('rep_daily')) {
                 return redirect('/database?view=hourly');
+            } elseif ($user->hasPermission('rep_weekly')) {
+                return redirect('/database?view=weekly');
+            } elseif ($user->hasPermission('rep_monthly')) {
+                return redirect('/database?view=daily');
             } elseif ($user->hasPermission('rep_habits')) {
                 $viewMode = 'habits';
             } elseif ($user->hasPermission('rep_waitlist')) {
@@ -80,6 +91,8 @@ class ReportController extends Controller
         }
 
         $parsedMonth  = Carbon::parse($monthFilter);
+        $startOfWeek  = Carbon::parse($dateFilter)->startOfWeek(Carbon::MONDAY);
+        $endOfWeek    = Carbon::parse($dateFilter)->endOfWeek(Carbon::SUNDAY);
 
         $outletId = $user ? $user->outlet_id : null;
         $selectedOutletId = $outletId;
@@ -111,6 +124,8 @@ class ReportController extends Controller
 
         if ($viewMode === 'hourly') {
             $logQuery->whereDate('started_at', $dateFilter);
+        } elseif ($viewMode === 'weekly') {
+            $logQuery->whereBetween('started_at', [$startOfWeek->copy()->startOfDay(), $endOfWeek->copy()->endOfDay()]);
         } elseif ($viewMode === 'daily') {
             $logQuery->whereYear('started_at', $parsedMonth->year)
                      ->whereMonth('started_at', $parsedMonth->month);
@@ -150,21 +165,20 @@ class ReportController extends Controller
             }
         }
 
-        if ($viewMode === 'hourly') {
+        $dailyTotal   = (clone $baseLogQuery)->whereDate('started_at', $dateFilter)->sum('pax');
+        $weeklyTotal  = (clone $baseLogQuery)->whereBetween('started_at', [$startOfWeek->copy()->startOfDay(), $endOfWeek->copy()->endOfDay()])->sum('pax');
+        if ($viewMode === 'hourly' || $viewMode === 'weekly') {
             $parsedDate   = Carbon::parse($dateFilter);
-            $dailyTotal   = (clone $baseLogQuery)->whereDate('started_at', $dateFilter)->sum('pax');
             $monthlyTotal = (clone $baseLogQuery)->whereYear('started_at', $parsedDate->year)
                 ->whereMonth('started_at', $parsedDate->month)
                 ->sum('pax');
             $yearlyTotal  = (clone $baseLogQuery)->whereYear('started_at', $parsedDate->year)->sum('pax');
         } elseif ($viewMode === 'daily') {
-            $dailyTotal   = (clone $baseLogQuery)->whereDate('started_at', $dateFilter)->sum('pax');
             $monthlyTotal = (clone $baseLogQuery)->whereYear('started_at', $parsedMonth->year)
                 ->whereMonth('started_at', $parsedMonth->month)
                 ->sum('pax');
             $yearlyTotal  = (clone $baseLogQuery)->whereYear('started_at', $parsedMonth->year)->sum('pax');
         } else {
-            $dailyTotal   = (clone $baseLogQuery)->whereDate('started_at', $dateFilter)->sum('pax');
             $monthlyTotal = (clone $baseLogQuery)->whereYear('started_at', $parsedMonth->year)
                 ->whereMonth('started_at', $parsedMonth->month)
                 ->sum('pax');
@@ -266,6 +280,7 @@ class ReportController extends Controller
 
         // 5. Initialize chart containers
         $hourlyData       = [];
+        $weeklyReportData = [];
         $dailyReportData  = [];
         $yearlyReportData = [];
 
@@ -275,6 +290,18 @@ class ReportController extends Controller
                 $hourlyData[$h] = (int) (clone $baseLogQuery)->whereDate('started_at', $dateFilter)
                     ->whereRaw('HOUR(started_at) = ?', [$h])
                     ->sum('pax');
+            }
+        } elseif ($viewMode === 'weekly') {
+            for ($d = 0; $d < 7; $d++) {
+                $dayDate = $startOfWeek->copy()->addDays($d);
+                $dKey = $dayDate->format('Y-m-d');
+                $weeklyReportData[$dKey] = [
+                    'day_name'  => $dayDate->format('D'),
+                    'day_full'  => $dayDate->format('l'),
+                    'date'      => $dayDate->format('d M'),
+                    'full_date' => $dKey,
+                    'pax'       => (int) (clone $baseLogQuery)->whereDate('started_at', $dKey)->sum('pax'),
+                ];
             }
         } elseif ($viewMode === 'daily') {
             for ($d = 1; $d <= $parsedMonth->daysInMonth; $d++) {
@@ -293,9 +320,13 @@ class ReportController extends Controller
         return view('database', compact(
             'logs',
             'dailyTotal',
+            'weeklyTotal',
             'monthlyTotal',
             'yearlyTotal',
             'hourlyData',
+            'weeklyReportData',
+            'startOfWeek',
+            'endOfWeek',
             'dateFilter',
             'monthFilter',
             'yearFilter',
@@ -311,7 +342,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Export Daily, Monthly, or Yearly report to Excel (CSV) or printable PDF
+     * Export Daily, Weekly, Monthly, or Yearly report to Excel (CSV) or printable PDF
      */
     public function export(Request $request)
     {
@@ -326,6 +357,7 @@ class ReportController extends Controller
         $permissionMap = [
             'overall'  => 'rep_overall',
             'hourly'   => 'rep_daily',
+            'weekly'   => 'rep_weekly',
             'daily'    => 'rep_monthly',
             'monthly'  => 'rep_yearly',
             'habits'   => 'rep_habits',
@@ -350,6 +382,12 @@ class ReportController extends Controller
             $query->whereDate('started_at', $date);
             $filename = "Report-Daily-{$date}";
             $reportTitle = "Daily Visitor Report ({$date})";
+        } elseif ($view === 'weekly') {
+            $startOfWeek = Carbon::parse($date)->startOfWeek(Carbon::MONDAY);
+            $endOfWeek   = Carbon::parse($date)->endOfWeek(Carbon::SUNDAY);
+            $query->whereBetween('started_at', [$startOfWeek->copy()->startOfDay(), $endOfWeek->copy()->endOfDay()]);
+            $filename = "Report-Weekly-{$startOfWeek->format('Y-m-d')}-to-{$endOfWeek->format('Y-m-d')}";
+            $reportTitle = "Weekly Visitor Report ({$startOfWeek->format('d M Y')} - {$endOfWeek->format('d M Y')})";
         } elseif ($view === 'daily') {
             $parsedMonth = Carbon::parse($month);
             $query->whereYear('started_at', $parsedMonth->year)

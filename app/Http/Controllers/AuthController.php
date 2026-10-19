@@ -255,7 +255,12 @@ class AuthController extends Controller
             });
         }
 
-        $users = $query->latest()->paginate(15)->withQueryString();
+        $perPage = (int) $request->get('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $users = $query->latest()->paginate($perPage)->withQueryString();
 
         // Pending count for badge/tabs
         $pendingCountQuery = User::where('role', '!=', 'super_admin')
@@ -267,7 +272,7 @@ class AuthController extends Controller
 
         $outlets = \App\Models\Outlet::all();
 
-        return view('approval', compact('user', 'users', 'outlets', 'status', 'pendingCount'));
+        return view('approval', compact('user', 'users', 'outlets', 'status', 'pendingCount', 'perPage'));
     }
 
     public function approveUser($id)

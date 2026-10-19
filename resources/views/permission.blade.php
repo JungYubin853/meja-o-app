@@ -284,6 +284,10 @@
                                         <input type="checkbox" x-model="permissions.rep_daily" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Weekly Report') }}<span x-cloak x-show="differsFromDefault('rep_weekly')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.rep_weekly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Monthly Report') }}<span x-cloak x-show="differsFromDefault('rep_monthly')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.rep_monthly" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>

@@ -97,6 +97,7 @@ class User extends Authenticatable
             'nav_reports' => true,
             'rep_overall' => $this->isAdmin(),
             'rep_daily' => true,
+            'rep_weekly' => true,
             'rep_monthly' => $this->isAdmin(),
             'rep_yearly' => $this->isAdmin(),
             'rep_waitlist' => true,

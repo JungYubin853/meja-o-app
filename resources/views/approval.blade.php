@@ -144,6 +144,34 @@
                 this.confirmModalOpen = true;
             }
         }">
+            <!-- Table Header Controls Bar (Universal Top Bar) -->
+            <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <h3 class="font-bold text-slate-800 text-sm">{{ __('Applicant Accounts') }}</h3>
+                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
+                        {{ $users->total() }} {{ __('Records') }}
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-3 self-end sm:self-auto flex-wrap">
+                    <!-- Dropdown: Rows per page (10, 25, 50, 100) -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
+                        <select onchange="window.location.href = this.value"
+                            class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                            @foreach ([10, 25, 50, 100] as $opt)
+                                <option value="{{ request()->fullUrlWithQuery(['per_page' => $opt, 'page' => 1]) }}" {{ $perPage == $opt ? 'selected' : '' }}>
+                                    {{ $opt }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Top Numbered Pagination -->
+                    <x-numbered-pagination :paginator="$users" />
+                </div>
+            </div>
+
             @if ($users->isEmpty())
                 <div class="p-12 text-center space-y-3">
                     <div class="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto border border-slate-200/80">
@@ -167,83 +195,53 @@
                     </p>
                 </div>
             @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                <div class="overflow-x-auto touch-scroll">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
-                                <th class="py-3 px-4 sm:px-6">{{ __('Applicant / User') }}</th>
-                                <th class="py-3 px-4">{{ __('Outlet') }}</th>
-                                <th class="py-3 px-4">{{ __('Role') }}</th>
-                                <th class="py-3 px-4">{{ __('Source') }}</th>
-                                <th class="py-3 px-4">{{ __('Submitted') }}</th>
-                                <th class="py-3 px-4">{{ __('Status') }}</th>
-                                <th class="py-3 px-4 sm:px-6 text-right">{{ __('Actions') }}</th>
+                            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Applicant / User') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Outlet') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Role') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Source') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Submitted') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4">{{ __('Status') }}</th>
+                                <th class="py-2.5 px-3 sm:px-4 text-right">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs">
+                        <tbody class="divide-y divide-slate-100">
                             @foreach ($users as $applicant)
                                 <tr class="hover:bg-slate-50/60 transition">
-                                    <td class="py-3.5 px-4 sm:px-6">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-full bg-slate-900 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-2xs">
-                                                {{ strtoupper(substr($applicant->name, 0, 1)) }}
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-slate-900">{{ $applicant->name }}</div>
-                                                <div class="text-[11px] text-slate-500">{{ $applicant->email }}</div>
-                                            </div>
-                                        </div>
+                                    <td class="py-2.5 px-3 sm:px-4">
+                                        <div class="font-bold text-slate-800 text-xs">{{ $applicant->name }}</div>
+                                        <div class="text-[11px] font-medium text-slate-500">{{ $applicant->email }}</div>
                                     </td>
-                                    <td class="py-3.5 px-4 font-semibold text-slate-700">
-                                        @if ($applicant->outlet)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200/70">
-                                                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                                {{ $applicant->outlet->name }}
-                                            </span>
-                                        @else
-                                            <span class="text-slate-400 italic">{{ __('None') }}</span>
-                                        @endif
+                                    <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-700">
+                                        {{ $applicant->outlet->name ?? 'ALL OUTLETS' }}
                                     </td>
-                                    <td class="py-3.5 px-4 font-bold">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                    <td class="py-2.5 px-3 sm:px-4">
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider {{ $applicant->role === 'admin' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
                                             {{ $applicant->role }}
                                         </span>
                                     </td>
-                                    <td class="py-3.5 px-4">
-                                        @if ($applicant->is_self_registered)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 text-[11px] font-bold border border-sky-200 shadow-2xs">
-                                                <svg class="w-3 h-3 text-sky-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                                {{ __('Self-Registered') }}
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/80">
-                                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                                {{ __('Admin-Created') }}
-                                            </span>
-                                        @endif
+                                    <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-600">
+                                        {{ $applicant->is_self_registered ? __('Self-Registered') : __('Admin-Created') }}
                                     </td>
-                                    <td class="py-3.5 px-4 text-slate-500 font-medium text-[11px]">
+                                    <td class="py-2.5 px-3 sm:px-4 text-slate-500 font-medium text-[11px]">
                                         {{ $applicant->created_at ? $applicant->created_at->diffForHumans() : '-' }}
                                     </td>
-                                    <td class="py-3.5 px-4">
+                                    <td class="py-2.5 px-3 sm:px-4">
                                         @if ($applicant->status === 'pending')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                 {{ __('Pending') }}
                                             </span>
                                         @elseif ($applicant->status === 'approved')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                                 {{ __('Approved') }}
                                             </span>
                                         @elseif ($applicant->status === 'rejected')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-rose-50 text-rose-700 border border-rose-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                                 {{ __('Rejected') }}
                                             </span>
@@ -251,14 +249,14 @@
                                             <span class="text-slate-400 font-medium">{{ $applicant->status }}</span>
                                         @endif
                                     </td>
-                                    <td class="py-3.5 px-4 sm:px-6 text-right">
-                                        <div class="flex items-center justify-end gap-2">
+                                    <td class="py-2.5 px-3 sm:px-4 text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
                                             @if (!$applicant->isSuperAdmin())
                                                 @if ($applicant->status === 'pending')
                                                     <!-- Approve Button -->
                                                     <button type="button"
                                                         @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-soft-xs active:scale-95">
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-2xs active:scale-95">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                         </svg>
@@ -268,7 +266,7 @@
                                                     <!-- Reject Button -->
                                                     <button type="button"
                                                         @click="openConfirm('reject', '/approval/{{ $applicant->id }}/reject', '{{ addslashes($applicant->name) }}')"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold text-xs transition active:scale-95">
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold text-xs transition active:scale-95">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                         </svg>
@@ -278,7 +276,7 @@
                                                     <!-- Re-Approve Button -->
                                                     <button type="button"
                                                         @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 font-bold text-xs transition active:scale-95">
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 font-bold text-xs transition active:scale-95">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                         </svg>
@@ -304,11 +302,15 @@
                     </table>
                 </div>
 
-                @if ($users->hasPages())
-                    <div class="p-4 border-t border-slate-100">
-                        {{ $users->links() }}
-                    </div>
-                @endif
+                <!-- Table Footer Bar (Universal Bottom Bar) -->
+                <div class="p-3 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                    <span>
+                        {{ __('Showing') }} <strong class="text-slate-800">{{ $users->firstItem() ?? 0 }}</strong>
+                        {{ __('to') }} <strong class="text-slate-800">{{ $users->lastItem() ?? 0 }}</strong>
+                        {{ __('of') }} <strong class="text-slate-800">{{ $users->total() }}</strong> {{ __('records') }}
+                    </span>
+                    <x-numbered-pagination :paginator="$users" />
+                </div>
             @endif
 
             <!-- Confirmation Modal -->
