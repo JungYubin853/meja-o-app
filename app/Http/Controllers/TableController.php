@@ -164,6 +164,7 @@ class TableController extends Controller
         VisitorLog::create([
             'outlet_id'     => $table->outlet_id,
             'table_id'      => $table->id,
+            'table_number'  => $table->table_number ?: null,
             'customer_name' => 'Walk-in Guest',
             'phone'         => '-',
             'pax'           => $paxCount,
@@ -388,6 +389,7 @@ class TableController extends Controller
         VisitorLog::create([
             'outlet_id'     => $table->outlet_id,
             'table_id'      => $table->id,
+            'table_number'  => $table->table_number ?: null,
             'customer_name' => $waitlist->customer_name,
             'phone'         => $waitlist->phone,
             'pax'           => $paxCount,
@@ -694,7 +696,9 @@ class TableController extends Controller
         ]);
 
         VisitorLog::create([
+            'outlet_id'     => $table->outlet_id,
             'table_id'      => $table->id,
+            'table_number'  => $table->table_number ?: null,
             'customer_name' => $request->input('customer_name', 'Walk-in Guest'),
             'pax'           => $pax,
             'started_at'    => now(),

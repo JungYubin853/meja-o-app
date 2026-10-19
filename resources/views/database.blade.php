@@ -183,7 +183,23 @@
                 totalRecords: {{ count($habitsDateLog) }},
                 get totalPages() { return Math.max(1, Math.ceil(this.totalRecords / this.perPage)); },
                 nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
-                prevPage() { if (this.currentPage > 1) this.currentPage--; }
+                prevPage() { if (this.currentPage > 1) this.currentPage--; },
+                goToPage(p) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; },
+                get pageRange() {
+                    const total = this.totalPages;
+                    const current = this.currentPage;
+                    const delta = 3;
+                    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+                    const range = [];
+                    const left = Math.max(2, current - delta);
+                    const right = Math.min(total - 1, current + delta);
+                    range.push(1);
+                    if (left > 2) range.push('...');
+                    for (let i = left; i <= right; i++) range.push(i);
+                    if (right < total - 1) range.push('...');
+                    range.push(total);
+                    return range;
+                }
             }" class="flex flex-col gap-4">
 
                 <!-- 1. Top Bar (One long container) -->
@@ -369,25 +385,46 @@
                               </div>
   
                               <!-- Pagination Controls -->
-                              <div class="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-4">
-                                  <div class="flex items-center gap-2">
-                                      <span class="text-xs font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
-                                      <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
-                                          <option value="10">10</option>
-                                          <option value="25">25</option>
-                                          <option value="50">50</option>
-                                          <option value="100">100</option>
+                              <div class="flex items-center justify-between lg:justify-end w-full lg:w-auto gap-3 flex-wrap">
+                                  <div class="flex items-center gap-1.5">
+                                      <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
+                                      <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                          <option :value="10">10</option>
+                                          <option :value="25">25</option>
+                                          <option :value="50">50</option>
+                                          <option :value="100">100</option>
                                       </select>
                                   </div>
-                                  <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
-                                      <button @click="prevPage()" :disabled="currentPage === 1" class="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-white disabled:opacity-50 disabled:hover:bg-transparent transition-all">
-                                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                      </button>
-                                      <span class="text-xs font-bold text-slate-700 min-w-[3rem] text-center"><span x-text="currentPage"></span> / <span x-text="totalPages"></span></span>
-                                      <button @click="nextPage()" :disabled="currentPage === totalPages" class="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-white disabled:opacity-50 disabled:hover:bg-transparent transition-all">
-                                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                      </button>
-                                  </div>
+                                  <template x-if="totalPages > 1">
+                                      <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                          <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                              :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                              class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                          </button>
+
+                                          <template x-for="(page, idx) in pageRange" :key="idx">
+                                              <span>
+                                                  <template x-if="page === '...'">
+                                                      <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                                  </template>
+                                                  <template x-if="page !== '...'">
+                                                      <button type="button" @click="goToPage(page)"
+                                                          :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                          x-text="page">
+                                                      </button>
+                                                  </template>
+                                              </span>
+                                          </template>
+
+                                          <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                              :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                              class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                          </button>
+                                      </div>
+                                  </template>
                               </div>
                           </div>
   <!-- TABLE VIEW -->
@@ -415,9 +452,9 @@
                                             {{ $log->time_elapsed ?? \Carbon\Carbon::parse($log->started_at)->diffInMinutes(\Carbon\Carbon::parse($log->ended_at)) . ' min' }}
                                         </td>
                                         <td class="px-4 py-3">
-                                            @if($log->table)
+                                            @if(!empty($log->table_number))
                                                 <span class="inline-flex items-center px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded text-[10px] font-bold">
-                                                    {{ $log->table->table_number ?? 'Table ' . $log->table->id }}
+                                                    {{ $log->table_number }}
                                                 </span>
                                             @else
                                                 <span class="text-slate-400 text-xs">-</span>
@@ -432,6 +469,50 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Habits Table Footer Bar (Universal Bottom Bar) -->
+                    @if (count($habitsDateLog) > 0)
+                        <div x-show="activeTab === 'table'" class="p-3 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                            <span>
+                                {{ __('Showing') }} <strong class="text-slate-800"
+                                    x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
+                                {{ __('to') }} <strong class="text-slate-800"
+                                    x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
+                                {{ __('of') }} <strong class="text-slate-800" x-text="totalRecords"></strong> {{ __('records') }}
+                            </span>
+
+                            <template x-if="totalPages > 1">
+                                <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                    <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                        :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+
+                                    <template x-for="(page, idx) in pageRange" :key="idx">
+                                        <span>
+                                            <template x-if="page === '...'">
+                                                <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                            </template>
+                                            <template x-if="page !== '...'">
+                                                <button type="button" @click="goToPage(page)"
+                                                    :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                    x-text="page">
+                                                </button>
+                                            </template>
+                                        </span>
+                                    </template>
+
+                                    <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                        :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    @endif
 
                     <!-- GANTT VIEW -->
                     <div x-show="activeTab === 'gantt'" class="p-4 bg-slate-50/20" style="display: none;">
@@ -476,7 +557,7 @@
                                                 <div class="w-32 shrink-0 pl-2 pr-2 text-left truncate">
                                                     <div class="text-xs font-bold text-slate-700 truncate" title="{{ $log->customer_name }}">{{ $log->customer_name ?? 'Walk-in' }}</div>
                                                     <div class="text-[10px] font-semibold text-slate-400">
-                                                        @if($log->table) Tbl {{ $log->table->table_number ?? $log->table->id }} @else - @endif
+                                                        @if(!empty($log->table_number)) Tbl {{ $log->table_number }} @else - @endif
                                                     </div>
                                                 </div>
                                                 
@@ -513,7 +594,95 @@
         @if ($viewMode === 'overall' && Auth::user()->hasPermission('rep_overall'))
             <div class="space-y-4">
                 @if(count($overallStats) > 0)
-                      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
+                      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
+                          x-data="{
+                              perPage: 10,
+                              currentPage: 1,
+                              totalRecords: {{ count($overallStats) }},
+                              get totalPages() {
+                                  return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                              },
+                              nextPage() {
+                                  if (this.currentPage < this.totalPages) this.currentPage++;
+                              },
+                              prevPage() {
+                                  if (this.currentPage > 1) this.currentPage--;
+                              },
+                              goToPage(p) {
+                                  if (p >= 1 && p <= this.totalPages) this.currentPage = p;
+                              },
+                              get pageRange() {
+                                  const total = this.totalPages;
+                                  const current = this.currentPage;
+                                  const delta = 3;
+                                  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+                                  const range = [];
+                                  const left = Math.max(2, current - delta);
+                                  const right = Math.min(total - 1, current + delta);
+                                  range.push(1);
+                                  if (left > 2) range.push('...');
+                                  for (let i = left; i <= right; i++) range.push(i);
+                                  if (right < total - 1) range.push('...');
+                                  range.push(total);
+                                  return range;
+                              }
+                          }">
+
+                          <!-- Overall Header Controls Bar (Universal Top Bar) -->
+                          <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                              <div class="flex items-center gap-2.5">
+                                  <h3 class="font-bold text-slate-800 text-sm">{{ __('Overall Outlets Visitor Statistics') }}</h3>
+                                  <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
+                                      {{ count($overallStats) }} {{ __('Outlets') }}
+                                  </span>
+                              </div>
+
+                              <!-- Right Controls: Rows Dropdown (10, 25, 50, 100) & Top Numbered Pagination -->
+                              <div class="flex items-center gap-3 self-end sm:self-auto flex-wrap">
+                                  <div class="flex items-center gap-1.5">
+                                      <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
+                                      <select x-model.number="perPage" @change="currentPage = 1"
+                                          class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                          <option :value="10">10</option>
+                                          <option :value="25">25</option>
+                                          <option :value="50">50</option>
+                                          <option :value="100">100</option>
+                                      </select>
+                                  </div>
+
+                                  <template x-if="totalPages > 1">
+                                      <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                          <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                              :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                              class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                          </button>
+
+                                          <template x-for="(page, idx) in pageRange" :key="idx">
+                                              <span>
+                                                  <template x-if="page === '...'">
+                                                      <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                                  </template>
+                                                  <template x-if="page !== '...'">
+                                                      <button type="button" @click="goToPage(page)"
+                                                          :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                          x-text="page">
+                                                      </button>
+                                                  </template>
+                                              </span>
+                                          </template>
+
+                                          <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                              :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                              class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                          </button>
+                                      </div>
+                                  </template>
+                              </div>
+                          </div>
+
                           <div class="overflow-x-auto touch-scroll">
                               <table class="w-full text-left border-collapse">
                                   <thead>
@@ -526,7 +695,9 @@
                                   </thead>
                                   <tbody class="divide-y divide-slate-100">
                                       @foreach ($overallStats as $stat)
-                                          <tr class="hover:bg-slate-50/50 transition">
+                                          <tr class="hover:bg-slate-50/50 transition"
+                                              x-show="({{ $loop->iteration }} > (currentPage - 1) * perPage) && ({{ $loop->iteration }} <= currentPage * perPage)"
+                                              x-cloak>
                                               <td class="px-3 py-2">
                                                   <span class="text-xs sm:text-sm font-bold text-slate-900">{{ $stat['outlet']->name }}</span>
                                               </td>
@@ -546,6 +717,48 @@
                                       @endforeach
                                   </tbody>
                               </table>
+                          </div>
+
+                          <!-- Overall Table Footer Bar (Universal Bottom Bar) -->
+                          <div class="p-3 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                              <span>
+                                  {{ __('Showing') }} <strong class="text-slate-800"
+                                      x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
+                                  {{ __('to') }} <strong class="text-slate-800"
+                                      x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
+                                  {{ __('of') }} <strong class="text-slate-800" x-text="totalRecords"></strong> {{ __('outlets') }}
+                              </span>
+
+                              <template x-if="totalPages > 1">
+                                  <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                      <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                          :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                          class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                      </button>
+
+                                      <template x-for="(page, idx) in pageRange" :key="idx">
+                                          <span>
+                                              <template x-if="page === '...'">
+                                                  <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                              </template>
+                                              <template x-if="page !== '...'">
+                                                  <button type="button" @click="goToPage(page)"
+                                                      :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                      class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                      x-text="page">
+                                                  </button>
+                                              </template>
+                                          </span>
+                                      </template>
+
+                                      <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                          :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                          class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                      </button>
+                                  </div>
+                              </template>
                           </div>
                       </div>
                   @else
@@ -692,13 +905,96 @@
 
         <!-- WAITLIST DATABASE RECORDS -->
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
-                <div class="p-3 sm:p-4 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800 text-sm">{{ __('Waitlist Records Database') }}</h3>
-                    <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
-                        {{ count($waitlists) }} {{ __('Records') }}
-                    </span>
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
+                x-data="{
+                    perPage: 10,
+                    currentPage: 1,
+                    totalRecords: {{ count($waitlists) }},
+                    get totalPages() {
+                        return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                    },
+                    nextPage() {
+                        if (this.currentPage < this.totalPages) this.currentPage++;
+                    },
+                    prevPage() {
+                        if (this.currentPage > 1) this.currentPage--;
+                    },
+                    goToPage(p) {
+                        if (p >= 1 && p <= this.totalPages) this.currentPage = p;
+                    },
+                    get pageRange() {
+                        const total = this.totalPages;
+                        const current = this.currentPage;
+                        const delta = 3;
+                        if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+                        const range = [];
+                        const left = Math.max(2, current - delta);
+                        const right = Math.min(total - 1, current + delta);
+                        range.push(1);
+                        if (left > 2) range.push('...');
+                        for (let i = left; i <= right; i++) range.push(i);
+                        if (right < total - 1) range.push('...');
+                        range.push(total);
+                        return range;
+                    }
+                }">
+                <!-- Table Header Controls Bar (Universal Top Bar) -->
+                <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <h3 class="font-bold text-slate-800 text-sm">{{ __('Waitlist Records Database') }}</h3>
+                        <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
+                            {{ count($waitlists) }} {{ __('Records') }}
+                        </span>
+                    </div>
+
+                    <!-- Right Controls: Rows Dropdown (10, 25, 50, 100) & Top Numbered Pagination -->
+                    <div class="flex items-center gap-3 self-end sm:self-auto flex-wrap">
+                        <!-- Dropdown: 10, 25, 50, 100 -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
+                            <select x-model.number="perPage" @change="currentPage = 1"
+                                class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                <option :value="10">10</option>
+                                <option :value="25">25</option>
+                                <option :value="50">50</option>
+                                <option :value="100">100</option>
+                            </select>
+                        </div>
+
+                        <!-- Top Numbered Pagination Stepper -->
+                        <template x-if="totalPages > 1">
+                            <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                    :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+
+                                <template x-for="(page, idx) in pageRange" :key="idx">
+                                    <span>
+                                        <template x-if="page === '...'">
+                                            <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                        </template>
+                                        <template x-if="page !== '...'">
+                                            <button type="button" @click="goToPage(page)"
+                                                :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                x-text="page">
+                                            </button>
+                                        </template>
+                                    </span>
+                                </template>
+
+                                <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                    :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
                 </div>
+
                 <div class="overflow-x-auto touch-scroll">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -716,7 +1012,9 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($waitlists as $w)
-                                <tr class="hover:bg-slate-50/60 transition">
+                                <tr class="hover:bg-slate-50/60 transition"
+                                    x-show="({{ $loop->iteration }} > (currentPage - 1) * perPage) && ({{ $loop->iteration }} <= currentPage * perPage)"
+                                    x-cloak>
                                     <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-900">#{{ $w->id }}</td>
                                     <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-900">
                                         {{ $w->customer_name ?? __('Walk-in Guest') }}</td>
@@ -744,6 +1042,50 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Waitlist Table Footer Bar (Universal Bottom Bar) -->
+                @if (count($waitlists) > 0)
+                    <div class="p-3 sm:p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+                        <span>
+                            {{ __('Showing') }} <strong class="text-slate-800"
+                                x-text="totalRecords > 0 ? ((currentPage - 1) * perPage) + 1 : 0"></strong>
+                            {{ __('to') }} <strong class="text-slate-800"
+                                x-text="Math.min(currentPage * perPage, totalRecords)"></strong>
+                            {{ __('of') }} <strong class="text-slate-800" x-text="totalRecords"></strong> {{ __('records') }}
+                        </span>
+
+                        <template x-if="totalPages > 1">
+                            <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                    :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+
+                                <template x-for="(page, idx) in pageRange" :key="idx">
+                                    <span>
+                                        <template x-if="page === '...'">
+                                            <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                        </template>
+                                        <template x-if="page !== '...'">
+                                            <button type="button" @click="goToPage(page)"
+                                                :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                x-text="page">
+                                            </button>
+                                        </template>
+                                    </span>
+                                </template>
+
+                                <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                    :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                    class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                @endif
             </div>
         @endif
 

@@ -9,6 +9,7 @@ class VisitorLog extends Model
     protected $fillable = [
         'outlet_id',
         'table_id',
+        'table_number',
         'customer_name',
         'phone',
         'pax',
