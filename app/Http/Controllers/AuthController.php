@@ -217,9 +217,8 @@ class AuthController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        // Only show self-registered users, and never show Super Admin!
-        $query = User::where('role', '!=', 'super_admin')
-            ->where('is_self_registered', true);
+        // Never show Super Admin in approval!
+        $query = User::where('role', '!=', 'super_admin');
 
         if (!$user->isSuperAdmin()) {
             $query->where('outlet_id', $user->outlet_id);
@@ -231,6 +230,15 @@ class AuthController extends Controller
         $status = $request->get('status', 'pending');
         if ($status !== 'all') {
             $query->where('status', $status);
+        }
+
+        // Source filter: 'self' (Self-Registered), 'admin' (Admin-Created), or 'all'
+        if ($request->filled('source')) {
+            if ($request->source === 'self') {
+                $query->where('is_self_registered', true);
+            } elseif ($request->source === 'admin') {
+                $query->where('is_self_registered', false);
+            }
         }
 
         // Outlet filter for super admin
@@ -251,7 +259,6 @@ class AuthController extends Controller
 
         // Pending count for badge/tabs
         $pendingCountQuery = User::where('role', '!=', 'super_admin')
-            ->where('is_self_registered', true)
             ->where('status', 'pending');
         if (!$user->isSuperAdmin()) {
             $pendingCountQuery->where('outlet_id', $user->outlet_id);

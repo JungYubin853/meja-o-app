@@ -191,6 +191,11 @@
                                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider {{ $u->role === 'admin' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
                                                 {{ $u->role }}
                                             </span>
+                                            @if($u->is_self_registered)
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
+                                                    {{ __('Self-Registered') }}
+                                                </span>
+                                            @endif
                                             @if($u->status === 'pending')
                                                 <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                                                     {{ __('Pending') }}

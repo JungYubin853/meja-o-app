@@ -89,6 +89,16 @@
                             class="w-full text-xs pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900">
                     </div>
 
+                    <!-- Registration Source filter -->
+                    <div class="w-full sm:w-44">
+                        <select name="source" onchange="this.form.submit()"
+                            class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                            <option value="">{{ __('All Sources') }}</option>
+                            <option value="self" {{ request('source') === 'self' ? 'selected' : '' }}>{{ __('Self-Registered') }}</option>
+                            <option value="admin" {{ request('source') === 'admin' ? 'selected' : '' }}>{{ __('Admin-Created') }}</option>
+                        </select>
+                    </div>
+
                     <!-- Outlet dropdown (Super Admin only) -->
                     @if ($user->isSuperAdmin())
                         <div class="w-full sm:w-64">
@@ -112,7 +122,7 @@
                         <span>{{ __('Search') }}</span>
                     </button>
 
-                    @if (request()->hasAny(['search', 'outlet_id']) || ($status && $status !== 'pending'))
+                    @if (request()->hasAny(['search', 'outlet_id', 'source']) || ($status && $status !== 'pending'))
                         <a href="/approval" class="w-full sm:w-auto text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-2 rounded-xl hover:bg-slate-100 transition text-center">
                             {{ __('Reset') }}
                         </a>
@@ -164,6 +174,7 @@
                                 <th class="py-3 px-4 sm:px-6">{{ __('Applicant / User') }}</th>
                                 <th class="py-3 px-4">{{ __('Outlet') }}</th>
                                 <th class="py-3 px-4">{{ __('Role') }}</th>
+                                <th class="py-3 px-4">{{ __('Source') }}</th>
                                 <th class="py-3 px-4">{{ __('Submitted') }}</th>
                                 <th class="py-3 px-4">{{ __('Status') }}</th>
                                 <th class="py-3 px-4 sm:px-6 text-right">{{ __('Actions') }}</th>
@@ -199,6 +210,23 @@
                                         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                                             {{ $applicant->role }}
                                         </span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        @if ($applicant->is_self_registered)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 text-[11px] font-bold border border-sky-200 shadow-2xs">
+                                                <svg class="w-3 h-3 text-sky-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                {{ __('Self-Registered') }}
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/80">
+                                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                {{ __('Admin-Created') }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-3.5 px-4 text-slate-500 font-medium text-[11px]">
                                         {{ $applicant->created_at ? $applicant->created_at->diffForHumans() : '-' }}
