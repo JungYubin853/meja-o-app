@@ -71,6 +71,7 @@ class AuthController extends Controller
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'viewable_password' => \Illuminate\Support\Facades\Crypt::encryptString($validated['password']),
             'outlet_id'=> $validated['outlet_id'],
             'role'     => 'staff', // Fixed as staff on registration
             'status'   => 'pending', // Requires approval
@@ -81,7 +82,80 @@ class AuthController extends Controller
         return redirect()->route('login')->with('status', 'Registration successful! Your account is pending approval by an administrator.');
     }
 
-    public function showProfile()
+    public function requestForgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'master_recovery_key' => 'nullable|string',
+            'new_password' => 'nullable|string|min:6',
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'forgot_error' => 'No registered account found matching that email address.'
+            ])->withInput();
+        }
+
+        // Super Admin instant recovery via Master Security Key
+        if ($user->isSuperAdmin()) {
+            $masterKey = env('SUPERADMIN_MASTER_KEY', 'MEJAO2026!');
+            if (!empty($validated['master_recovery_key'])) {
+                if ($validated['master_recovery_key'] === $masterKey) {
+                    if (!empty($validated['new_password'])) {
+                        $user->password = Hash::make($validated['new_password']);
+                        $user->viewable_password = \Illuminate\Support\Facades\Crypt::encryptString($validated['new_password']);
+                        $user->save();
+                        return back()->with('status', 'Super Admin password successfully reset! Please sign in with your new password.');
+                    }
+                    return back()->withErrors(['forgot_error' => 'Please provide a new password of at least 6 characters.']);
+                } else {
+                    return back()->withErrors(['forgot_error' => 'Invalid Master Security Key.']);
+                }
+            }
+
+            // Create / update request for super admin
+            \App\Models\PasswordResetRequest::create([
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'outlet_id' => null,
+                'role' => 'super_admin',
+                'status' => 'pending',
+                'admin_notes' => 'Super Admin forgot password inquiry. You can also reset instantly using Master Security Key (MEJAO2026!).',
+            ]);
+
+            return back()->with('status', 'Super Admin recovery request registered. Alternatively, provide the Master Security Key (MEJAO2026!) in the recovery modal to reset immediately.');
+        }
+
+        // Create / update request for staff or admin
+        $existing = \App\Models\PasswordResetRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existing) {
+            $existing->touch();
+        } else {
+            \App\Models\PasswordResetRequest::create([
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'outlet_id' => $user->outlet_id,
+                'role' => $user->role,
+                'status' => 'pending',
+            ]);
+        }
+
+        if ($user->role === 'admin') {
+            $msg = 'Password reset request submitted! The Super Admin has been notified.';
+        } else {
+            $outletName = $user->outlet ? $user->outlet->name : 'your store';
+            $msg = "Password reset request submitted! Your outlet Admin ({$outletName}) and Super Admin have been notified.";
+        }
+
+        return back()->with('status', $msg);
+    }
+
+    public function showProfile(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -89,45 +163,36 @@ class AuthController extends Controller
             abort(403);
         }
         $outlets = \App\Models\Outlet::all();
-        return view('profile', compact('user', 'outlets'));
-    }
 
-    public function showAccountManagement()
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        
-        if (!$user->hasPermission('nav_account_mgmt')) {
-            abort(403);
-        }
+        $resetRequests = collect();
+        $pendingCount = 0;
 
         if ($user->isSuperAdmin()) {
-            $query = User::with('outlet');
-        } else {
-            $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
+            $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])->latest();
+            $pendingCount = (clone $query)->where('status', 'pending')->count();
+            $filterStatus = $request->query('req_status', 'all');
+            if ($filterStatus === 'pending') {
+                $query->where('status', 'pending');
+            } elseif ($filterStatus === 'resolved') {
+                $query->where('status', 'resolved');
+            }
+            $resetRequests = $query->get();
+        } elseif ($user->isAdmin()) {
+            $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])
+                ->where('outlet_id', $user->outlet_id)
+                ->where('role', 'staff')
+                ->latest();
+            $pendingCount = (clone $query)->where('status', 'pending')->count();
+            $filterStatus = $request->query('req_status', 'all');
+            if ($filterStatus === 'pending') {
+                $query->where('status', 'pending');
+            } elseif ($filterStatus === 'resolved') {
+                $query->where('status', 'resolved');
+            }
+            $resetRequests = $query->get();
         }
 
-        if (request()->filled('role')) {
-            $query->where('role', request('role'));
-        }
-        
-        if (request()->filled('outlet_id')) {
-            $query->where('outlet_id', request('outlet_id'));
-        }
-        
-        if (request()->filled('search')) {
-            $search = request('search');
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        $allUsers = $query->get();
-        
-        $outlets = \App\Models\Outlet::all();
-
-        return view('account-management', compact('user', 'allUsers', 'outlets'));
+        return view('profile', compact('user', 'outlets', 'resetRequests', 'pendingCount'));
     }
 
     public function updateProfile(Request $request)
@@ -136,20 +201,100 @@ class AuthController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'outlet_id'=> 'nullable|exists:outlets,id',
-            'password' => 'nullable|string|min:6',
+            'name' => 'required|string|max:255',
         ]);
 
         $user->name = $validated['name'];
-
-        if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
-
         $user->save();
 
-        return back()->with('success', 'Profile updated successfully.');
+        return back()->with('success', 'Profile details updated successfully.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors(['current_password' => 'The provided current password does not match our records.'])->withInput();
+        }
+
+        $user->password = Hash::make($validated['new_password']);
+        $user->viewable_password = \Illuminate\Support\Facades\Crypt::encryptString($validated['new_password']);
+        $user->save();
+
+        return back()->with('success_password', 'Your password has been changed successfully.');
+    }
+
+    public function adminChangeUserPassword(Request $request, $id)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+
+        if (!$currentUser->isAdmin() && !$currentUser->isSuperAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $resetReq = \App\Models\PasswordResetRequest::findOrFail($id);
+        $targetUser = $resetReq->user;
+
+        // Admin can only change password for staff in their own outlet
+        if ($currentUser->isAdmin()) {
+            if ($targetUser->role !== 'staff' || $targetUser->outlet_id !== $currentUser->outlet_id) {
+                abort(403, 'You can only manage passwords for staff within your assigned outlet.');
+            }
+        }
+
+        $validated = $request->validate([
+            'new_password' => 'required|string|min:6',
+            'admin_notes'  => 'nullable|string|max:500',
+        ]);
+
+        $newPass = $validated['new_password'];
+        $targetUser->password = Hash::make($newPass);
+        $targetUser->viewable_password = \Illuminate\Support\Facades\Crypt::encryptString($newPass);
+        $targetUser->save();
+
+        $resetReq->status = 'resolved';
+        $resetReq->resolved_by = $currentUser->name;
+        $resetReq->resolved_at = now();
+        $resetReq->admin_notes = $validated['admin_notes'] ?? ('Password changed by ' . $currentUser->name);
+        $resetReq->save();
+
+        return back()->with('success_req', "Password for {$targetUser->name} ({$targetUser->email}) was successfully changed to: '{$newPass}'. Please inform the user.");
+    }
+
+    public function resolveResetRequest(Request $request, $id)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+
+        if (!$currentUser->isAdmin() && !$currentUser->isSuperAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $resetReq = \App\Models\PasswordResetRequest::findOrFail($id);
+
+        if ($currentUser->isAdmin()) {
+            if ($resetReq->role !== 'staff' || $resetReq->outlet_id !== $currentUser->outlet_id) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        $resetReq->status = 'resolved';
+        $resetReq->resolved_by = $currentUser->name;
+        $resetReq->resolved_at = now();
+        if ($request->filled('admin_notes')) {
+            $resetReq->admin_notes = $request->admin_notes;
+        }
+        $resetReq->save();
+
+        return back()->with('success_req', 'Request marked as resolved.');
     }
 
     public function createUser(Request $request)
@@ -177,6 +322,7 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'viewable_password' => \Illuminate\Support\Facades\Crypt::encryptString($validated['password']),
             'role' => $validated['role'],
             'outlet_id' => $validated['role'] === 'super_admin' ? null : $validated['outlet_id'],
             'permissions' => $validated['role'] === 'super_admin' ? null : $defaultPermissions,

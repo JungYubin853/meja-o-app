@@ -10,6 +10,7 @@ use App\Http\Controllers\DatabaseController;
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'requestForgotPassword'])->name('password.request');
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout']);
@@ -26,6 +27,9 @@ Route::get('/lang/{locale}', function ($locale) {
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/change-password', [AuthController::class, 'updatePassword'])->name('profile.change-password');
+    Route::post('/profile/reset-requests/{id}/change-password', [AuthController::class, 'adminChangeUserPassword'])->name('profile.reset-requests.change-password');
+    Route::post('/profile/reset-requests/{id}/resolve', [AuthController::class, 'resolveResetRequest'])->name('profile.reset-requests.resolve');
     Route::get('/account-management', [AuthController::class, 'showAccountManagement'])->name('account-management');
     Route::post('/users', [AuthController::class, 'createUser']);
     Route::delete('/users/{id}', [AuthController::class, 'deleteUser']);

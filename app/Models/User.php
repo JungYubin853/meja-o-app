@@ -17,6 +17,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'viewable_password',
         'role',
         'status',
         'is_self_registered',
@@ -24,9 +25,26 @@ class User extends Authenticatable
         'permissions',
     ];
 
+    public function getViewablePassword(): ?string
+    {
+        if (empty($this->viewable_password)) {
+            return null;
+        }
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($this->viewable_password);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    public function passwordResetRequests()
+    {
+        return $this->hasMany(PasswordResetRequest::class);
     }
     
     public function isSuperAdmin()
