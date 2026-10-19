@@ -107,7 +107,7 @@
             @endif
 
             @if (Auth::user()->hasPermission('acc_user_list'))
-                <div x-data="{
+                <div class="flex-1 min-w-0 flex flex-col gap-4" x-data="{
                     currentPage: 1,
                     perPage: 10,
                     totalItems: {{ count($allUsers) }},
@@ -130,8 +130,9 @@
                         range.push(total);
                         return range;
                     }
-                }" class="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
-                    <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                }">
+                    <!-- Above Container: User List Title, Records Badge, All Outlets, All Roles -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
                             <h3 class="text-sm font-bold text-slate-800">{{ __('User List') }}</h3>
                             <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 tabular-nums">
@@ -139,79 +140,82 @@
                             </span>
                         </div>
                         
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-                            <!-- Filters -->
-                            <form method="GET" action="/account-management" class="flex items-center gap-2">
-                                <select name="outlet_id" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
-                                    <option value="">{{ __('All Outlets') }}</option>
-                                    @foreach($outlets as $outlet)
-                                        <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
-                                    @endforeach
-                                </select>
-                                <select name="role" onchange="this.form.submit()" class="h-8 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0 focus:ring-0 focus:border-slate-300">
-                                    <option value="">{{ __('All Roles') }}</option>
-                                    @if (Auth::user()->isSuperAdmin())
-                                        <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>{{ __('Super Admin') }}</option>
-                                    @endif
-                                    <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
-                                    <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
-                                </select>
-                                @if(request()->filled('role') || request()->filled('outlet_id'))
-                                    <a href="/account-management" class="text-[11px] font-bold text-slate-400 hover:text-slate-800 ml-1">Clear</a>
+                        <!-- Filters -->
+                        <form method="GET" action="/account-management" class="flex items-center gap-2.5 w-full sm:w-auto flex-wrap">
+                            @if(request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            <select name="outlet_id" onchange="this.form.submit()" class="h-9 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer w-full sm:w-auto">
+                                <option value="">{{ __('All Outlets') }}</option>
+                                @foreach($outlets as $outlet)
+                                    <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="role" onchange="this.form.submit()" class="h-9 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer w-full sm:w-auto">
+                                <option value="">{{ __('All Roles') }}</option>
+                                @if (Auth::user()->isSuperAdmin())
+                                    <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>{{ __('Super Admin') }}</option>
                                 @endif
-                            </form>
-
-                            <!-- Top Pagination Controls -->
-                            <div class="flex items-center gap-3 self-end sm:self-auto flex-wrap">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
-                                    <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
-                                        <option value="10">10</option>
-                                        <option value="25">25</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                    </select>
-                                </div>
-                                
-                                <template x-if="totalPages > 1">
-                                    <div class="flex items-center gap-1 overflow-x-auto py-1">
-                                        <button type="button" @click="prevPage()" :disabled="currentPage === 1"
-                                            :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
-                                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                                        </button>
-
-                                        <template x-for="(page, idx) in pageRange" :key="idx">
-                                            <span>
-                                                <template x-if="page === '...'">
-                                                    <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
-                                                </template>
-                                                <template x-if="page !== '...'">
-                                                    <button type="button" @click="goToPage(page)"
-                                                        :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
-                                                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
-                                                        x-text="page">
-                                                    </button>
-                                                </template>
-                                            </span>
-                                        </template>
-
-                                        <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
-                                            :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
-                                            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        </button>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
+                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
+                                <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
+                            </select>
+                            @if(request()->filled('role') || request()->filled('outlet_id') || request()->filled('search'))
+                                <a href="/account-management" class="text-xs font-bold text-slate-400 hover:text-slate-800 px-2 py-1">Clear</a>
+                            @endif
+                        </form>
                     </div>
 
-                <div class="overflow-x-auto touch-scroll">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                <th class="py-2.5 px-3 sm:px-4">{{ __('Name') }}</th>
+                    <!-- Below Container: Table & Pagination Controls -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden flex flex-col">
+                        <!-- Top Controls Bar -->
+                        <div class="p-3 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
+                                <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+
+                            <template x-if="totalPages > 1">
+                                <div class="flex items-center gap-1 overflow-x-auto py-1">
+                                    <button type="button" @click="prevPage()" :disabled="currentPage === 1"
+                                        :class="currentPage === 1 ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+
+                                    <template x-for="(page, idx) in pageRange" :key="idx">
+                                        <span>
+                                            <template x-if="page === '...'">
+                                                <span class="w-6 h-7 sm:h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none shrink-0">...</span>
+                                            </template>
+                                            <template x-if="page !== '...'">
+                                                <button type="button" @click="goToPage(page)"
+                                                    :class="currentPage === page ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'"
+                                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold transition shrink-0 tabular-nums"
+                                                    x-text="page">
+                                                </button>
+                                            </template>
+                                        </span>
+                                    </template>
+
+                                    <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                                        :class="currentPage >= totalPages ? 'border-slate-200 bg-white text-slate-300 cursor-not-allowed' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'"
+                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border transition text-xs font-bold shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+
+                    <div class="overflow-x-auto touch-scroll">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="py-2.5 px-3 sm:px-4">{{ __('Name') }}</th>
                                 <th class="py-2.5 px-3 sm:px-4">{{ __('Email') }}</th>
                                 <th class="py-2.5 px-3 sm:px-4">{{ __('Outlet / Brand') }}</th>
                                 <th class="py-2.5 px-3 sm:px-4">{{ __('Role') }}</th>
@@ -311,8 +315,8 @@
                             </button>
                         </div>
                     </template>
+                    </div>
                 </div>
-            </div>
             @endif
             </div>
         @else
