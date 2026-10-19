@@ -19,6 +19,7 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'is_self_registered',
         'outlet_id', // Changed from brand
         'permissions',
     ];
@@ -69,6 +70,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'permissions' => 'array',
+            'is_self_registered' => 'boolean',
         ];
     }
 

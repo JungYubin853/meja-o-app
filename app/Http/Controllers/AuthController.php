@@ -74,6 +74,7 @@ class AuthController extends Controller
             'outlet_id'=> $validated['outlet_id'],
             'role'     => 'staff', // Fixed as staff on registration
             'status'   => 'pending', // Requires approval
+            'is_self_registered' => true,
             'permissions' => $defaultPermissions,
         ]);
 
@@ -180,6 +181,7 @@ class AuthController extends Controller
             'outlet_id' => $validated['role'] === 'super_admin' ? null : $validated['outlet_id'],
             'permissions' => $validated['role'] === 'super_admin' ? null : $defaultPermissions,
             'status' => 'approved',
+            'is_self_registered' => false,
         ]);
 
         return back()->with('success', 'User account created successfully.');
@@ -215,11 +217,15 @@ class AuthController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        if ($user->isSuperAdmin()) {
-            $query = User::with('outlet');
-        } else {
-            $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
+        // Only show self-registered users, and never show Super Admin!
+        $query = User::where('role', '!=', 'super_admin')
+            ->where('is_self_registered', true);
+
+        if (!$user->isSuperAdmin()) {
+            $query->where('outlet_id', $user->outlet_id);
         }
+
+        $query->with('outlet');
 
         // Status filter (default to 'pending')
         $status = $request->get('status', 'pending');
@@ -244,7 +250,9 @@ class AuthController extends Controller
         $users = $query->latest()->paginate(15)->withQueryString();
 
         // Pending count for badge/tabs
-        $pendingCountQuery = User::where('status', 'pending');
+        $pendingCountQuery = User::where('role', '!=', 'super_admin')
+            ->where('is_self_registered', true)
+            ->where('status', 'pending');
         if (!$user->isSuperAdmin()) {
             $pendingCountQuery->where('outlet_id', $user->outlet_id);
         }
@@ -265,6 +273,10 @@ class AuthController extends Controller
 
         $targetUser = User::findOrFail($id);
 
+        if ($targetUser->isSuperAdmin()) {
+            abort(403, 'Super Admin accounts cannot be modified.');
+        }
+
         if (!$currentUser->isSuperAdmin() && $targetUser->outlet_id !== $currentUser->outlet_id) {
             abort(403, 'You can only approve users from your assigned outlet.');
         }
@@ -284,6 +296,10 @@ class AuthController extends Controller
         }
 
         $targetUser = User::findOrFail($id);
+
+        if ($targetUser->isSuperAdmin()) {
+            abort(403, 'Super Admin accounts cannot be modified.');
+        }
 
         if (!$currentUser->isSuperAdmin() && $targetUser->outlet_id !== $currentUser->outlet_id) {
             abort(403, 'You can only reject users from your assigned outlet.');

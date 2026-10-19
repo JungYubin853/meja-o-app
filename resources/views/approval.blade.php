@@ -225,46 +225,48 @@
                                     </td>
                                     <td class="py-3.5 px-4 sm:px-6 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            @if ($applicant->status === 'pending')
-                                                <!-- Approve Button -->
-                                                <button type="button"
-                                                    @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-soft-xs active:scale-95">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    <span>{{ __('Approve') }}</span>
-                                                </button>
+                                            @if (!$applicant->isSuperAdmin())
+                                                @if ($applicant->status === 'pending')
+                                                    <!-- Approve Button -->
+                                                    <button type="button"
+                                                        @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-soft-xs active:scale-95">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        <span>{{ __('Approve') }}</span>
+                                                    </button>
 
-                                                <!-- Reject Button -->
-                                                <button type="button"
-                                                    @click="openConfirm('reject', '/approval/{{ $applicant->id }}/reject', '{{ addslashes($applicant->name) }}')"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold text-xs transition active:scale-95">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    <span>{{ __('Reject') }}</span>
-                                                </button>
-                                            @elseif ($applicant->status === 'rejected')
-                                                <!-- Re-Approve Button -->
-                                                <button type="button"
-                                                    @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 font-bold text-xs transition active:scale-95">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    <span>{{ __('Approve') }}</span>
-                                                </button>
-                                            @elseif ($applicant->status === 'approved')
-                                                <!-- Revoke / Reject Button -->
-                                                <button type="button"
-                                                    @click="openConfirm('reject', '/approval/{{ $applicant->id }}/reject', '{{ addslashes($applicant->name) }}')"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                    </svg>
-                                                    <span>{{ __('Revoke') }}</span>
-                                                </button>
+                                                    <!-- Reject Button -->
+                                                    <button type="button"
+                                                        @click="openConfirm('reject', '/approval/{{ $applicant->id }}/reject', '{{ addslashes($applicant->name) }}')"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-bold text-xs transition active:scale-95">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        <span>{{ __('Reject') }}</span>
+                                                    </button>
+                                                @elseif ($applicant->status === 'rejected')
+                                                    <!-- Re-Approve Button -->
+                                                    <button type="button"
+                                                        @click="openConfirm('approve', '/approval/{{ $applicant->id }}/approve', '{{ addslashes($applicant->name) }}')"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 font-bold text-xs transition active:scale-95">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        <span>{{ __('Approve') }}</span>
+                                                    </button>
+                                                @elseif ($applicant->status === 'approved')
+                                                    <!-- Revoke / Reject Button -->
+                                                    <button type="button"
+                                                        @click="openConfirm('reject', '/approval/{{ $applicant->id }}/reject', '{{ addslashes($applicant->name) }}')"
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                        </svg>
+                                                        <span>{{ __('Revoke') }}</span>
+                                                    </button>
+                                                @endif
                                             @endif
                                         </div>
                                     </td>

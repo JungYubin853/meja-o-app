@@ -221,7 +221,9 @@
 
                             @if (Auth::user()->hasPermission('nav_approval'))
                                 @php
-                                    $userPendingCountQuery = \App\Models\User::where('status', 'pending');
+                                    $userPendingCountQuery = \App\Models\User::where('role', '!=', 'super_admin')
+                                        ->where('is_self_registered', true)
+                                        ->where('status', 'pending');
                                     if (!Auth::user()->isSuperAdmin()) {
                                         $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
                                     }
@@ -418,7 +420,9 @@
 
                             @if (Auth::user()->hasPermission('nav_approval'))
                                 @php
-                                    $userPendingCountQuery = \App\Models\User::where('status', 'pending');
+                                    $userPendingCountQuery = \App\Models\User::where('role', '!=', 'super_admin')
+                                        ->where('is_self_registered', true)
+                                        ->where('status', 'pending');
                                     if (!Auth::user()->isSuperAdmin()) {
                                         $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
                                     }
