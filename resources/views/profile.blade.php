@@ -149,7 +149,7 @@
         </div>
 
         <!-- 2. FORGOT PASSWORD REQUESTS (ADMIN & SUPER ADMIN ONLY) -->
-        @if ($user->isAdmin() || $user->isSuperAdmin())
+        @if (Auth::user()->hasPermission('prof_password_requests'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden">
                 <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>

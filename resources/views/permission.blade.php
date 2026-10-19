@@ -319,10 +319,19 @@
                             </label>
 
                             <!-- {{ __('Profile') }} -->
-                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">{{ __('Profile') }}<span x-cloak x-show="differsFromDefault('nav_profile')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                <input type="checkbox" x-model="permissions.nav_profile" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                            </label>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+                                    <span class="text-sm font-bold text-slate-800">{{ __('Profile') }}<span x-cloak x-show="differsFromDefault('nav_profile')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                    <input type="checkbox" x-model="permissions.nav_profile" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                </label>
+                                
+                                <div x-show="permissions.nav_profile" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer col-span-1 sm:col-span-2">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Forgot Password Recovery Requests') }}<span x-cloak x-show="differsFromDefault('prof_password_requests')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.prof_password_requests" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                </div>
+                            </div>
 
                             <!-- {{ __('Account Management') }} -->
                             <div class="space-y-3">

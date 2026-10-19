@@ -123,6 +123,7 @@ class User extends Authenticatable
             'nav_tutorial' => true,
             'nav_calendar' => true,
             'nav_profile' => true,
+            'prof_password_requests' => $this->isAdmin(),
             'nav_account_mgmt' => $this->isAdmin(),
             'acc_create_account' => false,
             'acc_user_list' => $this->isAdmin(),

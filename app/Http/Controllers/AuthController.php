@@ -167,29 +167,31 @@ class AuthController extends Controller
         $resetRequests = collect();
         $pendingCount = 0;
 
-        if ($user->isSuperAdmin()) {
-            $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])->latest();
-            $pendingCount = (clone $query)->where('status', 'pending')->count();
-            $filterStatus = $request->query('req_status', 'all');
-            if ($filterStatus === 'pending') {
-                $query->where('status', 'pending');
-            } elseif ($filterStatus === 'resolved') {
-                $query->where('status', 'resolved');
+        if ($user->hasPermission('prof_password_requests')) {
+            if ($user->isSuperAdmin()) {
+                $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])->latest();
+                $pendingCount = (clone $query)->where('status', 'pending')->count();
+                $filterStatus = $request->query('req_status', 'all');
+                if ($filterStatus === 'pending') {
+                    $query->where('status', 'pending');
+                } elseif ($filterStatus === 'resolved') {
+                    $query->where('status', 'resolved');
+                }
+                $resetRequests = $query->get();
+            } else {
+                $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])
+                    ->where('outlet_id', $user->outlet_id)
+                    ->where('role', 'staff')
+                    ->latest();
+                $pendingCount = (clone $query)->where('status', 'pending')->count();
+                $filterStatus = $request->query('req_status', 'all');
+                if ($filterStatus === 'pending') {
+                    $query->where('status', 'pending');
+                } elseif ($filterStatus === 'resolved') {
+                    $query->where('status', 'resolved');
+                }
+                $resetRequests = $query->get();
             }
-            $resetRequests = $query->get();
-        } elseif ($user->isAdmin()) {
-            $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])
-                ->where('outlet_id', $user->outlet_id)
-                ->where('role', 'staff')
-                ->latest();
-            $pendingCount = (clone $query)->where('status', 'pending')->count();
-            $filterStatus = $request->query('req_status', 'all');
-            if ($filterStatus === 'pending') {
-                $query->where('status', 'pending');
-            } elseif ($filterStatus === 'resolved') {
-                $query->where('status', 'resolved');
-            }
-            $resetRequests = $query->get();
         }
 
         return view('profile', compact('user', 'outlets', 'resetRequests', 'pendingCount'));
@@ -236,15 +238,15 @@ class AuthController extends Controller
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
 
-        if (!$currentUser->isAdmin() && !$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('prof_password_requests')) {
             abort(403, 'Unauthorized');
         }
 
         $resetReq = \App\Models\PasswordResetRequest::findOrFail($id);
         $targetUser = $resetReq->user;
 
-        // Admin can only change password for staff in their own outlet
-        if ($currentUser->isAdmin()) {
+        // Admin/Staff can only change password for staff in their own outlet
+        if (!$currentUser->isSuperAdmin()) {
             if ($targetUser->role !== 'staff' || $targetUser->outlet_id !== $currentUser->outlet_id) {
                 abort(403, 'You can only manage passwords for staff within your assigned outlet.');
             }
@@ -274,13 +276,13 @@ class AuthController extends Controller
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
 
-        if (!$currentUser->isAdmin() && !$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('prof_password_requests')) {
             abort(403, 'Unauthorized');
         }
 
         $resetReq = \App\Models\PasswordResetRequest::findOrFail($id);
 
-        if ($currentUser->isAdmin()) {
+        if (!$currentUser->isSuperAdmin()) {
             if ($resetReq->role !== 'staff' || $resetReq->outlet_id !== $currentUser->outlet_id) {
                 abort(403, 'Unauthorized');
             }
