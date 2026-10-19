@@ -218,6 +218,34 @@
                                     <span>{{ __('Role & User Permission') }}</span>
                                 </a>
                             @endif
+
+                            @if (Auth::user()->hasPermission('nav_approval'))
+                                @php
+                                    $userPendingCountQuery = \App\Models\User::where('status', 'pending');
+                                    if (!Auth::user()->isSuperAdmin()) {
+                                        $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
+                                    }
+                                    $navPendingCount = $userPendingCountQuery->count();
+                                @endphp
+                                <!-- 7. Approval -->
+                                <a href="/approval"
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('approval*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('approval*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Approval') }}</span>
+                                    </div>
+                                    @if ($navPendingCount > 0)
+                                        <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full shadow-2xs animate-pulse">
+                                            {{ $navPendingCount }}
+                                        </span>
+                                    @endif
+                                </a>
+                            @endif
                         </div>
 
                 <!-- Logout Button -->
@@ -385,6 +413,34 @@
                                         </svg>
                                     </div>
                                     <span>{{ __('Role & User Permission') }}</span>
+                                </a>
+                            @endif
+
+                            @if (Auth::user()->hasPermission('nav_approval'))
+                                @php
+                                    $userPendingCountQuery = \App\Models\User::where('status', 'pending');
+                                    if (!Auth::user()->isSuperAdmin()) {
+                                        $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
+                                    }
+                                    $navPendingCountMobile = $userPendingCountQuery->count();
+                                @endphp
+                                <!-- 7. Approval -->
+                                <a href="/approval"
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('approval*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('approval*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Approval') }}</span>
+                                    </div>
+                                    @if ($navPendingCountMobile > 0)
+                                        <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full shadow-2xs animate-pulse">
+                                            {{ $navPendingCountMobile }}
+                                        </span>
+                                    @endif
                                 </a>
                             @endif
                         </div>

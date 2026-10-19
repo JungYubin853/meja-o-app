@@ -18,6 +18,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status',
         'outlet_id', // Changed from brand
         'permissions',
     ];
@@ -35,6 +36,21 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isApproved()
+    {
+        return $this->status === 'approved' || $this->isSuperAdmin();
+    }
+
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
     }
 
     protected $hidden = [
@@ -90,6 +106,7 @@ class User extends Authenticatable
             'acc_create_account' => false,
             'acc_user_list' => $this->isAdmin(),
             'nav_role_permission' => false,
+            'nav_approval' => $this->isAdmin(),
         ];
     }
 

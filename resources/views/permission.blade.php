@@ -344,6 +344,12 @@
                                 <span class="text-sm font-bold text-slate-800">{{ __('Role & User Permission') }}<span x-cloak x-show="differsFromDefault('nav_role_permission')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_role_permission" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
+
+                            <!-- {{ __('Approval') }} -->
+                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+                                <span class="text-sm font-bold text-slate-800">{{ __('Approval') }}<span x-cloak x-show="differsFromDefault('nav_approval')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                <input type="checkbox" x-model="permissions.nav_approval" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                            </label>
                         </div>
                     </div>
                     </div>

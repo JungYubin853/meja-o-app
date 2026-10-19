@@ -22,6 +22,24 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            if ($user->status === 'pending') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'Your account registration is currently pending approval by an administrator.',
+                ])->onlyInput('email');
+            }
+            if ($user->status === 'rejected') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'Your account registration has been rejected. Please contact an administrator.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
             return redirect()->intended('/');
         }
@@ -46,18 +64,20 @@ class AuthController extends Controller
             'outlet_id'=> 'required|exists:outlets,id',
         ]);
 
-        $user = User::create([
+        $dummyStaff = new User(['role' => 'staff']);
+        $defaultPermissions = $dummyStaff->getDefaultPermissions();
+
+        User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'outlet_id'=> $validated['outlet_id'],
             'role'     => 'staff', // Fixed as staff on registration
+            'status'   => 'pending', // Requires approval
+            'permissions' => $defaultPermissions,
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return redirect('/');
+        return redirect()->route('login')->with('status', 'Registration successful! Your account is pending approval by an administrator.');
     }
 
     public function showProfile()
@@ -159,6 +179,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'outlet_id' => $validated['role'] === 'super_admin' ? null : $validated['outlet_id'],
             'permissions' => $validated['role'] === 'super_admin' ? null : $defaultPermissions,
+            'status' => 'approved',
         ]);
 
         return back()->with('success', 'User account created successfully.');
@@ -184,6 +205,94 @@ class AuthController extends Controller
         $targetUser->delete();
 
         return back()->with('success', 'User account deleted successfully.');
+    }
+
+    public function showApproval(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasPermission('nav_approval')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            $query = User::with('outlet');
+        } else {
+            $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
+        }
+
+        // Status filter (default to 'pending')
+        $status = $request->get('status', 'pending');
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Outlet filter for super admin
+        if ($user->isSuperAdmin() && $request->filled('outlet_id')) {
+            $query->where('outlet_id', $request->outlet_id);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->latest()->paginate(15)->withQueryString();
+
+        // Pending count for badge/tabs
+        $pendingCountQuery = User::where('status', 'pending');
+        if (!$user->isSuperAdmin()) {
+            $pendingCountQuery->where('outlet_id', $user->outlet_id);
+        }
+        $pendingCount = $pendingCountQuery->count();
+
+        $outlets = \App\Models\Outlet::all();
+
+        return view('approval', compact('user', 'users', 'outlets', 'status', 'pendingCount'));
+    }
+
+    public function approveUser($id)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->hasPermission('nav_approval')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        if (!$currentUser->isSuperAdmin() && $targetUser->outlet_id !== $currentUser->outlet_id) {
+            abort(403, 'You can only approve users from your assigned outlet.');
+        }
+
+        $targetUser->status = 'approved';
+        $targetUser->save();
+
+        return back()->with('success', "Account for '{$targetUser->name}' has been approved successfully.");
+    }
+
+    public function rejectUser($id)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->hasPermission('nav_approval')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        if (!$currentUser->isSuperAdmin() && $targetUser->outlet_id !== $currentUser->outlet_id) {
+            abort(403, 'You can only reject users from your assigned outlet.');
+        }
+
+        $targetUser->status = 'rejected';
+        $targetUser->save();
+
+        return back()->with('success', "Account for '{$targetUser->name}' has been rejected.");
     }
 
     public function logout(Request $request)

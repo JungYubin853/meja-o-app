@@ -15,6 +15,12 @@
             <p class="text-xs text-slate-500 font-medium">Table Management System</p>
         </div>
 
+        @if (session('status'))
+            <div class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-semibold shadow-2xs">
+                {{ session('status') }}
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold shadow-2xs">
                 {{ $errors->first() }}

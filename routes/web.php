@@ -29,6 +29,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account-management', [AuthController::class, 'showAccountManagement'])->name('account-management');
     Route::post('/users', [AuthController::class, 'createUser']);
     Route::delete('/users/{id}', [AuthController::class, 'deleteUser']);
+    Route::get('/approval', [AuthController::class, 'showApproval'])->name('approval');
+    Route::post('/approval/{id}/approve', [AuthController::class, 'approveUser'])->name('approval.approve');
+    Route::post('/approval/{id}/reject', [AuthController::class, 'rejectUser'])->name('approval.reject');
     Route::get('/', [TableController::class, 'index']);
 
     // Table Management & Custom 2D Grid Customization
