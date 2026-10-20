@@ -15,19 +15,7 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center font-sans antialiased px-4 py-8"
       x-data="waitingRoom()" x-init="initPolling()">
 
-    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-soft-xl max-w-md w-full space-y-6 text-center">
-
-        <!-- Top Header & Branding -->
-        <div class="space-y-1">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold tracking-wider uppercase">
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-                <span>My Kopi-O Group</span>
-            </div>
-            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Account Waiting Room</h1>
-            <p class="text-xs text-slate-500 font-medium">Table Management System Access Portal</p>
-        </div>
+    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-soft-xl max-w-sm sm:max-w-md w-full space-y-4 text-center">
 
         <!-- Approved Celebration Banner (shown when approved via live poll) -->
         <div x-show="isApproved" x-cloak x-transition class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold space-y-2">
@@ -41,46 +29,22 @@
         </div>
 
         <!-- Normal State (Pending or Rejected) -->
-        <div x-show="!isApproved" class="space-y-6">
+        <div x-show="!isApproved" class="space-y-4">
 
-            <!-- Animated Status Icon & Badge -->
-            @if ($user->status === 'rejected')
-                <div class="space-y-3">
-                    <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-soft-xs">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                            Registration Declined
-                        </span>
-                        <h2 class="text-base font-bold text-slate-900 mt-2">Access Not Approved</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Your registration request was declined by the administrator.</p>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-3">
-                    <div class="relative w-16 h-16 mx-auto rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-soft-xs">
-                        <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-4 w-4 bg-amber-500 border-2 border-white"></span>
-                        </span>
-                        <svg class="w-8 h-8 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                            Pending Administrator Approval
-                        </span>
-                        <h2 class="text-base font-bold text-slate-900 mt-2">Waiting in Queue</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Your staff registration is currently waiting to be reviewed.</p>
-                    </div>
-                </div>
-            @endif
+            <!-- Status Badge -->
+            <div>
+                @if ($user->status === 'rejected')
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                        Registration Declined
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Pending Administrator Approval
+                    </span>
+                @endif
+            </div>
 
             <!-- Account Details Card -->
             <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 text-left space-y-3">
