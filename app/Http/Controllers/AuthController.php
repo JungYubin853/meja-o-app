@@ -323,6 +323,44 @@ class AuthController extends Controller
         return back()->with('success_req', 'Request marked as resolved.');
     }
 
+    public function showAccountManagement()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        if (!$user->hasPermission('nav_account_mgmt')) {
+            abort(403);
+        }
+
+        if ($user->isSuperAdmin()) {
+            $query = User::with('outlet');
+        } else {
+            $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
+        }
+
+        if (request()->filled('role')) {
+            $query->where('role', request('role'));
+        }
+        
+        if (request()->filled('outlet_id')) {
+            $query->where('outlet_id', request('outlet_id'));
+        }
+        
+        if (request()->filled('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $allUsers = $query->get();
+        
+        $outlets = \App\Models\Outlet::all();
+
+        return view('account-management', compact('user', 'allUsers', 'outlets'));
+    }
+
     public function createUser(Request $request)
     {
         /** @var \App\Models\User $user */
