@@ -25,6 +25,10 @@ Route::get('/lang/{locale}', function ($locale) {
 });
 
 Route::middleware(['auth'])->group(function () {
+    // Waiting Room (for self-registered staff awaiting approval)
+    Route::get('/waiting-room', [AuthController::class, 'showWaitingRoom'])->name('waiting-room');
+    Route::get('/api/waiting-room/status', [AuthController::class, 'checkWaitingRoomStatus'])->name('waiting-room.status');
+
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/profile/change-password', [AuthController::class, 'updatePassword'])->name('profile.change-password');

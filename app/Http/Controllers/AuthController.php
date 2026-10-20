@@ -21,32 +21,56 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        // remember=true keeps users logged in persistently (lifetime extended to 1 year)
+        if (Auth::attempt($credentials, true)) {
+            $request->session()->regenerate();
             $user = Auth::user();
-            if ($user->status === 'pending') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'email' => 'Your account registration is currently pending approval by an administrator.',
-                ])->onlyInput('email');
-            }
-            if ($user->status === 'rejected') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'email' => 'Your account registration has been rejected. Please contact an administrator.',
-                ])->onlyInput('email');
+
+            // Self-registered users awaiting approval are led directly to the Waiting Room
+            if ($user->status === 'pending' || $user->status === 'rejected') {
+                return redirect()->route('waiting-room');
             }
 
-            $request->session()->regenerate();
             return redirect()->intended('/');
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
+    }
+
+    public function showWaitingRoom()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // If the account has already been approved, take them immediately to the dashboard
+        if ($user->status !== 'pending' && $user->status !== 'rejected') {
+            return redirect()->intended('/')->with('status', 'Welcome back! Your account has been approved.');
+        }
+
+        $outlet = $user->outlet;
+
+        return view('auth.waiting-room', compact('user', 'outlet'));
+    }
+
+    public function checkWaitingRoomStatus()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['authenticated' => false]);
+        }
+
+        return response()->json([
+            'authenticated' => true,
+            'status'        => $user->status,
+            'is_approved'   => $user->status === 'approved' || $user->isSuperAdmin(),
+            'is_rejected'   => $user->status === 'rejected',
+        ]);
     }
 
     public function showRegisterForm()
@@ -79,7 +103,7 @@ class AuthController extends Controller
             'permissions' => $defaultPermissions,
         ]);
 
-        return redirect()->route('login')->with('status', 'Registration successful! Your account is pending approval by an administrator.');
+        return redirect()->route('login')->with('status', 'Registration successful! Please sign in with your credentials to access your account waiting room.');
     }
 
     public function requestForgotPassword(Request $request)
