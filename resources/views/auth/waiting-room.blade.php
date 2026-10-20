@@ -15,7 +15,7 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center font-sans antialiased px-4 py-8"
       x-data="waitingRoom()" x-init="initPolling()">
 
-    <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-soft-xl max-w-sm sm:max-w-md w-full space-y-4 text-center">
+    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-soft-xl max-w-sm sm:max-w-md w-full text-center flex flex-col gap-4">
 
         <!-- Approved Celebration Banner (shown when approved via live poll) -->
         <div x-show="isApproved" x-cloak x-transition class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-semibold space-y-2">
@@ -29,7 +29,7 @@
         </div>
 
         <!-- Normal State (Pending or Rejected) -->
-        <div x-show="!isApproved" class="space-y-4">
+        <div x-show="!isApproved" class="flex flex-col gap-4">
 
             <!-- Status Badge -->
             <div>
@@ -53,26 +53,21 @@
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">Active Session</span>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
-                        {{ strtoupper(substr($user->name, 0, 2)) }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">{{ $user->name }}</div>
-                        <div class="text-xs text-slate-500 font-mono truncate">{{ $user->email }}</div>
-                    </div>
+                <div>
+                    <div class="font-bold text-sm text-slate-900">{{ $user->name }}</div>
+                    <div class="text-xs text-slate-500 font-mono mt-0.5">{{ $user->email }}</div>
                 </div>
 
-                <div class="pt-2 grid grid-cols-2 gap-2 text-xs border-t border-slate-200/60">
+                <div class="pt-2.5 border-t border-slate-200/60 space-y-2 text-xs">
                     <div>
-                        <div class="text-[10px] font-semibold text-slate-400 uppercase">Assigned Outlet</div>
-                        <div class="font-bold text-slate-800 text-[11px] truncate mt-0.5">
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Assigned Outlet</div>
+                        <div class="font-bold text-slate-800 text-xs sm:text-sm mt-0.5 leading-snug">
                             {{ $outlet ? $outlet->name : '-' }}
                         </div>
                     </div>
                     <div>
-                        <div class="text-[10px] font-semibold text-slate-400 uppercase">Account Role</div>
-                        <div class="font-bold text-slate-800 text-[11px] capitalize mt-0.5">
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Account Role</div>
+                        <div class="font-bold text-slate-800 text-xs capitalize mt-0.5">
                             {{ $user->role }}
                         </div>
                     </div>
@@ -107,7 +102,7 @@
             @endif
 
             <!-- Action Buttons: Check Status & Log Out -->
-            <div class="space-y-2.5 pt-2">
+            <div class="space-y-2.5 pt-1">
                 <!-- Check Approval Status Button -->
                 <button type="button" @click="checkStatusManual()" :disabled="checking"
                     class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white text-xs font-semibold py-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
