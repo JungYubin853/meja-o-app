@@ -121,12 +121,32 @@ class User extends Authenticatable
             'rep_waitlist' => true,
             'rep_habits' => $this->isAdmin(),
             'nav_tutorial' => true,
+            'tut_admin_guide' => $this->isAdmin(),
+            'tut_staff_guide' => true,
             'nav_calendar' => true,
             'nav_profile' => true,
+            'prof_search_bar' => $this->isAdmin(),
+            'prof_account_info' => true,
             'prof_password_requests' => $this->isAdmin(),
+            'prof_table_settings' => $this->isAdmin(),
+            'prof_col_user' => $this->isAdmin(),
+            'prof_col_outlet' => $this->isAdmin(),
+            'prof_col_role' => $this->isAdmin(),
+            'prof_col_submitted' => $this->isAdmin(),
+            'prof_col_password' => $this->isAdmin(),
+            'prof_col_actions' => $this->isAdmin(),
             'nav_account_mgmt' => $this->isAdmin(),
+            'acc_search_bar' => true,
             'acc_create_account' => false,
             'acc_user_list' => $this->isAdmin(),
+            'acc_table_settings' => true,
+            'acc_col_user' => true,
+            'acc_col_outlet' => true,
+            'acc_col_role' => true,
+            'acc_col_source' => true,
+            'acc_col_status' => true,
+            'acc_col_submitted' => true,
+            'acc_col_actions' => true,
             'nav_role_permission' => false,
             'nav_approval' => $this->isAdmin(),
         ];
@@ -159,15 +179,20 @@ class User extends Authenticatable
 
     public function hasPermission($key)
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         $perms = $this->permissions;
         if (is_string($perms)) {
             $perms = json_decode($perms, true) ?: [];
         }
         $perms = (array) $perms;
+
+        // Custom column visibility preferences: if set by user, respect even for super admin
+        if ((str_starts_with($key, 'acc_col_') || str_starts_with($key, 'prof_col_')) && array_key_exists($key, $perms)) {
+            return (bool) $perms[$key];
+        }
+
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
 
         if (array_key_exists($key, $perms)) {
             return (bool) $perms[$key];

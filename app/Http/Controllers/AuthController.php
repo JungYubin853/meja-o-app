@@ -84,7 +84,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:6',
             'outlet_id'=> 'required|exists:outlets,id',
         ]);
 
@@ -192,33 +192,52 @@ class AuthController extends Controller
         $pendingCount = 0;
 
         if ($user->hasPermission('prof_password_requests')) {
+            $filterStatus = $request->query('req_status', 'all');
+            $direction = $request->query('direction', 'desc') === 'asc' ? 'asc' : 'desc';
+
             if ($user->isSuperAdmin()) {
-                $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])->latest();
-                $pendingCount = (clone $query)->where('status', 'pending')->count();
-                $filterStatus = $request->query('req_status', 'all');
-                if ($filterStatus === 'pending') {
-                    $query->where('status', 'pending');
-                } elseif ($filterStatus === 'resolved') {
-                    $query->where('status', 'resolved');
-                }
-                $resetRequests = $query->get();
+                $baseQuery = \App\Models\PasswordResetRequest::with(['user', 'outlet']);
             } else {
-                $query = \App\Models\PasswordResetRequest::with(['user', 'outlet'])
+                $baseQuery = \App\Models\PasswordResetRequest::with(['user', 'outlet'])
                     ->where('outlet_id', $user->outlet_id)
-                    ->where('role', 'staff')
-                    ->latest();
-                $pendingCount = (clone $query)->where('status', 'pending')->count();
-                $filterStatus = $request->query('req_status', 'all');
-                if ($filterStatus === 'pending') {
-                    $query->where('status', 'pending');
-                } elseif ($filterStatus === 'resolved') {
-                    $query->where('status', 'resolved');
-                }
-                $resetRequests = $query->get();
+                    ->where('role', 'staff');
             }
+
+            if ($user->isSuperAdmin() && $request->filled('outlet_id')) {
+                $baseQuery->where('outlet_id', $request->query('outlet_id'));
+            }
+
+            if ($request->filled('role')) {
+                $baseQuery->where('role', $request->query('role'));
+            }
+
+            $pendingCount = (clone $baseQuery)->where('status', 'pending')->count();
+
+            if ($request->filled('search')) {
+                $searchTerm = trim($request->query('search'));
+                $baseQuery->where(function ($q) use ($searchTerm) {
+                    $q->where('email', 'like', "%{$searchTerm}%")
+                      ->orWhereHas('user', function ($uq) use ($searchTerm) {
+                          $uq->where('name', 'like', "%{$searchTerm}%")
+                             ->orWhere('email', 'like', "%{$searchTerm}%");
+                      })
+                      ->orWhereHas('outlet', function ($oq) use ($searchTerm) {
+                          $oq->where('name', 'like', "%{$searchTerm}%");
+                      });
+                });
+            }
+
+            if ($filterStatus === 'pending') {
+                $baseQuery->where('status', 'pending');
+            } elseif ($filterStatus === 'resolved') {
+                $baseQuery->where('status', 'resolved');
+            }
+            // If 'all', no status filter is applied: all requests (pending, resolved) are visible!
+
+            $resetRequests = $baseQuery->orderBy('created_at', $direction)->get();
         }
 
-        return view('profile', compact('user', 'outlets', 'resetRequests', 'pendingCount'));
+        return view('profile', compact('user', 'outlets', 'resetRequests', 'pendingCount', 'direction'));
     }
 
     public function updateProfile(Request $request)
@@ -323,12 +342,34 @@ class AuthController extends Controller
         return back()->with('success_req', 'Request marked as resolved.');
     }
 
-    public function showAccountManagement()
+    public function deleteResetRequest(Request $request, $id)
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+
+        if (!$currentUser->hasPermission('prof_password_requests')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $resetReq = \App\Models\PasswordResetRequest::findOrFail($id);
+
+        if (!$currentUser->isSuperAdmin()) {
+            if ($resetReq->role !== 'staff' || $resetReq->outlet_id !== $currentUser->outlet_id) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        $resetReq->delete();
+
+        return back()->with('success_req', 'Recovery request deleted successfully.');
+    }
+
+    public function showAccountManagement(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        if (!$user->hasPermission('nav_account_mgmt')) {
+        if (!$user->hasPermission('nav_account_mgmt') && !$user->hasPermission('acc_user_list') && !$user->hasPermission('nav_approval')) {
             abort(403);
         }
 
@@ -338,27 +379,50 @@ class AuthController extends Controller
             $query = User::where('outlet_id', $user->outlet_id)->with('outlet');
         }
 
-        if (request()->filled('role')) {
-            $query->where('role', request('role'));
+        // Status filter: all, approved, rejected, pending
+        $status = $request->get('status', 'all');
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Source filter: 'self' or 'admin'
+        if ($request->filled('source')) {
+            if ($request->source === 'self') {
+                $query->where('is_self_registered', true);
+            } elseif ($request->source === 'admin') {
+                $query->where('is_self_registered', false);
+            }
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
         }
         
-        if (request()->filled('outlet_id')) {
-            $query->where('outlet_id', request('outlet_id'));
+        if ($user->isSuperAdmin() && $request->filled('outlet_id')) {
+            $query->where('outlet_id', $request->outlet_id);
         }
         
-        if (request()->filled('search')) {
-            $search = request('search');
+        if ($request->filled('search')) {
+            $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        $allUsers = $query->get();
+        // Pending count for the badge/tabs
+        $pendingCountQuery = User::where('role', '!=', 'super_admin')->where('status', 'pending');
+        if (!$user->isSuperAdmin()) {
+            $pendingCountQuery->where('outlet_id', $user->outlet_id);
+        }
+        $pendingCount = $pendingCountQuery->count();
+
+        $direction = $request->query('direction', 'desc') === 'asc' ? 'asc' : 'desc';
+        $allUsers = $query->orderBy('created_at', $direction)->get();
         
         $outlets = \App\Models\Outlet::all();
 
-        return view('account-management', compact('user', 'allUsers', 'outlets'));
+        return view('account-management', compact('user', 'allUsers', 'outlets', 'status', 'pendingCount', 'direction'));
     }
 
     public function createUser(Request $request)
@@ -388,7 +452,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
             'viewable_password' => \Illuminate\Support\Facades\Crypt::encryptString($validated['password']),
             'role' => $validated['role'],
-            'outlet_id' => $validated['role'] === 'super_admin' ? null : $validated['outlet_id'],
+            'outlet_id' => $user->isSuperAdmin() ? ($validated['role'] === 'super_admin' ? null : ($validated['outlet_id'] ?? null)) : $user->outlet_id,
             'permissions' => $validated['role'] === 'super_admin' ? null : $defaultPermissions,
             'status' => 'approved',
             'is_self_registered' => false,
@@ -489,7 +553,7 @@ class AuthController extends Controller
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
-        if (!$currentUser->hasPermission('nav_approval')) {
+        if (!$currentUser->hasPermission('nav_account_mgmt') && !$currentUser->hasPermission('acc_user_list') && !$currentUser->hasPermission('nav_approval')) {
             abort(403, 'Unauthorized.');
         }
 
@@ -513,7 +577,7 @@ class AuthController extends Controller
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
-        if (!$currentUser->hasPermission('nav_approval')) {
+        if (!$currentUser->hasPermission('nav_account_mgmt') && !$currentUser->hasPermission('acc_user_list') && !$currentUser->hasPermission('nav_approval')) {
             abort(403, 'Unauthorized.');
         }
 

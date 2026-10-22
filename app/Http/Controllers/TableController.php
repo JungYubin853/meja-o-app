@@ -137,7 +137,7 @@ class TableController extends Controller
         if ($request->has('floor_id') && $request->floor_id !== '') {
             $query->where('floor_id', $request->floor_id);
         }
-        return response()->json($query->get(['id', 'status', 'pax', 'initial_pax', 'additional_pax', 'table_number', 'capacity']));
+        return response()->json($query->get(['id', 'status', 'pax', 'initial_pax', 'additional_pax', 'table_number', 'capacity', 'seated_time']));
     }
 
     public function seatCustomer(Request $request, $id)

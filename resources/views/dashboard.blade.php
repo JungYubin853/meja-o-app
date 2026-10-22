@@ -124,6 +124,7 @@
             paxUpdatedSuccess: false,
             paxSuccessMsg: '',
             bookmarkedTables: [],
+            now: Date.now(),
             liveTables: {!! json_encode(
                 $tables->keyBy('id')->map(
                     fn($t) => [
@@ -133,6 +134,7 @@
                         'additional_pax' => $t->additional_pax ?? 0,
                         'table_number' => $t->table_number ?? '',
                         'capacity' => $t->capacity ?? 0,
+                        'seated_time' => $t->seated_time ? \Carbon\Carbon::parse($t->seated_time)->toIso8601String() : null,
                     ],
                 ),
             ) !!},
@@ -243,6 +245,12 @@
                 localStorage.setItem('meja_bookmarked_tables', JSON.stringify(this
                     .bookmarkedTables));
 
+                // Local timer ticker every 1 second for elapsed seating durations
+                this.now = Date.now();
+                setInterval(() => {
+                    this.now = Date.now();
+                }, 1000);
+
                 // Live background poll every 3 seconds
                 setInterval(() => {
                     this.fetchLiveStatus();
@@ -270,6 +278,9 @@
                                     this.liveTables[item.id].table_number = item
                                         .table_number;
                                 }
+                                if (item.seated_time !== undefined) {
+                                    this.liveTables[item.id].seated_time = item.seated_time;
+                                }
                             } else {
                                 this.liveTables[item.id] = {
                                     status: item.status,
@@ -277,7 +288,8 @@
                                     initial_pax: item.initial_pax ?? item.pax,
                                     additional_pax: item.additional_pax ?? 0,
                                     table_number: item.table_number || '',
-                                    capacity: item.capacity || 0
+                                    capacity: item.capacity || 0,
+                                    seated_time: item.seated_time || null
                                 };
                             }
 
@@ -287,6 +299,19 @@
                         });
                     })
                     .catch(err => console.debug('Live poll skipped:', err));
+            },
+
+            getTableElapsedTime(tableId, defaultSeatedTime) {
+                let t = this.liveTables[tableId];
+                let seatedStr = (t && t.seated_time) ? t.seated_time : defaultSeatedTime;
+                if (!seatedStr) return '00:00';
+                let seatedMs = new Date(seatedStr).getTime();
+                if (isNaN(seatedMs)) return '00:00';
+                let diffSecs = Math.max(0, Math.floor((this.now - seatedMs) / 1000));
+                let hrs = Math.floor(diffSecs / 3600);
+                let mins = Math.floor((diffSecs % 3600) / 60);
+                let pad = (n) => String(n).padStart(2, '0');
+                return `${pad(hrs)}:${pad(mins)}`;
             },
 
             setZoom(val) {
@@ -1365,17 +1390,15 @@
                                         @if ($table->shape === 'triangle') clip-path: polygon(50% 0%, 0% 100%, 100% 100%); padding-top: 12px; @endif
                                      ">
 
-                                        <div class="text-center pointer-events-none space-y-0 px-1">
-                                            <div class="flex items-center justify-center gap-1">
-                                                <p class="text-[10px] font-extrabold tracking-tight leading-none text-white drop-shadow"
-                                                    x-text="liveTables[{{ $table->id }}]?.table_number || '{{ $table->table_number ?: '—' }}'">
-                                                </p>
-                                            </div>
-                                            <p class="text-[10px] font-semibold opacity-85 leading-none mt-1"
-                                                x-text="(liveTables[{{ $table->id }}]?.status || '{{ $table->status }}') === 'occupied' 
-                                                ? ((liveTables[{{ $table->id }}]?.pax || '{{ $table->pax ?? $table->capacity }}') + 'p')
-                                                : ((liveTables[{{ $table->id }}]?.capacity || {{ $table->capacity ?? 0 }}) + 'p')">
+                                        <div class="text-center pointer-events-none px-1 flex flex-col items-center justify-center">
+                                            <p class="text-[11px] font-extrabold tracking-tight leading-none text-white drop-shadow"
+                                                x-text="liveTables[{{ $table->id }}]?.table_number || '{{ $table->table_number ?: '—' }}'">
                                             </p>
+                                            <template x-if="(liveTables[{{ $table->id }}]?.status || '{{ $table->status }}') === 'occupied'">
+                                                <p class="text-[11px] font-bold text-rose-200 tracking-tight leading-none mt-1 drop-shadow tabular-nums"
+                                                    x-text="getTableElapsedTime({{ $table->id }}, '{{ $table->seated_time ? \Carbon\Carbon::parse($table->seated_time)->toIso8601String() : '' }}')">
+                                                </p>
+                                            </template>
                                         </div>
                                         @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()))
                                         <template x-if="editMode === 'table'">
@@ -1406,17 +1429,17 @@
                 <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto sm:hidden mb-1"></div>
 
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h3 class="text-base font-bold text-slate-900">
-                            {{ __('Table') }} <span x-text="tableNumber || '—'"></span>
+                            {{ __('Table Number:') }} <span x-text="tableNumber || '—'"></span>
                         </h3>
-                        <span class="text-slate-300">·</span>
-                        <span class="text-xs font-semibold text-slate-500">
-                            {{ __('Max Capacity:') }} <strong class="text-slate-800" x-text="tableCapacity"></strong> {{ __('Pax') }}
-                        </span>
+                        <span class="text-slate-300 font-bold">·</span>
+                        <h3 class="text-base font-bold text-slate-900">
+                            {{ __('Capacity:') }} <span x-text="tableCapacity"></span> {{ __('Pax') }}
+                        </h3>
                     </div>
                     <button @click="modalOpen = false"
-                        class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition">
+                        class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-xs transition shrink-0">
                         ✕
                     </button>
                 </div>
@@ -1466,6 +1489,7 @@
                             // Instantly update local state so there is zero lag
                             liveTables[selectedTableId].status = 'occupied';
                             liveTables[selectedTableId].pax = paxCount;
+                            liveTables[selectedTableId].seated_time = new Date().toISOString();
                             tableStatus = 'occupied';
                             modalOpen = false;
 
@@ -1605,6 +1629,7 @@
                                     // Instantly switch local state back to green available
                                     liveTables[selectedTableId].status = 'available';
                                     liveTables[selectedTableId].pax = null;
+                                    liveTables[selectedTableId].seated_time = null;
                                     tableStatus = 'available';
                                     modalOpen = false;
 
@@ -1633,6 +1658,7 @@
                                     // Instantly switch local state
                                     liveTables[selectedTableId].status = 'available';
                                     liveTables[selectedTableId].pax = null;
+                                    liveTables[selectedTableId].seated_time = null;
                                     tableStatus = 'available';
                                     modalOpen = false;
 

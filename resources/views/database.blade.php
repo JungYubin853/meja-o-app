@@ -178,7 +178,7 @@
         @if ($viewMode === 'habits')
             <div x-data="{ 
                 activeTab: 'table',
-                perPage: 10,
+                perPage: 5,
                 currentPage: 1,
                 totalRecords: {{ count($habitsDateLog) }},
                 get totalPages() { return Math.max(1, Math.ceil(this.totalRecords / this.perPage)); },
@@ -188,7 +188,7 @@
                 get pageRange() {
                     const total = this.totalPages;
                     const current = this.currentPage;
-                    const delta = 3;
+                    const delta = 2;
                     if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
                     const range = [];
                     const left = Math.max(2, current - delta);
@@ -389,6 +389,7 @@
                                   <div class="flex items-center gap-1.5">
                                       <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                                       <select x-model.number="perPage" @change="currentPage = 1" class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                          <option :value="5">5</option>
                                           <option :value="10">10</option>
                                           <option :value="25">25</option>
                                           <option :value="50">50</option>
@@ -596,7 +597,7 @@
                 @if(count($overallStats) > 0)
                       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
                           x-data="{
-                              perPage: 10,
+                              perPage: 5,
                               currentPage: 1,
                               totalRecords: {{ count($overallStats) }},
                               get totalPages() {
@@ -614,7 +615,7 @@
                               get pageRange() {
                                   const total = this.totalPages;
                                   const current = this.currentPage;
-                                  const delta = 3;
+                                  const delta = 2;
                                   if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
                                   const range = [];
                                   const left = Math.max(2, current - delta);
@@ -643,6 +644,7 @@
                                       <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                                       <select x-model.number="perPage" @change="currentPage = 1"
                                           class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                          <option :value="5">5</option>
                                           <option :value="10">10</option>
                                           <option :value="25">25</option>
                                           <option :value="50">50</option>
@@ -907,7 +909,7 @@
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
                 x-data="{
-                    perPage: 10,
+                    perPage: 5,
                     currentPage: 1,
                     totalRecords: {{ count($waitlists) }},
                     get totalPages() {
@@ -925,7 +927,7 @@
                     get pageRange() {
                         const total = this.totalPages;
                         const current = this.currentPage;
-                        const delta = 3;
+                        const delta = 2;
                         if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
                         const range = [];
                         const left = Math.max(2, current - delta);
@@ -954,6 +956,7 @@
                             <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                             <select x-model.number="perPage" @change="currentPage = 1"
                                 class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                                <option :value="5">5</option>
                                 <option :value="10">10</option>
                                 <option :value="25">25</option>
                                 <option :value="50">50</option>
@@ -1094,7 +1097,7 @@
         <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Numbered Pagination) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
             x-data="{
-                perPage: 10,
+                perPage: 5,
                 currentPage: 1,
                 totalRecords: {{ count($logs) }},
                 get totalPages() {
@@ -1112,7 +1115,7 @@
                 get pageRange() {
                     const total = this.totalPages;
                     const current = this.currentPage;
-                    const delta = 3;
+                    const delta = 2;
                     if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
                     const range = [];
                     const left = Math.max(2, current - delta);
@@ -1142,6 +1145,7 @@
                         <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">{{ __('Rows per page:') }}</span>
                         <select x-model.number="perPage" @change="currentPage = 1"
                             class="h-8 text-xs font-bold px-2 py-0 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
+                            <option :value="5">5</option>
                             <option :value="10">10</option>
                             <option :value="25">25</option>
                             <option :value="50">50</option>

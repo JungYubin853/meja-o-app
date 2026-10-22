@@ -34,10 +34,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/change-password', [AuthController::class, 'updatePassword'])->name('profile.change-password');
     Route::post('/profile/reset-requests/{id}/change-password', [AuthController::class, 'adminChangeUserPassword'])->name('profile.reset-requests.change-password');
     Route::post('/profile/reset-requests/{id}/resolve', [AuthController::class, 'resolveResetRequest'])->name('profile.reset-requests.resolve');
+    Route::delete('/profile/reset-requests/{id}', [AuthController::class, 'deleteResetRequest'])->name('profile.reset-requests.delete');
     Route::get('/account-management', [AuthController::class, 'showAccountManagement'])->name('account-management');
     Route::post('/users', [AuthController::class, 'createUser']);
     Route::delete('/users/{id}', [AuthController::class, 'deleteUser']);
-    Route::get('/approval', [AuthController::class, 'showApproval'])->name('approval');
+    Route::get('/approval', function (\Illuminate\Http\Request $request) {
+        return redirect()->route('account-management', $request->query());
+    })->name('approval');
     Route::post('/approval/{id}/approve', [AuthController::class, 'approveUser'])->name('approval.approve');
     Route::post('/approval/{id}/reject', [AuthController::class, 'rejectUser'])->name('approval.reject');
     Route::get('/', [TableController::class, 'index']);
@@ -138,6 +141,22 @@ Route::middleware(['auth'])->group(function () {
         }
         $user->permissions = $perms;
         $user->save();
+        return response()->json(['success' => true]);
+    });
+
+    Route::post('/api/user/columns', function (Illuminate\Http\Request $request) {
+        $user = Auth::user();
+        if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+        
+        $columns = $request->columns;
+        if (is_array($columns)) {
+            $perms = is_string($user->permissions) ? json_decode($user->permissions, true) : ((array)$user->permissions ?: []);
+            foreach ($columns as $k => $v) {
+                $perms[$k] = filter_var($v, FILTER_VALIDATE_BOOLEAN);
+            }
+            $user->permissions = $perms;
+            $user->save();
+        }
         return response()->json(['success' => true]);
     });
 

@@ -27,6 +27,11 @@ class Table extends Model
         'updated_by_user_id',
     ];
 
+    protected $casts = [
+        'seated_time' => 'datetime',
+        'cleared_time' => 'datetime',
+    ];
+
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);

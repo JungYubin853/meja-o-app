@@ -3,7 +3,7 @@
 @php
     $total = $paginator->lastPage();
     $current = $paginator->currentPage();
-    $delta = 3;
+    $delta = 2;
     $range = [];
 
     if ($total <= 7) {

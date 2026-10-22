@@ -180,28 +180,60 @@
 
                             <!-- 4. Profile Link -->
                             @if (Auth::user()->hasPermission('nav_profile'))
+                                @php
+                                    $profilePendingCount = 0;
+                                    if (Auth::user()->hasPermission('prof_password_requests')) {
+                                        $profilePendingQuery = \App\Models\PasswordResetRequest::where('status', 'pending');
+                                        if (!Auth::user()->isSuperAdmin()) {
+                                            $profilePendingQuery->where('outlet_id', Auth::user()->outlet_id)->where('role', 'staff');
+                                        }
+                                        $profilePendingCount = $profilePendingQuery->count();
+                                    }
+                                @endphp
                                 <a href="/profile"
-                                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('profile*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('profile*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('profile*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('profile*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Profile') }}</span>
                                     </div>
-                                    <span>{{ __('Profile') }}</span>
+                                    @if ($profilePendingCount > 0)
+                                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold bg-amber-500 text-white shadow-2xs animate-pulse aspect-square shrink-0">
+                                            {{ $profilePendingCount }}
+                                        </span>
+                                    @endif
                                 </a>
                             @endif
                             
-                            @if (Auth::user()->hasPermission('nav_account_mgmt'))
+                            @if (Auth::user()->hasPermission('nav_account_mgmt') || Auth::user()->hasPermission('acc_user_list') || Auth::user()->hasPermission('nav_approval'))
+                                @php
+                                    $accountPendingCountQuery = \App\Models\User::where('role', '!=', 'super_admin')
+                                        ->where('status', 'pending');
+                                    if (!Auth::user()->isSuperAdmin()) {
+                                        $accountPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
+                                    }
+                                    $accountPendingCount = $accountPendingCountQuery->count();
+                                @endphp
                                 <!-- 5. Account Management -->
                                 <a href="/account-management"
-                                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('account-management*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('account-management*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('account-management*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('account-management*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Account Management') }}</span>
                                     </div>
-                                    <span>{{ __('Account Management') }}</span>
+                                    @if ($accountPendingCount > 0)
+                                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold bg-amber-500 text-white shadow-2xs animate-pulse aspect-square shrink-0">
+                                            {{ $accountPendingCount }}
+                                        </span>
+                                    @endif
                                 </a>
                             @endif
 
@@ -216,35 +248,6 @@
                                         </svg>
                                     </div>
                                     <span>{{ __('Role & User Permission') }}</span>
-                                </a>
-                            @endif
-
-                            @if (Auth::user()->hasPermission('nav_approval'))
-                                @php
-                                    $userPendingCountQuery = \App\Models\User::where('role', '!=', 'super_admin')
-                                        ->where('status', 'pending');
-                                    if (!Auth::user()->isSuperAdmin()) {
-                                        $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
-                                    }
-                                    $navPendingCount = $userPendingCountQuery->count();
-                                @endphp
-                                <!-- 7. Approval -->
-                                <a href="/approval"
-                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('approval*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('approval*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <span>{{ __('Approval') }}</span>
-                                    </div>
-                                    @if ($navPendingCount > 0)
-                                        <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full shadow-2xs animate-pulse">
-                                            {{ $navPendingCount }}
-                                        </span>
-                                    @endif
                                 </a>
                             @endif
                         </div>
@@ -378,28 +381,52 @@
 
                             <!-- 4. Profile Link -->
                             @if (Auth::user()->hasPermission('nav_profile'))
+                                @php
+                                    $profilePendingCount = 0;
+                                    if (Auth::user()->hasPermission('prof_password_requests')) {
+                                        $profilePendingQuery = \App\Models\PasswordResetRequest::where('status', 'pending');
+                                        if (!Auth::user()->isSuperAdmin()) {
+                                            $profilePendingQuery->where('outlet_id', Auth::user()->outlet_id)->where('role', 'staff');
+                                        }
+                                        $profilePendingCount = $profilePendingQuery->count();
+                                    }
+                                @endphp
                                 <a href="/profile"
-                                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('profile*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('profile*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('profile*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('profile*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Profile') }}</span>
                                     </div>
-                                    <span>{{ __('Profile') }}</span>
+                                    @if ($profilePendingCount > 0)
+                                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold bg-amber-500 text-white shadow-2xs animate-pulse aspect-square shrink-0">
+                                            {{ $profilePendingCount }}
+                                        </span>
+                                    @endif
                                 </a>
                             @endif
                             
-                            @if (Auth::user()->hasPermission('nav_account_mgmt'))
+                            @if (Auth::user()->hasPermission('nav_account_mgmt') || Auth::user()->hasPermission('acc_user_list') || Auth::user()->hasPermission('nav_approval'))
                                 <!-- 5. Account Management -->
                                 <a href="/account-management"
-                                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('account-management*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('account-management*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
+                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('account-management*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('account-management*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <span>{{ __('Account Management') }}</span>
                                     </div>
-                                    <span>{{ __('Account Management') }}</span>
+                                    @if ($accountPendingCount > 0)
+                                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold bg-amber-500 text-white shadow-2xs animate-pulse aspect-square shrink-0">
+                                            {{ $accountPendingCount }}
+                                        </span>
+                                    @endif
                                 </a>
                             @endif
 
@@ -414,35 +441,6 @@
                                         </svg>
                                     </div>
                                     <span>{{ __('Role & User Permission') }}</span>
-                                </a>
-                            @endif
-
-                            @if (Auth::user()->hasPermission('nav_approval'))
-                                @php
-                                    $userPendingCountQuery = \App\Models\User::where('role', '!=', 'super_admin')
-                                        ->where('status', 'pending');
-                                    if (!Auth::user()->isSuperAdmin()) {
-                                        $userPendingCountQuery->where('outlet_id', Auth::user()->outlet_id);
-                                    }
-                                    $navPendingCountMobile = $userPendingCountQuery->count();
-                                @endphp
-                                <!-- 7. Approval -->
-                                <a href="/approval"
-                                    class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('approval*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('approval*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <span>{{ __('Approval') }}</span>
-                                    </div>
-                                    @if ($navPendingCountMobile > 0)
-                                        <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full shadow-2xs animate-pulse">
-                                            {{ $navPendingCountMobile }}
-                                        </span>
-                                    @endif
                                 </a>
                             @endif
                         </div>

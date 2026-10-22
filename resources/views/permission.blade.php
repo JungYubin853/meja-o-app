@@ -307,10 +307,23 @@
                             </div>
 
                             <!-- {{ __('Tutorial & Guidelines') }} -->
-                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">{{ __('Tutorial & Guidelines') }}<span x-cloak x-show="differsFromDefault('nav_tutorial')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                <input type="checkbox" x-model="permissions.nav_tutorial" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                            </label>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+                                    <span class="text-sm font-bold text-slate-800">{{ __('Tutorial & Guidelines') }}<span x-cloak x-show="differsFromDefault('nav_tutorial')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                    <input type="checkbox" x-model="permissions.nav_tutorial" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                </label>
+                                
+                                <div x-show="permissions.nav_tutorial" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Admin Guide') }}<span x-cloak x-show="differsFromDefault('tut_admin_guide')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.tut_admin_guide" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Staff Guide') }}<span x-cloak x-show="differsFromDefault('tut_staff_guide')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.tut_staff_guide" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                </div>
+                            </div>
 
                             <!-- {{ __('Calendar') }} -->
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
@@ -326,10 +339,55 @@
                                 </label>
                                 
                                 <div x-show="permissions.nav_profile" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Search Bar') }}<span x-cloak x-show="differsFromDefault('prof_search_bar')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.prof_search_bar" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Account Information') }}<span x-cloak x-show="differsFromDefault('prof_account_info')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.prof_account_info" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer col-span-1 sm:col-span-2">
-                                        <span class="text-xs font-semibold text-slate-700">{{ __('Forgot Password Recovery Requests') }}<span x-cloak x-show="differsFromDefault('prof_password_requests')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Password Recovery') }}<span x-cloak x-show="differsFromDefault('prof_password_requests')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.prof_password_requests" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- Settings (Column Visibility) -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer col-span-1 sm:col-span-2">
+                                        <span class="text-xs font-semibold text-slate-700">
+                                            <span>{{ __('Settings') }}</span>
+                                            <span x-cloak x-show="differsFromDefault('prof_table_settings')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span>
+                                        </span>
+                                        <input type="checkbox" x-model="permissions.prof_table_settings" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- Mini ticks under Settings for Profile Columns -->
+                                    <div x-show="permissions.prof_table_settings" x-transition class="col-span-1 sm:col-span-2 pl-4 sm:pl-6 grid grid-cols-2 sm:grid-cols-3 gap-2 border-l-2 border-slate-200 ml-3 py-1">
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('User') }}<span x-cloak x-show="differsFromDefault('prof_col_user')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_user" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Outlet') }}<span x-cloak x-show="differsFromDefault('prof_col_outlet')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_outlet" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Role') }}<span x-cloak x-show="differsFromDefault('prof_col_role')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_role" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Submitted') }}<span x-cloak x-show="differsFromDefault('prof_col_submitted')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_submitted" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Current Password') }}<span x-cloak x-show="differsFromDefault('prof_col_password')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_password" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Actions') }}<span x-cloak x-show="differsFromDefault('prof_col_actions')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.prof_col_actions" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -341,6 +399,10 @@
                                 </label>
                                 
                                 <div x-show="permissions.nav_account_mgmt" x-transition class="pl-6 sm:pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 border-l-2 border-slate-100 ml-4">
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer col-span-1 sm:col-span-2">
+                                        <span class="text-xs font-semibold text-slate-700">{{ __('Search Bar') }}<span x-cloak x-show="differsFromDefault('acc_search_bar')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
+                                        <input type="checkbox" x-model="permissions.acc_search_bar" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
                                     <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                                         <span class="text-xs font-semibold text-slate-700">{{ __('Create New Account') }}<span x-cloak x-show="differsFromDefault('acc_create_account')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.acc_create_account" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
@@ -349,6 +411,47 @@
                                         <span class="text-xs font-semibold text-slate-700">{{ __('User List') }}<span x-cloak x-show="differsFromDefault('acc_user_list')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                         <input type="checkbox" x-model="permissions.acc_user_list" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                                     </label>
+
+                                    <!-- Settings (Column Visibility) -->
+                                    <label class="flex items-center justify-between p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer col-span-1 sm:col-span-2">
+                                        <span class="text-xs font-semibold text-slate-700">
+                                            <span>{{ __('Settings') }}</span>
+                                            <span x-cloak x-show="differsFromDefault('acc_table_settings')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span>
+                                        </span>
+                                        <input type="checkbox" x-model="permissions.acc_table_settings" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    </label>
+
+                                    <!-- Mini ticks under Settings for Account Management Columns -->
+                                    <div x-show="permissions.acc_table_settings" x-transition class="col-span-1 sm:col-span-2 pl-4 sm:pl-6 grid grid-cols-2 sm:grid-cols-3 gap-2 border-l-2 border-slate-200 ml-3 py-1">
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('User') }}<span x-cloak x-show="differsFromDefault('acc_col_user')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_user" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Outlet') }}<span x-cloak x-show="differsFromDefault('acc_col_outlet')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_outlet" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Role') }}<span x-cloak x-show="differsFromDefault('acc_col_role')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_role" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Source') }}<span x-cloak x-show="differsFromDefault('acc_col_source')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_source" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Status') }}<span x-cloak x-show="differsFromDefault('acc_col_status')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_status" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Submitted') }}<span x-cloak x-show="differsFromDefault('acc_col_submitted')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_submitted" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                        <label class="flex items-center justify-between p-2 border border-slate-100 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                                            <span class="text-[11px] font-medium text-slate-600">{{ __('Actions') }}<span x-cloak x-show="differsFromDefault('acc_col_actions')" class="text-amber-500 font-black ml-1 text-[10px]">(!)</span></span>
+                                            <input type="checkbox" x-model="permissions.acc_col_actions" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -356,12 +459,6 @@
                             <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
                                 <span class="text-sm font-bold text-slate-800">{{ __('Role & User Permission') }}<span x-cloak x-show="differsFromDefault('nav_role_permission')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
                                 <input type="checkbox" x-model="permissions.nav_role_permission" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-                            </label>
-
-                            <!-- {{ __('Approval') }} -->
-                            <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                                <span class="text-sm font-bold text-slate-800">{{ __('Approval') }}<span x-cloak x-show="differsFromDefault('nav_approval')" class="text-amber-500 font-black ml-1.5 text-[11px]" title="Differs from Base Default Template">(!)</span></span>
-                                <input type="checkbox" x-model="permissions.nav_approval" class="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
                             </label>
                         </div>
                     </div>
