@@ -1,19 +1,3 @@
-@if (auth()->check() && auth()->user()->isSuperAdmin())
-    <script>
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.has('outlet_id')) {
-                const savedUrl = localStorage.getItem('meja_last_dashboard_url');
-                if (savedUrl && savedUrl !== window.location.href) {
-                    window.location.replace(savedUrl);
-                    return;
-                }
-            }
-            localStorage.setItem('meja_last_dashboard_url', window.location.href);
-        })();
-    </script>
-@endif
-
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('floorCanvas', () => ({
@@ -968,10 +952,10 @@
                         @endif
 
                         @if (Auth::user()->hasPermission('dash_create_table'))
-                        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5">
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
 
                             <button @click="settingsModalOpen = true"
-                                class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-98">
+                                class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-98">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4"></path>
@@ -979,12 +963,12 @@
                                 <span>{{{ __('Create New Table') }}}</span>
                             </button>
 
-                            <div class="pt-1 border-t border-slate-100">
-                                <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Inventory') }}</h3>
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 text-[11px] tracking-wider uppercase">{{ __('Table Inventory') }}</h3>
                             </div>
 
-                            <!-- {{ __('Unplaced Inventory') }} Tray -->
-                            <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto pr-1 border border-dashed border-slate-200 p-2.5 rounded-xl bg-slate-50/70"
+                            <!-- {{ __('Table Inventory') }} Tray -->
+                            <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto p-2 sm:p-2.5 border border-dashed border-slate-200/90 rounded-xl bg-slate-50/70"
                                 @dragover.prevent
                                 @drop.prevent="
                                 let tableId = $event.dataTransfer.getData('text/plain');
@@ -996,10 +980,10 @@
                              ">
                                 @forelse($tables->where('grid_x', 0) as $table)
                                     <div
-                                        class="bg-white border border-slate-200 shadow-soft-xs hover:border-slate-400 hover:shadow-md rounded-xl p-3 flex items-center justify-between transition group select-none">
+                                        class="bg-white border border-slate-200/90 shadow-soft-xs hover:border-slate-400 hover:shadow-sm rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5 flex items-center justify-between gap-2 transition group select-none">
 
                                         <!-- Left Section: Clickable to Edit specs -->
-                                        <div class="flex items-center gap-3 cursor-pointer flex-1 mr-2"
+                                        <div class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1"
                                             @click="openInventoryModal({
                                             id: {{ $table->id }},
                                             table_number: '{{ $table->table_number ?? '' }}',
@@ -1009,13 +993,13 @@
                                             shape: '{{ $table->shape }}'
                                         })">
                                             <div
-                                                class="w-4 h-4 {{ $table->shape === 'circle' ? 'rounded-full' : ($table->shape === 'triangle' ? 'clip-triangle' : 'rounded-sm') }} bg-slate-800 flex-shrink-0">
+                                                class="w-4 h-4 {{ $table->shape === 'circle' ? 'rounded-full' : ($table->shape === 'triangle' ? 'clip-triangle' : 'rounded-sm') }} bg-slate-800 shrink-0">
                                             </div>
-                                            <div>
-                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800">
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800 truncate leading-snug">
                                                     {{ $table->table_number ?: '—' }}
                                                 </p>
-                                                <p class="text-[10px] text-slate-500 font-medium">
+                                                <p class="text-[10px] text-slate-500 font-medium truncate leading-tight">
                                                     {{ $table->capacity ? $table->capacity . ' ' . __('Pax') : '0 ' . __('Pax') }}
                                                     ({{ $table->width }}×{{ $table->height }})
                                                 </p>
@@ -1039,7 +1023,7 @@
 
                                             <div draggable="true"
                                                 @dragstart="$event.dataTransfer.setData('text/plain', '{{ $table->id }}'); $event.dataTransfer.setData('w', '{{ $table->width }}'); $event.dataTransfer.setData('h', '{{ $table->height }}'); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0');"
-                                                class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1">
+                                                class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -1051,9 +1035,9 @@
 
                                     </div>
                                 @empty
-                                    <div class="text-center py-8">
+                                    <div class="text-center py-6 px-2">
                                         <div
-                                            class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                                            class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">
                                             ✓</div>
                                         <p class="text-xs text-slate-500 font-medium">{{ __('No Available Tables') }}</p>
                                     </div>
@@ -1067,21 +1051,21 @@
                         @if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isSuperAdmin()) && Auth::user()->hasPermission('dash_create_section'))
                         
                         <!-- SECTION INVENTORY TRAY CONTAINER -->
-                        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3.5 mb-4">
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-soft-xs space-y-3">
                             <!-- + {{ __('Create New Section') }} Button -->
                             <button type="button" @click="sectionModalOpen = true; editSecTemplateIdx = -1; editPlacedSecIdx = -1; newSecName = ''; newSecColor = 'blue'; newSecW = 5; newSecH = 5;"
-                                class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-3 px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-98">
+                                class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-98">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
                                 <span>{{ __('Create New Section') }}</span>
                             </button>
 
-                            <div class="pt-1 border-t border-slate-100">
-                                <h3 class="font-bold text-slate-900 text-xs tracking-wide uppercase">{{ __('Unplaced Sections') }}</h3>
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 text-[11px] tracking-wider uppercase">{{ __('Section Inventory') }}</h3>
                             </div>
 
-                            <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto pr-1 border border-dashed border-slate-200 p-2.5 rounded-xl bg-slate-50/70"
+                            <div class="space-y-2 max-h-[260px] sm:max-h-[420px] overflow-y-auto p-2 sm:p-2.5 border border-dashed border-slate-200/90 rounded-xl bg-slate-50/70"
                                 @dragover.prevent
                                 @drop.prevent="
                                 if (editMode === 'section') {
@@ -1090,15 +1074,15 @@
                                 }
                              ">
                                 <template x-for="(sec, idx) in sectionTemplates" :key="idx">
-                                    <div class="bg-white border border-slate-200 shadow-soft-xs hover:border-slate-400 hover:shadow-md rounded-xl p-3 flex items-center justify-between transition group select-none">
+                                    <div class="bg-white border border-slate-200/90 shadow-soft-xs hover:border-slate-400 hover:shadow-sm rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5 flex items-center justify-between gap-2 transition group select-none">
                                         
                                         <!-- Left Side: Color, Name, Size -->
-                                        <div class="flex items-center gap-3 cursor-pointer flex-1 mr-2"
+                                        <div class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1"
                                             @click="openSectionTemplateModal(idx)">
-                                            <div class="w-4 h-4 rounded-sm flex-shrink-0 shadow-xs" :style="{ backgroundColor: getSectionHex(sec.color) }"></div>
-                                            <div>
-                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800" x-text="sec.name || '—'"></p>
-                                                <p class="text-[10px] text-slate-500 font-medium" x-text="sec.w + 'x' + sec.h"></p>
+                                            <div class="w-4 h-4 rounded-sm shrink-0 shadow-2xs" :style="{ backgroundColor: getSectionHex(sec.color) }"></div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-slate-900 group-hover:text-slate-800 truncate leading-snug" x-text="sec.name || '—'"></p>
+                                                <p class="text-[10px] text-slate-500 font-medium truncate leading-tight" x-text="sec.w + '×' + sec.h"></p>
                                             </div>
                                         </div>
 
@@ -1115,7 +1099,7 @@
 
                                             <div draggable="true"
                                                 @dragstart="if(editMode === 'section') { $event.dataTransfer.setData('templateIdx', idx); $event.dataTransfer.setData('w', sec.w); $event.dataTransfer.setData('h', sec.h); $event.dataTransfer.setData('ox', '0'); $event.dataTransfer.setData('oy', '0'); }"
-                                                class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1"
+                                                class="text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2 py-1 rounded-lg cursor-grab active:cursor-grabbing transition flex items-center gap-1"
                                                 :class="editMode === 'section' ? '' : 'opacity-50 cursor-not-allowed pointer-events-none'">
                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
@@ -1127,8 +1111,8 @@
                                     </div>
                                 </template>
                                 
-                                <div x-show="sectionTemplates.length === 0" class="text-center py-8">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">✓</div>
+                                <div x-show="sectionTemplates.length === 0" class="text-center py-6 px-2">
+                                    <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">✓</div>
                                     <p class="text-xs text-slate-500 font-medium">{{ __('No Available Sections') }}</p>
                                 </div>
                             </div>
@@ -1837,7 +1821,7 @@
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">-</button>
                                         <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums"
                                             x-text="invWidth"></span>
-                                        <button type="button" @click="invWidth = Math.min(5, invWidth + 1)"
+                                        <button type="button" @click="invWidth = Math.min(10, invWidth + 1)"
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">+</button>
                                     </div>
                                 </div>
@@ -1849,7 +1833,7 @@
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">-</button>
                                         <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums"
                                             x-text="invHeight"></span>
-                                        <button type="button" @click="invHeight = Math.min(5, invHeight + 1)"
+                                        <button type="button" @click="invHeight = Math.min(10, invHeight + 1)"
                                             class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center border border-slate-200">+</button>
                                     </div>
                                 </div>
@@ -1966,9 +1950,9 @@
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newWidth = Math.max(1, newWidth - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
-                                    <span class="text-xs font-bold text-slate-900 w-3 text-center tabular-nums"
+                                    <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums"
                                         x-text="newWidth"></span>
-                                    <button type="button" @click="newWidth = Math.min(4, newWidth + 1)"
+                                    <button type="button" @click="newWidth = Math.min(10, newWidth + 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">+</button>
                                 </div>
                             </div>
@@ -1978,9 +1962,9 @@
                                 <div class="flex items-center gap-2">
                                     <button type="button" @click="newHeight = Math.max(1, newHeight - 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">-</button>
-                                    <span class="text-xs font-bold text-slate-900 w-3 text-center tabular-nums"
+                                    <span class="text-xs font-bold text-slate-900 w-4 text-center tabular-nums"
                                         x-text="newHeight"></span>
-                                    <button type="button" @click="newHeight = Math.min(4, newHeight + 1)"
+                                    <button type="button" @click="newHeight = Math.min(10, newHeight + 1)"
                                         class="w-6 h-6 bg-white hover:bg-slate-200 text-slate-800 font-bold rounded-md flex items-center justify-center transition border border-slate-200">+</button>
                                 </div>
                             </div>
@@ -2250,12 +2234,12 @@
                                 <div class="grid grid-cols-2 gap-2.5">
                                     <div>
                                         <label class="block text-[10px] font-semibold text-slate-700 mb-0.5">{{ __('Width (Columns)') }}</label>
-                                        <input type="number" name="grid_width" value="0" min="0" max="40" required
+                                        <input type="number" name="grid_width" value="0" min="0" max="50" required
                                             class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-center">
                                     </div>
                                     <div>
                                         <label class="block text-[10px] font-semibold text-slate-700 mb-0.5">{{ __('Height (Rows)') }}</label>
-                                        <input type="number" name="grid_height" value="0" min="0" max="40" required
+                                        <input type="number" name="grid_height" value="0" min="0" max="50" required
                                             class="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-center">
                                     </div>
                                 </div>
@@ -2304,12 +2288,12 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Width (Columns)') }}</label>
-                                    <input type="number" name="grid_width" min="0" max="40" x-model="newGridWidth" required
+                                    <input type="number" name="grid_width" min="0" max="50" x-model="newGridWidth" required
                                         class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">{{ __('Height (Rows)') }}</label>
-                                    <input type="number" name="grid_height" min="0" max="40" x-model="newGridHeight" required
+                                    <input type="number" name="grid_height" min="0" max="50" x-model="newGridHeight" required
                                         class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 font-bold text-center">
                                 </div>
                             </div>

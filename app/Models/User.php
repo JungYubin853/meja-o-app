@@ -133,7 +133,7 @@ class User extends Authenticatable
             'prof_col_outlet' => $this->isAdmin(),
             'prof_col_role' => $this->isAdmin(),
             'prof_col_submitted' => $this->isAdmin(),
-            'prof_col_password' => $this->isAdmin(),
+            'prof_col_password' => false,
             'prof_col_actions' => $this->isAdmin(),
             'nav_account_mgmt' => $this->isAdmin(),
             'acc_search_bar' => true,

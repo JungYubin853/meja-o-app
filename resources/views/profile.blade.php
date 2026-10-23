@@ -6,7 +6,16 @@
             showMyPassword: false,
             adminModalReqId: null,
             adminModalUserName: '',
-            adminModalUserEmail: ''
+            adminModalUserEmail: '',
+            userNameOriginal: {{ json_encode($user->name) }},
+            userNameCurrent: {{ json_encode(old('name', $user->name)) }},
+            userEmailOriginal: {{ json_encode($user->email) }},
+            userEmailCurrent: {{ json_encode(old('email', $user->email)) }},
+            get isAccountInfoChanged() {
+                const nameChanged = this.userNameCurrent.trim() !== this.userNameOriginal.trim() && this.userNameCurrent.trim().length > 0;
+                const emailChanged = this.userEmailCurrent.trim() !== this.userEmailOriginal.trim() && this.userEmailCurrent.trim().length > 0;
+                return nameChanged || emailChanged;
+            }
         }">
 
         <!-- Feedback Alerts -->
@@ -89,18 +98,15 @@
                             <!-- Full Name -->
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Full Name') }}</label>
-                                <input type="text" name="name" value="{{ old('name', $user->name) }}" required
+                                <input type="text" name="name" x-model="userNameCurrent" required
                                     class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
 
-                            <!-- Email Address (Locked) -->
+                            <!-- Email Address -->
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{{ __('Email Address') }}</label>
-                                <div class="relative">
-                                    <input type="email" value="{{ $user->email }}" disabled
-                                        class="w-full text-xs p-2.5 bg-slate-100 border border-slate-200 rounded-xl font-semibold text-slate-500 cursor-not-allowed">
-                                    <svg class="w-4 h-4 text-slate-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                </div>
+                                <input type="email" name="email" x-model="userEmailCurrent" required
+                                    class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
 
                             <!-- Assigned Brand / Outlet -->
@@ -129,16 +135,17 @@
                             </div>
                         </div>
 
-                        <!-- Footer Action Buttons: Change Password & Save (Same size & neat) -->
-                        <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
+                        <!-- Footer Action Buttons: Change Password & Save (Save is hidden unless modified) -->
+                        <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
                             <button type="button" @click="showChangePasswordModal = true"
-                                class="w-full bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold py-2.5 px-2 rounded-xl transition shadow-2xs active:scale-98 flex items-center justify-center gap-1.5 text-center">
+                                :class="isAccountInfoChanged ? 'w-1/2' : 'w-full'"
+                                class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold py-2.5 px-2 rounded-xl transition shadow-2xs active:scale-98 flex items-center justify-center gap-1.5 text-center">
                                 <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                                 <span>{{ __('Change Password') }}</span>
                             </button>
 
-                            <button type="submit"
-                                class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-2 rounded-xl transition shadow-soft-xs active:scale-98 flex items-center justify-center gap-1.5 text-center">
+                            <button type="submit" x-show="isAccountInfoChanged" x-cloak
+                                class="w-1/2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-2 rounded-xl transition shadow-soft-xs active:scale-98 flex items-center justify-center gap-1.5 text-center">
                                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 <span>{{ __('Save') }}</span>
                             </button>
@@ -152,11 +159,19 @@
             <!-- 2. FORGOT PASSWORD REQUESTS (Right Column - Admin & Super Admin) -->
             @if (Auth::user()->hasPermission('prof_password_requests'))
                 <div class="flex-1 min-w-0 w-full max-w-full flex flex-col gap-4" x-data="{
-                    currentPage: 1,
-                    perPage: 5,
+                    currentPage: (function() { const p = parseInt(localStorage.getItem('meja_profile_page')); return (p && p > 0) ? p : 1; })(),
+                    perPage: parseInt(localStorage.getItem('meja_profile_per_page')) || 5,
                     compactView: true,
                     compactOutlet: true,
                     showColumnModal: false,
+                    init() {
+                        if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        this.$watch('currentPage', val => localStorage.setItem('meja_profile_page', val));
+                        this.$watch('perPage', val => {
+                            localStorage.setItem('meja_profile_per_page', val);
+                            if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        });
+                    },
                     cols: {
                         user: {{ Auth::user()->hasPermission('prof_col_user') ? 'true' : 'false' }},
                         outlet: {{ Auth::user()->hasPermission('prof_col_outlet') ? 'true' : 'false' }},
@@ -621,7 +636,6 @@
         </div>
         @endif
     </div>
-</div>
 
         <!-- MODAL: USER CHANGE OWN PASSWORD (REQUIRES ORIGINAL PASSWORD VERIFICATION) -->
         <div x-show="showChangePasswordModal" x-cloak

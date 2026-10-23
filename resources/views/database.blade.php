@@ -1,15 +1,14 @@
-<!-- Immediate Session Redirect: If user accessed /database with no query parameter, redirect {{ __('to') }} their last active tab immediately -->
+<!-- Immediate Session Redirect: If user accessed /database with no query parameter, redirect to their last active URL -->
 <script>
     (function() {
         const urlParams = new URLSearchParams(window.location.search);
         if (!urlParams.has('view')) {
             const savedUrl = localStorage.getItem('meja_last_database_url');
-            if (savedUrl && savedUrl !== window.location.href) {
+            if (savedUrl && savedUrl !== window.location.href && savedUrl.includes('/database?view=')) {
                 window.location.replace(savedUrl);
                 return;
             }
         }
-        // Save the full current URL (view, month, year, date)
         localStorage.setItem('meja_last_database_url', window.location.href);
     })();
 </script>
@@ -21,7 +20,7 @@
         <!-- Navigation Tabs: Overall, Daily Report, Monthly Report, Yearly Report, and Waitlist -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 touch-scroll scrollbar-none">
             @if (Auth::user()->hasPermission('rep_overall'))
-                <a href="/database?view=overall"
+                <a href="/database?view=overall&date={{ $dateFilter }}"
                     class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'overall' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __('Overall') }}</a>
             @endif
 
@@ -52,13 +51,13 @@
             @endif
 
             @if (Auth::user()->hasPermission('rep_habits'))
-            <a href="/database?view=habits"
+            <a href="/database?view=habits&date={{ $dateFilter }}"
             class="px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 {{ $viewMode === 'habits' ? 'bg-slate-900 text-white shadow-soft-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50' }}">{{ __('Customer Habits') }}</a>
             @endif
 
         </div>
 
-        @if ($viewMode !== 'habits' && $viewMode !== 'overall')
+        @if ($viewMode !== 'habits')
 <!-- Filter & Actions Bar: Perfectly Aligned 1-Row Layout -->
         <div class="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-soft-xs flex flex-col sm:flex-row items-center justify-between gap-3">
             
@@ -83,7 +82,7 @@
                     </form>
                 @endif
 
-                @if ($viewMode !== 'overall' && $viewMode !== 'waitlist')
+                @if ($viewMode !== 'waitlist')
                     <form method="GET" action="/database" class="flex items-center gap-2 m-0 p-0 w-full sm:w-auto">
                         <input type="hidden" name="view" value="{{ $viewMode }}">
                         @if (isset($selectedOutletId)) <input type="hidden" name="outlet_id" value="{{ $selectedOutletId }}"> @endif
@@ -113,14 +112,14 @@
                                 @endif
                             </div>
 
-                        @elseif ($viewMode === 'hourly' || $viewMode === 'habits')
+                        @elseif ($viewMode === 'hourly' || $viewMode === 'habits' || $viewMode === 'overall')
                             <input type="date" name="date" value="{{ $dateFilter }}" onchange="this.form.submit()" class="h-10 text-xs px-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 box-border m-0 flex-1 sm:w-auto">
                             
                         @endif
                     </form>
                 @endif
 
-                @if ($viewMode !== 'waitlist' && $viewMode !== 'overall')
+                @if ($viewMode !== 'waitlist')
                     <div class="relative flex items-center w-full sm:w-auto shrink-0" @click.away="exportMenuOpen = false">
                         <button type="button" @click="exportMenuOpen = !exportMenuOpen"
                             class="h-10 w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold px-3.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-soft-xs box-border">
@@ -177,11 +176,23 @@
 <!-- CUSTOMER HABITS VIEW -->
         @if ($viewMode === 'habits')
             <div x-data="{ 
-                activeTab: 'table',
-                perPage: 5,
-                currentPage: 1,
+                activeTab: localStorage.getItem('meja_habits_tab') || 'table',
+                perPage: parseInt(localStorage.getItem('meja_db_per_page_habits')) || 5,
+                currentPage: (function() {
+                    const p = parseInt(localStorage.getItem('meja_db_page_habits'));
+                    return (p && p > 0) ? p : 1;
+                })(),
                 totalRecords: {{ count($habitsDateLog) }},
                 get totalPages() { return Math.max(1, Math.ceil(this.totalRecords / this.perPage)); },
+                init() {
+                    if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                    this.$watch('currentPage', val => localStorage.setItem('meja_db_page_habits', val));
+                    this.$watch('perPage', val => {
+                        localStorage.setItem('meja_db_per_page_habits', val);
+                        if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                    });
+                    this.$watch('activeTab', val => localStorage.setItem('meja_habits_tab', val));
+                },
                 nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
                 prevPage() { if (this.currentPage > 1) this.currentPage--; },
                 goToPage(p) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; },
@@ -444,7 +455,7 @@
                                     <tr class="hover:bg-slate-50 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
                                         <td class="px-4 py-3">
                                             <span class="text-slate-400 font-bold mr-1">#{{ $index + 1 }}</span> 
-                                            {{ $log->customer_name ?? __('Walk-in Guest') }}
+                                            {{ ($log->customer_name && !in_array($log->customer_name, ['Walk-in Guest', 'Walk-In Guest', 'Walk-in', 'Walk-In'])) ? $log->customer_name : __('Guest') }}
                                         </td>
                                         <td class="px-4 py-3">
                                             <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($log->started_at)->format('H:i') }}</span>
@@ -516,27 +527,38 @@
                     @endif
 
                     <!-- GANTT VIEW -->
-                    <div x-show="activeTab === 'gantt'" class="p-4 bg-slate-50/20" style="display: none;">
+                    <div x-show="activeTab === 'gantt'" class="p-3 sm:p-4 bg-slate-50/20" style="display: none;">
                         @if(count($habitsDateLog) > 0)
-                            <div class="relative w-full overflow-x-auto touch-scroll pb-4">
-                                <div class="min-w-[800px]">
-                                    <!-- Gantt Header (Time Axis 00:00 {{ __('to') }} 24:00) -->
-                                    <div class="flex items-end h-8 mb-2 border-b border-slate-200 relative ml-32">
-                                        @for($h = 0; $h <= 24; $h += 2)
-                                            <div class="absolute text-[10px] font-bold text-slate-400 -translate-x-1/2" style="left: {{ ($h / 24) * 100 }}%">
-                                                {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
-                                            </div>
-                                            @if($h < 24)
-                                                <div class="absolute h-2 border-l border-slate-200 bottom-0" style="left: {{ ($h / 24) * 100 }}%"></div>
-                                            @endif
-                                        @endfor
-                                        <div class="absolute h-2 border-l border-slate-200 bottom-0" style="left: 100%"></div>
+                            <div class="relative w-full max-h-[500px] sm:max-h-[600px] overflow-auto touch-scroll border border-slate-200/80 rounded-xl bg-white shadow-soft-xs">
+                                <div class="min-w-[840px] relative">
+                                    <!-- Sticky Top Header (Time Axis 00:00 to 24:00) -->
+                                    <div class="sticky top-0 z-30 bg-white border-b border-slate-200 flex items-stretch h-9 select-none">
+                                        <!-- Top-Left Corner: Sticky on both axes (top & left) with Diagonal Split (GUEST bottom-left, TIME top-right) -->
+                                        <div class="sticky left-0 z-40 bg-slate-50 w-[72px] shrink-0 border-r border-slate-200 relative select-none overflow-hidden before:content-[''] before:absolute before:right-full before:top-0 before:bottom-0 before:w-8 before:bg-slate-50">
+                                            <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                <line x1="0" y1="0" x2="100" y2="100" stroke="#cbd5e1" stroke-width="1.2" vector-effect="non-scaling-stroke" />
+                                            </svg>
+                                            <span class="absolute top-1 right-1.5 text-[8.5px] font-black text-slate-600 tracking-wider uppercase leading-none">TIME</span>
+                                            <span class="absolute bottom-1 left-1.5 text-[8.5px] font-black text-slate-600 tracking-wider uppercase leading-none">GUEST</span>
+                                        </div>
+                                        <!-- Time Track (Sticky at top) -->
+                                        <div class="flex-1 relative h-full flex items-end bg-slate-50/60">
+                                            @for($h = 0; $h <= 24; $h += 2)
+                                                <div class="absolute text-[10px] font-bold text-slate-500 {{ $h == 0 ? 'translate-x-1' : ($h == 24 ? '-translate-x-full -ml-1' : '-translate-x-1/2') }} bottom-1.5 tabular-nums whitespace-nowrap" style="left: {{ ($h / 24) * 100 }}%">
+                                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
+                                                </div>
+                                                @if($h < 24)
+                                                    <div class="absolute h-2 border-l border-slate-300 bottom-0" style="left: {{ ($h / 24) * 100 }}%"></div>
+                                                @endif
+                                            @endfor
+                                            <div class="absolute h-2 border-l border-slate-300 bottom-0" style="left: 100%"></div>
+                                        </div>
                                     </div>
 
                                     <!-- Gantt Rows -->
-                                    <div class="flex flex-col gap-1.5 relative">
-                                        <!-- Grid lines for background -->
-                                        <div class="absolute inset-0 ml-32 pointer-events-none flex">
+                                    <div class="relative divide-y divide-slate-100">
+                                        <!-- Grid lines for background (starts after left sticky column w-[72px]) -->
+                                        <div class="absolute inset-0 left-[72px] pointer-events-none flex">
                                             @for($h = 0; $h < 24; $h += 2)
                                                 <div class="flex-1 border-l border-dashed border-slate-100"></div>
                                             @endfor
@@ -551,24 +573,56 @@
                                                 $endMinOfDay = ($end->hour * 60) + $end->minute;
                                                 if ($endMinOfDay < $startMinOfDay) $endMinOfDay = 1440;
                                                 
+                                                $diffInMinutes = max(1, $start->diffInMinutes($end));
+                                                $hours = intdiv($diffInMinutes, 60);
+                                                $minutes = $diffInMinutes % 60;
+                                                $durationText = $log->time_elapsed ?: (($hours > 0 ? "{$hours}h " : "") . "{$minutes}m");
+                                                $isOverOneHour = ($diffInMinutes >= 60);
+                                                
                                                 $leftPct = ($startMinOfDay / 1440) * 100;
                                                 $widthPct = (($endMinOfDay - $startMinOfDay) / 1440) * 100;
+                                                $isNearRightEdge = (($leftPct + $widthPct) > 92);
+                                                $displayName = ($log->customer_name && !in_array($log->customer_name, ['Walk-in Guest', 'Walk-In Guest', 'Walk-in', 'Walk-In'])) ? $log->customer_name : __('Guest');
                                             @endphp
-                                            <div class="flex items-center group relative" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
-                                                <div class="w-32 shrink-0 pl-2 pr-2 text-left truncate">
-                                                    <div class="text-xs font-bold text-slate-700 truncate" title="{{ $log->customer_name }}">{{ $log->customer_name ?? 'Walk-in' }}</div>
-                                                    <div class="text-[10px] font-semibold text-slate-400">
-                                                        @if(!empty($log->table_number)) Tbl {{ $log->table_number }} @else - @endif
+                                            <div class="flex items-center group relative hover:bg-slate-50/50 transition" x-show="currentPage === Math.ceil(({{ $index }} + 1) / perPage)">
+                                                <!-- Left Sticky Column (Customer Name & Table Number: Left-Aligned & Crisp Black) -->
+                                                <div class="sticky left-0 z-20 bg-white group-hover:bg-slate-50 transition w-[72px] shrink-0 px-2 py-1 text-left truncate border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0] before:content-[''] before:absolute before:right-full before:top-0 before:bottom-0 before:w-8 before:bg-white group-hover:before:bg-slate-50">
+                                                    <div class="text-[11px] font-bold text-slate-900 truncate leading-tight" title="{{ $displayName }}">
+                                                        {{ $displayName }}
+                                                    </div>
+                                                    <div class="text-[10px] font-bold text-slate-900 truncate leading-tight mt-0.5">
+                                                        {{ $log->table_number ?: '-' }}
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="flex-1 h-8 relative bg-slate-50/50 rounded-lg hover:bg-slate-50 transition">
-                                                    <div class="absolute top-1.5 bottom-1.5 bg-slate-700 rounded-md border border-slate-800 shadow-sm flex items-center justify-center overflow-hidden group-hover:bg-slate-800 transition cursor-pointer"
-                                                         style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.5) }}%;"
-                                                         title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | {{ __('Elapsed') }}: {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}">
-                                                        @if($widthPct > 5)
-                                                            <span class="text-[10px] font-extrabold text-white truncate px-1">
-                                                                {{ $log->time_elapsed ?? $start->diffInMinutes($end).' min' }}
+                                                <!-- Gantt Bar Track (Scrollable) -->
+                                                <div class="flex-1 h-8 sm:h-9 relative px-0 py-1">
+                                                    <!-- Bar Wrapper positioned along the timeline -->
+                                                    <div class="absolute top-1 bottom-1 sm:top-1.5 sm:bottom-1.5 flex items-center"
+                                                         style="left: {{ $leftPct }}%; width: {{ max($widthPct, 0.6) }}%;">
+
+                                                        <!-- Outside Label on LEFT (if short bar < 1h AND near 24:00 right edge) -->
+                                                        @if(!$isOverOneHour && $isNearRightEdge)
+                                                            <span class="absolute right-full mr-1.5 text-[10px] font-extrabold text-slate-800 tabular-nums whitespace-nowrap select-none pointer-events-none">
+                                                                {{ $durationText }}
+                                                            </span>
+                                                        @endif
+
+                                                        <!-- The Colored Bar -->
+                                                        <div class="w-full h-full bg-slate-800 hover:bg-slate-900 rounded-md border border-slate-900 shadow-xs flex items-center justify-center overflow-hidden transition cursor-pointer relative"
+                                                             title="Start: {{ $start->format('H:i') }} | End: {{ $end->format('H:i') }} | {{ __('Elapsed') }}: {{ $durationText }}">
+                                                            <!-- Inside label if >= 1 hour -->
+                                                            @if($isOverOneHour)
+                                                                <span class="text-[10px] font-extrabold text-white truncate px-1.5 tabular-nums whitespace-nowrap">
+                                                                    {{ $durationText }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+
+                                                        <!-- Outside Label on RIGHT (if short bar < 1h AND NOT near right edge) -->
+                                                        @if(!$isOverOneHour && !$isNearRightEdge)
+                                                            <span class="absolute left-full ml-1.5 text-[10px] font-extrabold text-slate-800 tabular-nums whitespace-nowrap select-none pointer-events-none">
+                                                                {{ $durationText }}
                                                             </span>
                                                         @endif
                                                     </div>
@@ -597,11 +651,22 @@
                 @if(count($overallStats) > 0)
                       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
                           x-data="{
-                              perPage: 5,
-                              currentPage: 1,
+                              perPage: parseInt(localStorage.getItem('meja_db_per_page_overall')) || 5,
+                              currentPage: (function() {
+                                  const p = parseInt(localStorage.getItem('meja_db_page_overall'));
+                                  return (p && p > 0) ? p : 1;
+                              })(),
                               totalRecords: {{ count($overallStats) }},
                               get totalPages() {
                                   return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                              },
+                              init() {
+                                  if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                                  this.$watch('currentPage', val => localStorage.setItem('meja_db_page_overall', val));
+                                  this.$watch('perPage', val => {
+                                      localStorage.setItem('meja_db_per_page_overall', val);
+                                      if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                                  });
                               },
                               nextPage() {
                                   if (this.currentPage < this.totalPages) this.currentPage++;
@@ -690,9 +755,9 @@
                                   <thead>
                                       <tr class="bg-slate-50 border-b border-slate-200/80">
                                           <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Outlet Name</th>
-                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Recorded on {{ $dateFilter }}">Day Visitors</th>
-                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="{{ \Carbon\Carbon::parse($monthFilter)->format('F Y') }}">Month Visitors</th>
-                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Year {{ $yearFilter }}">Year Visitors</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Recorded on {{ $dateFilter }}">Day Visitors ({{ \Carbon\Carbon::parse($dateFilter)->format('d M Y') }})</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="{{ \Carbon\Carbon::parse($dateFilter)->format('F Y') }}">Month Visitors ({{ \Carbon\Carbon::parse($dateFilter)->format('M Y') }})</th>
+                                          <th class="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right" title="Year {{ \Carbon\Carbon::parse($dateFilter)->format('Y') }}">Year Visitors ({{ \Carbon\Carbon::parse($dateFilter)->format('Y') }})</th>
                                       </tr>
                                   </thead>
                                   <tbody class="divide-y divide-slate-100">
@@ -909,11 +974,22 @@
         @elseif ($viewMode === 'waitlist' && Auth::user()->hasPermission('rep_waitlist'))
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
                 x-data="{
-                    perPage: 5,
-                    currentPage: 1,
+                    perPage: parseInt(localStorage.getItem('meja_db_per_page_waitlist')) || 5,
+                    currentPage: (function() {
+                        const p = parseInt(localStorage.getItem('meja_db_page_waitlist'));
+                        return (p && p > 0) ? p : 1;
+                    })(),
                     totalRecords: {{ count($waitlists) }},
                     get totalPages() {
                         return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                    },
+                    init() {
+                        if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        this.$watch('currentPage', val => localStorage.setItem('meja_db_page_waitlist', val));
+                        this.$watch('perPage', val => {
+                            localStorage.setItem('meja_db_per_page_waitlist', val);
+                            if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        });
                     },
                     nextPage() {
                         if (this.currentPage < this.totalPages) this.currentPage++;
@@ -1020,7 +1096,7 @@
                                     x-cloak>
                                     <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-900">#{{ $w->id }}</td>
                                     <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-900">
-                                        {{ $w->customer_name ?? __('Walk-in Guest') }}</td>
+                                        {{ ($w->customer_name && !in_array($w->customer_name, ['Walk-in Guest', 'Walk-In Guest', 'Walk-in', 'Walk-In'])) ? $w->customer_name : __('Guest') }}</td>
                                     <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $w->phone ?? '-' }}</td>
                                     <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-800">{{ $w->pax }} Pax</td>
                                     <td class="py-2.5 px-3 sm:px-4">
@@ -1097,11 +1173,22 @@
         <!-- VISITOR DINING LOG ENTRIES (With Dropdown Per-Page 10, 25, 50, 100 & Numbered Pagination) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft-xs overflow-hidden"
             x-data="{
-                perPage: 5,
-                currentPage: 1,
+                perPage: parseInt(localStorage.getItem('meja_db_per_page_{{ $viewMode }}')) || 5,
+                currentPage: (function() {
+                    const p = parseInt(localStorage.getItem('meja_db_page_{{ $viewMode }}'));
+                    return (p && p > 0) ? p : 1;
+                })(),
                 totalRecords: {{ count($logs) }},
                 get totalPages() {
                     return Math.max(1, Math.ceil(this.totalRecords / this.perPage));
+                },
+                init() {
+                    if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                    this.$watch('currentPage', val => localStorage.setItem('meja_db_page_{{ $viewMode }}', val));
+                    this.$watch('perPage', val => {
+                        localStorage.setItem('meja_db_per_page_{{ $viewMode }}', val);
+                        if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                    });
                 },
                 nextPage() {
                     if (this.currentPage < this.totalPages) this.currentPage++;
@@ -1211,7 +1298,7 @@
                                 x-cloak>
                                 <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-900">#{{ $log->id }}</td>
                                 <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-900">
-                                    {{ $log->customer_name ?? __('Walk-in Guest') }}</td>
+                                    {{ ($log->customer_name && !in_array($log->customer_name, ['Walk-in Guest', 'Walk-In Guest', 'Walk-in', 'Walk-In'])) ? $log->customer_name : __('Guest') }}</td>
                                 <td class="py-2.5 px-3 sm:px-4 text-slate-600">{{ $log->phone ?? '-' }}</td>
                                 <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-800">{{ $log->pax }} Pax</td>
                                 <td class="py-2.5 px-3 sm:px-4 text-slate-500 tabular-nums">

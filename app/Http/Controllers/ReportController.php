@@ -19,9 +19,31 @@ class ReportController extends Controller
             abort(403);
         }
 
+        $permissionMap = [
+            'overall'  => 'rep_overall',
+            'hourly'   => 'rep_daily',
+            'weekly'   => 'rep_weekly',
+            'daily'    => 'rep_monthly',
+            'monthly'  => 'rep_yearly',
+            'habits'   => 'rep_habits',
+            'waitlist' => 'rep_waitlist'
+        ];
+
+        // If no view specified, restore user's last visited query where they left off
+        if (!$request->has('view')) {
+            $savedQuery = session('last_database_query');
+            if ($savedQuery) {
+                parse_str($savedQuery, $parsedQuery);
+                $savedView = $parsedQuery['view'] ?? null;
+                if ($savedView && isset($permissionMap[$savedView]) && $user->hasPermission($permissionMap[$savedView])) {
+                    return redirect('/database?' . $savedQuery);
+                }
+            }
+        }
+
         $viewMode = $request->input('view');
 
-        // If no view specified, pick highest allowed default
+        // If still no view specified, pick highest allowed default
         if (!$viewMode) {
             if ($user->hasPermission('rep_overall')) {
                 $viewMode = 'overall';
@@ -42,17 +64,6 @@ class ReportController extends Controller
             }
         }
 
-        // Enforce permissions for the chosen viewMode
-        $permissionMap = [
-            'overall'  => 'rep_overall',
-            'hourly'   => 'rep_daily',
-            'weekly'   => 'rep_weekly',
-            'daily'    => 'rep_monthly',
-            'monthly'  => 'rep_yearly',
-            'habits'   => 'rep_habits',
-            'waitlist' => 'rep_waitlist'
-        ];
-
         if (isset($permissionMap[$viewMode]) && !$user->hasPermission($permissionMap[$viewMode])) {
             // Redirect to a safe allowed view if they typed a URL they lack permission for
             if ($user->hasPermission('rep_daily')) {
@@ -69,25 +80,33 @@ class ReportController extends Controller
             abort(403);
         }
 
+        // Remember the current view & query in session
+        if ($request->has('view')) {
+            session(['last_database_query' => $request->getQueryString()]);
+        }
+
         $dateFilter = $request->input('date');
         if ($dateFilter) {
             session(['dateFilter_'.$viewMode => $dateFilter]);
+            session(['last_dateFilter' => $dateFilter]);
         } else {
-            $dateFilter = session('dateFilter_'.$viewMode, now()->format('Y-m-d'));
+            $dateFilter = session('dateFilter_'.$viewMode, session('last_dateFilter', now()->format('Y-m-d')));
         }
 
         $monthFilter = $request->input('month');
         if ($monthFilter) {
             session(['monthFilter_'.$viewMode => $monthFilter]);
+            session(['last_monthFilter' => $monthFilter]);
         } else {
-            $monthFilter = session('monthFilter_'.$viewMode, now()->format('Y-m'));
+            $monthFilter = session('monthFilter_'.$viewMode, session('last_monthFilter', now()->format('Y-m')));
         }
 
         $yearFilter = $request->input('year');
         if ($yearFilter) {
             session(['yearFilter_'.$viewMode => $yearFilter]);
+            session(['last_yearFilter' => $yearFilter]);
         } else {
-            $yearFilter = session('yearFilter_'.$viewMode, now()->format('Y'));
+            $yearFilter = session('yearFilter_'.$viewMode, session('last_yearFilter', now()->format('Y')));
         }
 
         $parsedMonth  = Carbon::parse($monthFilter);
@@ -204,17 +223,29 @@ class ReportController extends Controller
             $dateParsed = \Carbon\Carbon::parse($dateFilter);
             $year = $dateParsed->year;
 
-            // 1. Fetch Holiday Data
+            // 1. Fetch Holiday Data (Safe and Cached)
             $cacheKey = "holidays_{$year}";
             $holidaysData = Cache::remember($cacheKey, 86400, function () use ($year) {
-                $response = \Illuminate\Support\Facades\Http::get("https://tanggalmerah.upset.dev/api/holidays?year={$year}");
-                return $response->successful() ? $response->json() : null;
+                try {
+                    $response = \Illuminate\Support\Facades\Http::timeout(3)
+                        ->withHeaders([
+                            'User-Agent' => 'Meja-O-App/1.0 (Windows NT 10.0; Win64; x64)',
+                            'Accept' => 'application/json',
+                        ])
+                        ->withoutVerifying()
+                        ->get("https://tanggalmerah.upset.dev/api/holidays?year={$year}");
+
+                    return ($response && $response->successful()) ? $response->json() : null;
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to fetch holidays for year {$year}: " . $e->getMessage());
+                    return null;
+                }
             });
             
-            if ($holidaysData && $holidaysData['success']) {
+            if ($holidaysData && isset($holidaysData['success']) && $holidaysData['success'] && isset($holidaysData['data']) && is_array($holidaysData['data'])) {
                 foreach ($holidaysData['data'] as $item) {
-                    if ($item['date'] === $dateFilter) {
-                        $holidayName = $item['name'];
+                    if (isset($item['date']) && $item['date'] === $dateFilter) {
+                        $holidayName = $item['name'] ?? null;
                         // the API usually doesn't have type 'collective_leave' but lets assume if it contains 'Cuti Bersama'
                         $holidayType = (isset($item['type']) && $item['type'] === 'leave') ? 'Collective Leave' : 'National Holiday';
                         break;
@@ -425,7 +456,7 @@ class ReportController extends Controller
                 foreach ($logs as $log) {
                     fputcsv($file, [
                         $log->id,
-                        $log->customer_name ?? 'Walk-in Guest',
+                        ($log->customer_name && !in_array($log->customer_name, ['Walk-in Guest', 'Walk-In Guest', 'Walk-in', 'Walk-In'])) ? $log->customer_name : 'Guest',
                         $log->phone ?? '-',
                         $log->pax,
                         $log->started_at ? Carbon::parse($log->started_at)->format('d-m-Y H:i:s') : '-',

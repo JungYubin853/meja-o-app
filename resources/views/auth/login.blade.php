@@ -116,6 +116,15 @@
         </form>
 
         <script>
+            // Reset table pagination and rows-per-page to default 5 upon reaching the login screen
+            try {
+                Object.keys(localStorage).forEach(function(k) {
+                    if (k.startsWith('meja_db_') || k.startsWith('meja_profile_') || k.startsWith('meja_account_') || k.startsWith('meja_last_')) {
+                        localStorage.removeItem(k);
+                    }
+                });
+            } catch (e) {}
+
             document.getElementById('loginForm').addEventListener('submit', function() {
                 document.getElementById('real_email').value = document.getElementById('display_email').value;
                 document.getElementById('real_password').value = document.getElementById('display_password').value;

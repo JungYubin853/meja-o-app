@@ -31,7 +31,20 @@ class TableController extends Controller
 
         $selectedOutletId = $outletId;
         if ($user && $user->isSuperAdmin()) {
-            $selectedOutletId = request('outlet_id') ?: ($outlets->first()->id ?? null);
+            $sessionOutletId = session('selected_outlet_id');
+            $requestedOutletId = request('outlet_id');
+            if ($requestedOutletId && \App\Models\Outlet::find($requestedOutletId)) {
+                $selectedOutletId = (int) $requestedOutletId;
+                session(['selected_outlet_id' => $selectedOutletId]);
+            } elseif ($sessionOutletId && \App\Models\Outlet::find($sessionOutletId)) {
+                $selectedOutletId = (int) $sessionOutletId;
+            } else {
+                $firstOutlet = $outlets->first();
+                $selectedOutletId = $firstOutlet ? $firstOutlet->id : null;
+                if ($selectedOutletId) {
+                    session(['selected_outlet_id' => $selectedOutletId]);
+                }
+            }
         }
 
         // Retrieve floors for this outlet (auto-create default Lantai 1 if none exists)
@@ -165,7 +178,7 @@ class TableController extends Controller
             'outlet_id'     => $table->outlet_id,
             'table_id'      => $table->id,
             'table_number'  => $table->table_number ?: null,
-            'customer_name' => 'Walk-in Guest',
+            'customer_name' => 'Guest',
             'phone'         => '-',
             'pax'           => $paxCount,
             'started_at'    => now(),
@@ -184,7 +197,7 @@ class TableController extends Controller
             'outlet_id'     => 'nullable|exists:outlets,id',
         ]);
 
-        $customerName = $request->input('customer_name') ?: 'Walk-in Guest';
+        $customerName = $request->input('customer_name') ?: 'Guest';
         $outletId = $request->input('outlet_id') ?: (Auth::check() ? Auth::user()->outlet_id : null);
         
         // Fallback for Super Admins if no outlet_id is passed and their own is null
@@ -413,8 +426,8 @@ class TableController extends Controller
             'table_number' => 'nullable|string|max:50',
             'capacity'     => 'nullable|integer|min:0',
             'shape'        => 'required|in:square,circle,triangle',
-            'width'        => 'required|integer|min:1|max:4',
-            'height'       => 'required|integer|min:1|max:4',
+            'width'        => 'required|integer|min:1|max:10',
+            'height'       => 'required|integer|min:1|max:10',
             'outlet_id'    => 'nullable|exists:outlets,id',
             'floor_id'     => 'nullable|exists:floors,id',
         ]);
@@ -495,8 +508,8 @@ class TableController extends Controller
     public function updateGridSize(Request $request)
     {
         $request->validate([
-            'grid_width'        => 'required|integer|min:0|max:40',
-            'grid_height'       => 'required|integer|min:0|max:40',
+            'grid_width'        => 'required|integer|min:0|max:50',
+            'grid_height'       => 'required|integer|min:0|max:50',
             'grid_sections'     => 'nullable|string',
             'section_templates' => 'nullable|string',
             'outlet_id'         => 'nullable|exists:outlets,id',
@@ -567,8 +580,8 @@ class TableController extends Controller
             'name'         => 'required|string|max:100',
             'floor_number' => 'nullable|integer',
             'outlet_id'    => 'nullable|exists:outlets,id',
-            'grid_width'   => 'nullable|integer|min:0|max:40',
-            'grid_height'  => 'nullable|integer|min:0|max:40',
+            'grid_width'   => 'nullable|integer|min:0|max:50',
+            'grid_height'  => 'nullable|integer|min:0|max:50',
         ]);
 
         $outletId = $request->input('outlet_id') ?: $user->outlet_id;
@@ -614,8 +627,8 @@ class TableController extends Controller
         $request->validate([
             'name'         => 'required|string|max:100',
             'floor_number' => 'required|integer',
-            'grid_width'   => 'nullable|integer|min:0|max:40',
-            'grid_height'  => 'nullable|integer|min:0|max:40',
+            'grid_width'   => 'nullable|integer|min:0|max:50',
+            'grid_height'  => 'nullable|integer|min:0|max:50',
         ]);
 
         $data = [
@@ -699,7 +712,7 @@ class TableController extends Controller
             'outlet_id'     => $table->outlet_id,
             'table_id'      => $table->id,
             'table_number'  => $table->table_number ?: null,
-            'customer_name' => $request->input('customer_name', 'Walk-in Guest'),
+            'customer_name' => $request->input('customer_name', 'Guest'),
             'pax'           => $pax,
             'started_at'    => now(),
         ]);

@@ -116,7 +116,7 @@
                 <div x-show="feedbackMsg" x-cloak class="text-xs font-semibold text-slate-500 py-1" x-text="feedbackMsg"></div>
 
                 <!-- Log Out Button -->
-                <form action="/logout" method="POST" class="w-full m-0 p-0">
+                <form action="/logout" method="POST" class="w-full m-0 p-0" onsubmit="try { Object.keys(localStorage).forEach(k => { if(k.startsWith('meja_db_') || k.startsWith('meja_profile_') || k.startsWith('meja_account_') || k.startsWith('meja_last_')) localStorage.removeItem(k); }); } catch(e) {}">
                     @csrf
                     <button type="submit"
                         class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2">

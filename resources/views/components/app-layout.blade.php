@@ -142,6 +142,7 @@
                             <!-- 3. Reports & Database Link -->
                             @if (Auth::user()->hasPermission('nav_reports'))
                                 <a href="/database"
+                                    onclick="const u = localStorage.getItem('meja_last_database_url'); if(u && u.includes('/database?view=')) { window.location.href = u; return false; }"
                                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('database*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                     <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('database*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,6 +344,7 @@
                             <!-- 3. Reports & Database Link -->
                             @if (Auth::user()->hasPermission('nav_reports'))
                                 <a href="/database"
+                                    onclick="const u = localStorage.getItem('meja_last_database_url'); if(u && u.includes('/database?view=')) { window.location.href = u; return false; }"
                                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition {{ request()->is('database*') ? 'bg-amber-50 text-amber-900 border border-amber-200/80 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                                     <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {{ request()->is('database*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 text-slate-600' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -526,7 +528,7 @@
                         class="w-1/2 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
                         {{ __('Cancel') }}
                     </button>
-                    <form action="/logout" method="POST" class="w-1/2 m-0">
+                    <form action="/logout" method="POST" class="w-1/2 m-0" onsubmit="try { Object.keys(localStorage).forEach(k => { if(k.startsWith('meja_db_') || k.startsWith('meja_profile_') || k.startsWith('meja_account_') || k.startsWith('meja_last_')) localStorage.removeItem(k); }); } catch(e) {}">
                         @csrf
                         <button type="submit"
                             class="w-full py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition">

@@ -128,11 +128,19 @@
 
             @if (Auth::user()->hasPermission('acc_user_list') || Auth::user()->hasPermission('nav_account_mgmt') || Auth::user()->hasPermission('nav_approval'))
                 <div class="flex-1 min-w-0 w-full max-w-full flex flex-col gap-4" x-data="{
-                    currentPage: 1,
-                    perPage: 5,
+                    currentPage: (function() { const p = parseInt(localStorage.getItem('meja_account_page')); return (p && p > 0) ? p : 1; })(),
+                    perPage: parseInt(localStorage.getItem('meja_account_per_page')) || 5,
                     compactView: true,
                     compactOutlet: true,
                     showColumnModal: false,
+                    init() {
+                        if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        this.$watch('currentPage', val => localStorage.setItem('meja_account_page', val));
+                        this.$watch('perPage', val => {
+                            localStorage.setItem('meja_account_per_page', val);
+                            if (this.currentPage > this.totalPages) this.currentPage = Math.max(1, this.totalPages);
+                        });
+                    },
                     cols: {
                         user: {{ Auth::user()->hasPermission('acc_col_user') ? 'true' : 'false' }},
                         outlet: {{ Auth::user()->hasPermission('acc_col_outlet') ? 'true' : 'false' }},
