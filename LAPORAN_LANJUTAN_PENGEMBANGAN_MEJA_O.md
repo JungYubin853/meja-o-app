@@ -43,10 +43,14 @@ Selain menuntaskan poin tertunda tersebut, tim pengembang juga telah mengimpleme
 
 ### III. RINCIAN TEKNIS IMPLEMENTASI PEMBARUAN
 
-#### 1. Penuntasan Indikator Waktu Duduk Meja di Dashboard (*Elapsed Seating Timer Badge*) — **STATUS: DONE**
+#### 1. Penuntasan Indikator Waktu Duduk Meja di Dashboard (*Elapsed Seating Timer Badge*) & Tipografi Responsif — **STATUS: DONE**
 * **Implementasi:**
   - Ditambahkan lencana waktu dinamis di atas unit meja yang sedang berstatus terisi (*Occupied*).
-  - Durasi dihitung secara langsung berdasarkan `seated_at` dengan format yang ringkas dan mudah dibaca secara sekilas (contoh: `15m`, `45m`, `1h 20m`).
+  - Durasi dihitung secara langsung berdasarkan `seated_at` dengan format yang ringkas dan mudah dibaca secara sekilas (contoh: `15m`, `45m`, `1h 20m`, `00:00`).
+  - **Tipografi Responsif Terhadap Ukuran Meja (*Container-Query Scaling*):**
+    - Menggunakan *CSS Container Queries* (`container-type: size`) sehingga teks Nomor Meja dan Waktu Sesi (00:00) membesar secara otomatis dan proporsional seiring membesarnya ukuran meja (misal meja 1×1 berukuran ~11px, meja 2×2 ~18px, meja 3×3 ~27px).
+    - Teks tetap nyaman dan jelas terbaca dari kejauhan pada meja berdimensi besar tanpa terlihat terlalu kecil (*uncomfortable*).
+    - Mendukung penyesuaian ukuran font secara instan (*real-time*) saat administrator melakukan *drag-to-resize* pada meja.
   - Tampilan dirancang kontras dan adaptif untuk perangkat mobile maupun layar desktop, membantu *floor captain* dan pelayan mengantisipasi *turnover* meja lebih dini.
 
 ---

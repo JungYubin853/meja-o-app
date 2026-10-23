@@ -1371,15 +1371,19 @@
                                         grid-row: {{ $table->grid_y }} / span {{ $tableSpanH }};
                                         width: calc(({{ $tableSpanW }} * 38px) + (({{ $tableSpanW }} - 1) * 2px));
                                         height: calc(({{ $tableSpanH }} * 38px) + (({{ $tableSpanH }} - 1) * 2px));
-                                        @if ($table->shape === 'triangle') clip-path: polygon(50% 0%, 0% 100%, 100% 100%); padding-top: 12px; @endif
+                                        container-type: size;
+                                        @if ($table->shape === 'triangle') clip-path: polygon(50% 0%, 0% 100%, 100% 100%); padding-top: clamp(10px, 22cqmin, 36px); @endif
                                      ">
 
-                                        <div class="text-center pointer-events-none px-1 flex flex-col items-center justify-center">
-                                            <p class="text-[11px] font-extrabold tracking-tight leading-none text-white drop-shadow"
+                                        <div class="text-center pointer-events-none px-1 flex flex-col items-center justify-center max-w-full"
+                                            style="gap: clamp(2px, 3cqmin, 8px);">
+                                            <p class="font-extrabold tracking-tight leading-none text-white drop-shadow truncate max-w-full"
+                                                style="font-size: clamp(11px, 23cqmin, 38px);"
                                                 x-text="liveTables[{{ $table->id }}]?.table_number || '{{ $table->table_number ?: '—' }}'">
                                             </p>
                                             <template x-if="(liveTables[{{ $table->id }}]?.status || '{{ $table->status }}') === 'occupied'">
-                                                <p class="text-[11px] font-bold text-rose-200 tracking-tight leading-none mt-1 drop-shadow tabular-nums"
+                                                <p class="font-bold text-rose-200 tracking-tight leading-none drop-shadow tabular-nums truncate max-w-full"
+                                                    style="font-size: clamp(10px, 16.5cqmin, 26px);"
                                                     x-text="getTableElapsedTime({{ $table->id }}, '{{ $table->seated_time ? \Carbon\Carbon::parse($table->seated_time)->toIso8601String() : '' }}')">
                                                 </p>
                                             </template>
